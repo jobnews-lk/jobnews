@@ -1,0 +1,65 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Landmark, ArrowLeft } from 'lucide-react';
+import { supabase, type Job } from '../lib/supabase';
+import LatestJobFeed from '../components/LatestJobFeed';
+
+export default function GovernmentJobs() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase
+        .from('jobs')
+        .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
+        .eq('is_government', true)
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+      if (data) setJobs(data as Job[]);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  return (
+    <div className="py-10 px-4">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-blue-600 mb-3 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Home
+          </Link>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+              <Landmark className="w-5 h-5 text-blue-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900">Government Jobs</h1>
+          </div>
+          <p className="text-slate-500">Public sector and civil service vacancy announcements</p>
+        </div>
+
+        <div className="mb-4 text-sm text-slate-500">
+          {loading ? 'Loading notices...' : `${jobs.length} notice${jobs.length !== 1 ? 's' : ''} found`}
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 animate-pulse">
+                <div className="h-8 w-full bg-slate-200 rounded mb-3" />
+                <div className="h-4 w-2/3 bg-slate-200 rounded mb-2" />
+                <div className="h-4 w-1/2 bg-slate-200 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+            <p className="text-lg font-medium text-slate-500 dark:text-slate-400">No government job notices currently available.</p>
+          </div>
+        ) : (
+          <LatestJobFeed jobs={jobs} />
+        )}
+      </div>
+    </div>
+  );
+}
