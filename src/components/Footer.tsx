@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Newspaper, ArrowRight } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Footer() {
+  const { user } = useAuth();
+
   return (
     <footer className="bg-slate-900 dark:bg-black text-slate-300 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -33,7 +36,9 @@ export default function Footer() {
             <div className="flex flex-col gap-2.5">
               <Link to="/privacy-policy" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Privacy Policy</Link>
               <Link to="/terms" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Terms & Disclaimer</Link>
-              <Link to="/admin/login" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1 mt-2 pt-2 border-t border-slate-800">Admin Dashboard</Link>
+              {user && (
+                <Link to="/admin/login" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1 mt-2 pt-2 border-t border-slate-800">Admin Dashboard</Link>
+              )}
             </div>
           </div>
         </div>
