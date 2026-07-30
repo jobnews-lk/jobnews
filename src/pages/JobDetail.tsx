@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { supabase, type Job } from '../lib/supabase';
+import SaveJobButton from '../components/SaveJobButton';
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
@@ -92,9 +93,12 @@ export default function JobDetail() {
   return (
     <div className="py-10 px-4">
       <div className="max-w-4xl mx-auto">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </button>
+        <div className="flex justify-between items-center mb-6">
+          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </button>
+          <SaveJobButton jobId={job.id} />
+        </div>
 
         {/* Thumbnail / Hero Image */}
         {allImages.length > 0 && (

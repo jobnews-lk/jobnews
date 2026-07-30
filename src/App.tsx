@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
 import JobDetail from './pages/JobDetail';
+import SavedJobs from './pages/SavedJobs';
 import GovernmentJobs from './pages/GovernmentJobs';
 import PrivateJobs from './pages/PrivateJobs';
 import OverseasJobs from './pages/OverseasJobs';
@@ -33,6 +34,7 @@ function App() {
             <Route index element={<Home />} />
             <Route path="jobs" element={<Jobs />} />
             <Route path="jobs/:id" element={<JobDetail />} />
+            <Route path="saved-jobs" element={<SavedJobs />} />
             <Route path="government-jobs" element={<GovernmentJobs />} />
             <Route path="private-jobs" element={<PrivateJobs />} />
             <Route path="overseas-jobs" element={<OverseasJobs />} />

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon } from 'lucide-react';
+import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -30,13 +30,20 @@ export default function Navbar() {
     <nav className={`bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2.5 text-slate-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-400 transition-colors">
-            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Newspaper className="w-5 h-5 text-white" />
+          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg shadow-blue-500/20">
+              <Briefcase className="w-5 h-5 text-white" strokeWidth={2.2} />
+              <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm">
+                <Search className="w-3 h-3 text-white" strokeWidth={3} />
+              </div>
             </div>
-            <div className="leading-tight">
-              <span className="text-lg font-bold tracking-tight">JobNews</span>
-              <span className="block text-[10px] text-slate-400 font-medium tracking-wider uppercase">Vacancy Announcements</span>
+            <div className="flex flex-col justify-center">
+              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+                JobNews<span className="text-blue-600 dark:text-blue-400">.lk</span>
+              </span>
+              <span className="text-[8.5px] text-slate-500 dark:text-slate-400 font-bold tracking-[0.2em] uppercase mt-1 leading-none">
+                Your Career, Our Mission
+              </span>
             </div>
           </Link>
           <div className="hidden md:flex items-center gap-6">
@@ -45,14 +52,17 @@ export default function Navbar() {
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas</Link>
+            <Link to="/saved-jobs" className={navLinkClass('/saved-jobs')}>Saved Jobs</Link>
             <Link to="/about" className={navLinkClass('/about')}>About</Link>
             <Link to="/contact" className={navLinkClass('/contact')}>Contact</Link>
-            <Link
-              to="/admin"
-              className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${location.pathname.startsWith('/admin') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400'}`}
-            >
-              <Shield className="w-3.5 h-3.5" /> Dashboard
-            </Link>
+            {user && (
+              <Link
+                to="/admin"
+                className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${location.pathname.startsWith('/admin') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400'}`}
+              >
+                <Shield className="w-3.5 h-3.5" /> Dashboard
+              </Link>
+            )}
             {user && !isAdmin && (
               <button
                 onClick={() => signOut()}
@@ -90,9 +100,14 @@ export default function Navbar() {
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government Jobs</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas Jobs</Link>
+            <Link to="/saved-jobs" className={navLinkClass('/saved-jobs')}>Saved Jobs</Link>
             <Link to="/about" className={navLinkClass('/about')}>About</Link>
             <Link to="/contact" className={navLinkClass('/contact')}>Contact</Link>
-            <Link to="/admin" className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${location.pathname.startsWith('/admin') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>Dashboard</Link>
+            {user && (
+              <Link to="/admin" className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${location.pathname.startsWith('/admin') ? 'text-blue-600' : 'text-slate-600 hover:text-blue-600'}`}>
+                <Shield className="w-3.5 h-3.5" /> Dashboard
+              </Link>
+            )}
             {user && (
               <button onClick={() => signOut()} className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 text-left">
                 <LogOut className="w-3.5 h-3.5" /> Logout

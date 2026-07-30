@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Building2, Calendar, Clock, Globe, Landmark, Type, ExternalLink, Mail, Phone, MapPin as MapPinIcon, ChevronRight, ImageIcon } from 'lucide-react';
 import type { Job } from '../lib/supabase';
 import { Badge } from './NoticeBadge';
+import SaveJobButton from './SaveJobButton';
 
 interface TextNoticeCardProps {
   job: Job;
@@ -25,7 +26,10 @@ export default function TextNoticeCard({ job }: TextNoticeCardProps) {
           {job.is_overseas && <Badge icon={<Globe className="w-3 h-3" />} text="Overseas" color="teal" />}
           <Badge icon={<Type className="w-3 h-3" />} text="Text Notice" color="slate" />
         </div>
-        <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug mb-2">{job.title}</h3>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug">{job.title}</h3>
+          <SaveJobButton jobId={job.id} className="shrink-0 -mt-1 -mr-1" />
+        </div>
         <div className="flex items-center gap-2 text-xs md:text-sm text-slate-500 dark:text-slate-400 mb-3">
           <Building2 className="w-3.5 h-3.5" />
           <span className="font-medium text-slate-700 dark:text-slate-300">{job.company}</span>

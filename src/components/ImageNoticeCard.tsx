@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Calendar, Clock, Globe, Landmark, ChevronLeft, ChevronRight, X, ZoomIn, ImageIcon, ExternalLink, MapPin as MapPinIcon } from 'lucide-react';
 import type { Job } from '../lib/supabase';
 import { Badge } from './NoticeBadge';
+import SaveJobButton from './SaveJobButton';
 
 interface ImageNoticeCardProps {
   job: Job;
@@ -84,7 +85,10 @@ export default function ImageNoticeCard({ job }: ImageNoticeCardProps) {
           {job.is_overseas && <Badge icon={<Globe className="w-3 h-3" />} text="Overseas" color="teal" />}
           <Badge icon={<ImageIcon className="w-3 h-3" />} text="Image Notice" color="emerald" />
         </div>
-        <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug mb-2">{job.title}</h3>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug">{job.title}</h3>
+          <SaveJobButton jobId={job.id} className="shrink-0 -mt-1 -mr-1" />
+        </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs md:text-sm text-slate-500 dark:text-slate-400 mb-4">
           <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {job.countries?.name || job.location || 'N/A'}</span>
           <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Posted {new Date(job.posted_date).toLocaleDateString()}</span>

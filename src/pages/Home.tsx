@@ -134,8 +134,14 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 text-white py-14 md:py-20 px-4">
-        <div className="max-w-5xl mx-auto text-center">
+      <section className="relative overflow-hidden bg-blue-900 text-white py-14 md:py-20 px-4">
+        {/* Vibrant Blended Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900"></div>
+        <div className="absolute top-[-50%] left-[-20%] w-[100%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-400/30 via-blue-600/10 to-transparent blur-3xl opacity-70"></div>
+        <div className="absolute bottom-[-50%] right-[-20%] w-[100%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-300/20 via-transparent to-transparent blur-3xl opacity-60"></div>
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-300/10 rounded-full blur-[100px]"></div>
+        
+        <div className="relative max-w-5xl mx-auto text-center z-10">
           <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Newspaper className="w-4 h-4" />
             <span>Official Job Vacancy Announcements</span>

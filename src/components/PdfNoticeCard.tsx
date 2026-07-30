@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Calendar, Clock, Globe, Landmark, FileText, X, Eye, Download, ExternalLink, ChevronRight, Mail, Phone, MapPin as MapPinIcon } from 'lucide-react';
 import type { Job } from '../lib/supabase';
 import { Badge } from './NoticeBadge';
+import SaveJobButton from './SaveJobButton';
 
 interface PdfNoticeCardProps {
   job: Job;
@@ -37,7 +38,10 @@ export default function PdfNoticeCard({ job }: PdfNoticeCardProps) {
           {job.is_overseas && <Badge icon={<Globe className="w-3 h-3" />} text="Overseas" color="teal" />}
           <Badge icon={<FileText className="w-3 h-3" />} text="PDF Notice" color="red" />
         </div>
-        <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug mb-3">{job.title}</h3>
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug">{job.title}</h3>
+          <SaveJobButton jobId={job.id} className="shrink-0 -mt-1 -mr-1" />
+        </div>
 
         {/* PDF Preview Card */}
         <div className="flex items-center gap-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/30 p-3 mb-4">
