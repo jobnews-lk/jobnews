@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import Jobs from './pages/Jobs';
@@ -43,7 +43,7 @@ function App() {
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="terms" element={<Terms />} />
             <Route path="admin/login" element={<AdminLogin />} />
-            <Route path="admin/signup" element={<AdminSignup />} />
+            <Route path="admin/signup" element={<Navigate to="/admin/login" replace />} />
             <Route path="admin/forgot-password" element={<AdminForgotPassword />} />
             <Route path="admin/reset-password" element={<AdminResetPassword />} />
             <Route path="admin" element={<AdminEntry />} />

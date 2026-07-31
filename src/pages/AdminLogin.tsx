@@ -94,12 +94,6 @@ export default function AdminLogin() {
             <button type="button" onClick={() => navigate('/admin/forgot-password')} className="text-blue-600 hover:text-blue-700 font-medium">
               Forgot password?
             </button>
-            <span className="text-slate-500">
-              No account?{' '}
-              <button type="button" onClick={() => navigate('/admin/signup')} className="text-blue-600 hover:text-blue-700 font-medium">
-                Sign Up
-              </button>
-            </span>
           </div>
         </form>
       </div>
