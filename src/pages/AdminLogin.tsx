@@ -1,8 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Shield, Eye, EyeOff, KeyRound, QrCode } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+
+function parseQrSvg(qr: string): string {
+  if (!qr) return '';
+  let svg = qr;
+  if (svg.startsWith('data:image/svg+xml;utf-8,')) {
+    svg = decodeURIComponent(svg.replace('data:image/svg+xml;utf-8,', ''));
+  } else if (svg.startsWith('data:image/svg+xml;base64,')) {
+    try {
+      svg = atob(svg.split(',')[1]);
+    } catch {
+      // ignore
+    }
+  }
+  
+  return svg.replace(/<svg([^>]*)>/i, (match, group) => {
+    let cleanGroup = group;
+    
+    // Extract original width and height if present
+    const widthMatch = group.match(/\swidth=["']([^"']*)["']/i);
+    const heightMatch = group.match(/\sheight=["']([^"']*)["']/i);
+    const hasViewBox = group.match(/\sviewBox=["'][^"']*["']/i);
+    
+    let w = widthMatch ? widthMatch[1].replace(/px/g, '') : '';
+    let h = heightMatch ? heightMatch[1].replace(/px/g, '') : '';
+    
+    // Remove existing width, height, and style to avoid conflicts
+    cleanGroup = cleanGroup
+      .replace(/\s(width|height)=["'][^"']*["']/gi, '')
+      .replace(/\sstyle=["'][^"']*["']/gi, '');
+      
+    // If no viewBox but we had width and height, add a computed viewBox!
+    // This is crucial for SVGs with absolute inner paths (like those from Supabase auth)
+    if (!hasViewBox && w && h) {
+      cleanGroup += ` viewBox="0 0 ${w} ${h}"`;
+    }
+      
+    // Add our own responsive properties
+    if (!cleanGroup.includes('preserveAspectRatio')) {
+      cleanGroup += ' preserveAspectRatio="xMidYMid meet"';
+    }
+    
+    return `<svg${cleanGroup} style="width: 100%; height: 100%; display: block;">`;
+  });
+}
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -14,6 +58,7 @@ export default function AdminLogin() {
   // 2FA state
   const [mfaStep, setMfaStep] = useState<'credentials' | 'enroll' | 'verify'>('credentials');
   const [qrCode, setQrCode] = useState<string>('');
+  const [secretKey, setSecretKey] = useState<string>('');
   const [factorId, setFactorId] = useState<string>('');
   const [challengeId, setChallengeId] = useState<string>('');
   const [mfaCode, setMfaCode] = useState('');
@@ -21,9 +66,107 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   const { signIn, user, isAdmin } = useAuth();
 
-  if (user && isAdmin && mfaStep === 'credentials') {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
+  useEffect(() => {
+    async function checkMfaStatus() {
+      if (!user || !isAdmin) return;
+
+      try {
+        const { data: levelData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+        // If user is already 2FA verified (aal2), redirect to dashboard
+        if (levelData?.currentLevel === 'aal2') {
+          navigate('/admin/dashboard', { replace: true });
+          return;
+        }
+      } catch (err) {
+        console.error('MFA check error:', err);
+      }
+    }
+
+    checkMfaStatus();
+  }, [user, isAdmin, navigate]);
+
+  const processMfa = async () => {
+    const { data: factorsData, error: factorsErr } = await supabase.auth.mfa.listFactors();
+    if (factorsErr) {
+      navigate('/admin/dashboard');
+      return;
+    }
+
+    // Try to find a verified factor in totp array, fallback to all array
+    const verifiedTotp = 
+      factorsData?.totp?.find((f) => f.status === 'verified') ||
+      factorsData?.all?.find((f) => f.status === 'verified' && f.factorType === 'totp');
+
+    if (verifiedTotp) {
+      // 2FA is verified, challenge for 6-digit code
+      const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
+        factorId: verifiedTotp.id,
+      });
+
+      if (challengeErr) throw challengeErr;
+
+      setFactorId(verifiedTotp.id);
+      setChallengeId(challengeData.id);
+      setMfaStep('verify');
+    } else {
+      // Clean up any unverified leftover factors
+      const unverifiedFactors = factorsData?.all?.filter((f) => f.status === 'unverified') || 
+                                factorsData?.totp?.filter((f) => f.status === 'unverified') || [];
+                                
+      for (const factor of unverifiedFactors) {
+        const { error: unenrollErr } = await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        if (unenrollErr) {
+          console.error(`Failed to unenroll factor ${factor.id}:`, unenrollErr);
+        } else {
+          console.log(`Successfully unenrolled unverified factor ${factor.id}`);
+        }
+      }
+
+      // Enroll fresh TOTP factor with a unique friendlyName to avoid duplicate errors
+      const { data: enrollData, error: enrollErr } = await supabase.auth.mfa.enroll({
+        factorType: 'totp',
+        issuer: 'JobNews.lk',
+        friendlyName: `JobNews Admin ${Date.now()}`,
+      });
+
+      if (enrollErr) {
+        // If we hit max factors but couldn't find a verified one, maybe the status is different?
+        // Let's see if there is ANY factor we can use
+        const anyFactor = factorsData?.totp?.[0] || factorsData?.all?.[0];
+        if (anyFactor) {
+          console.log('Enroll failed, but found existing factor:', anyFactor);
+          // Let's try to challenge it anyway
+          const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
+            factorId: anyFactor.id,
+          });
+          
+          if (challengeErr) {
+            throw new Error(`Enroll failed: ${enrollErr.message}. Also failed to challenge existing factor (${anyFactor.status}): ${challengeErr.message}`);
+          }
+          
+          setFactorId(anyFactor.id);
+          setChallengeId(challengeData.id);
+          setMfaStep('verify');
+          return;
+        }
+        
+        throw enrollErr;
+      }
+
+      const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
+        factorId: enrollData.id,
+      });
+
+      if (challengeErr) throw challengeErr;
+
+      setQrCode(enrollData.totp.qr_code);
+      setSecretKey(enrollData.totp.secret);
+      setFactorId(enrollData.id);
+      setChallengeId(challengeData.id);
+      setMfaStep('enroll');
+    }
+  };
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,62 +181,8 @@ export default function AdminLogin() {
         return;
       }
 
-      // Check if MFA TOTP factor exists
-      const { data: factorsData, error: factorsErr } = await supabase.auth.mfa.listFactors();
-      if (factorsErr) {
-        // Fallback if MFA list fails
-        navigate('/admin/dashboard');
-        return;
-      }
-
-      const verifiedTotp = factorsData?.totp?.find((f) => f.status === 'verified');
-
-      if (verifiedTotp) {
-        // Already enrolled — Challenge for 2FA Verification
-        const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
-          factorId: verifiedTotp.id,
-        });
-
-        if (challengeErr) {
-          setError(challengeErr.message);
-          setLoading(false);
-          return;
-        }
-
-        setFactorId(verifiedTotp.id);
-        setChallengeId(challengeData.id);
-        setMfaStep('verify');
-        setLoading(false);
-      } else {
-        // First time setup — Enroll TOTP to get QR code
-        const { data: enrollData, error: enrollErr } = await supabase.auth.mfa.enroll({
-          factorType: 'totp',
-          issuer: 'JobNews.lk',
-          friendlyName: 'JobNews Admin',
-        });
-
-        if (enrollErr) {
-          setError(enrollErr.message);
-          setLoading(false);
-          return;
-        }
-
-        const { data: challengeData, error: challengeErr } = await supabase.auth.mfa.challenge({
-          factorId: enrollData.id,
-        });
-
-        if (challengeErr) {
-          setError(challengeErr.message);
-          setLoading(false);
-          return;
-        }
-
-        setQrCode(enrollData.totp.qr_code);
-        setFactorId(enrollData.id);
-        setChallengeId(challengeData.id);
-        setMfaStep('enroll');
-        setLoading(false);
-      }
+      await processMfa();
+      setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setLoading(false);
@@ -128,7 +217,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4">
-      <div className="max-w-sm w-full">
+      <div className="max-w-md w-full">
         {/* Step 1: Login Credentials */}
         {mfaStep === 'credentials' && (
           <>
@@ -211,13 +300,26 @@ export default function AdminLogin() {
               )}
 
               {/* QR Code Container */}
-              <div className="flex flex-col items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div className="flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
                 {qrCode ? (
-                  <img src={qrCode} alt="Google Authenticator QR Code" className="w-48 h-48 rounded-lg shadow-sm" />
+                  <div className="w-56 h-56 bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center overflow-hidden">
+                    <div
+                      dangerouslySetInnerHTML={{ __html: parseQrSvg(qrCode) }}
+                      className="w-full h-full flex items-center justify-center"
+                    />
+                  </div>
                 ) : (
-                  <div className="w-48 h-48 flex items-center justify-center text-xs text-slate-400">Loading QR...</div>
+                  <div className="w-72 h-72 flex items-center justify-center text-xs text-slate-400">Loading QR...</div>
                 )}
-                <span className="text-[11px] text-slate-500 mt-2 text-center">
+                {secretKey && (
+                  <div className="mt-4 text-center">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Setup Key (Secret)</span>
+                    <code className="text-xs font-mono font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-3 py-1.5 rounded-lg select-all border border-slate-300 dark:border-slate-700">
+                      {secretKey}
+                    </code>
+                  </div>
+                )}
+                <span className="text-[11px] text-slate-500 mt-3 text-center">
                   Open Google Authenticator App ➔ Tap + ➔ Scan QR Code
                 </span>
               </div>
