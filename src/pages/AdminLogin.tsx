@@ -90,11 +90,6 @@ export default function AdminLogin() {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
-          <div className="flex items-center justify-between text-sm">
-            <button type="button" onClick={() => navigate('/admin/forgot-password')} className="text-blue-600 hover:text-blue-700 font-medium">
-              Forgot password?
-            </button>
-          </div>
         </form>
       </div>
     </div>
