@@ -315,8 +315,8 @@ export default function Home() {
                         {job.countries?.name && (
                           <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">Location: {job.countries.name}</span>
                         )}
-                        {job.company_name && (
-                          <span className="text-slate-500 dark:text-slate-400 font-medium ml-2 border-l border-slate-300 dark:border-slate-700 pl-2">{job.company_name}</span>
+                        {job.company && (
+                          <span className="text-slate-500 dark:text-slate-400 font-medium ml-2 border-l border-slate-300 dark:border-slate-700 pl-2">{job.company}</span>
                         )}
                         
                         {/* Duplicate for seamless loop */}
@@ -324,8 +324,8 @@ export default function Home() {
                         {job.countries?.name && (
                           <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">Location: {job.countries.name}</span>
                         )}
-                        {job.company_name && (
-                          <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">{job.company_name}</span>
+                        {job.company && (
+                          <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">{job.company}</span>
                         )}
                         <span className="ml-8"></span>
                       </div>

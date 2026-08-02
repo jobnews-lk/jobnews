@@ -12,7 +12,6 @@ import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import AdminLogin from './pages/AdminLogin';
-import AdminSignup from './pages/AdminSignup';
 import AdminForgotPassword from './pages/AdminForgotPassword';
 import AdminResetPassword from './pages/AdminResetPassword';
 import AdminEntry from './pages/AdminEntry';

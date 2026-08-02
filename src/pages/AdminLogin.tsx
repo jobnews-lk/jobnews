@@ -96,7 +96,7 @@ export default function AdminLogin() {
     // Try to find a verified factor in totp array, fallback to all array
     const verifiedTotp = 
       factorsData?.totp?.find((f) => f.status === 'verified') ||
-      factorsData?.all?.find((f) => f.status === 'verified' && f.factorType === 'totp');
+      factorsData?.all?.find((f) => f.status === 'verified' && f.factor_type === 'totp');
 
     if (verifiedTotp) {
       // 2FA is verified, challenge for 6-digit code

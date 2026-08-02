@@ -15,7 +15,7 @@ export default function TopTicker() {
 
       const { data } = await supabase
         .from('jobs')
-        .select('id, title, company_name, closing_date')
+        .select('id, title, company, closing_date')
         .eq('status', 'published')
         .gte('closing_date', today)
         .lte('closing_date', nextWeekStr)
@@ -44,7 +44,7 @@ export default function TopTicker() {
              return (
               <span key={job.id} className="mx-6">
                 <Link to={`/jobs/${job.id}`} className="hover:underline hover:text-red-100 transition-colors">
-                  {job.title} {job.company_name ? `(${job.company_name})` : ''} 
+                  {job.title} {job.company ? `(${job.company})` : ''} 
                   <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs">
                     {daysLeft <= 0 ? 'Closes Today!' : `in ${daysLeft} Days`}
                   </span>
@@ -59,7 +59,7 @@ export default function TopTicker() {
              return (
               <span key={job.id + 'dup'} className="mx-6">
                 <Link to={`/jobs/${job.id}`} className="hover:underline hover:text-red-100 transition-colors">
-                  {job.title} {job.company_name ? `(${job.company_name})` : ''} 
+                  {job.title} {job.company ? `(${job.company})` : ''} 
                   <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-full text-xs">
                     {daysLeft <= 0 ? 'Closes Today!' : `in ${daysLeft} Days`}
                   </span>
