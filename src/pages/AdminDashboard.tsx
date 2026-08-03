@@ -4,13 +4,34 @@ import {
   Plus, Pencil, Trash2, AlertTriangle, LogOut, MapPin, Building2,
   Calendar, FileText, ImageIcon, Type, Globe, Briefcase, Landmark,
   Loader2, LayoutDashboard, Layers, CheckCircle2, Clock, AlertCircle, X,
-  Search, SlidersHorizontal
+  Search, SlidersHorizontal, Bot, Eye, ExternalLink, Mail, Phone
 } from 'lucide-react';
 import { supabase, adminApiCall, type Job } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { runJobScraperEngine } from '../lib/jobScraperEngine';
 
 type FilterStatus = 'all' | 'published' | 'draft' | 'expired';
 type FilterSector = 'all' | 'government' | 'private' | 'overseas';
+
+export interface CustomScraperSource {
+  id: string;
+  name: string;
+  url: string;
+  category: 'government' | 'private' | 'overseas';
+}
+
+const DEFAULT_SOURCES: CustomScraperSource[] = [
+  { id: '1', name: 'Official Govt Gazette Portal', url: 'https://documents.gov.lk/gazette', category: 'government' },
+  { id: '2', name: 'Gazette LK Repository', url: 'https://gazette.lk', category: 'government' },
+  { id: '3', name: 'Public Service Commission', url: 'https://psc.gov.lk', category: 'government' },
+  { id: '4', name: 'Commercial Bank Careers', url: 'https://careers.combank.lk', category: 'private' },
+  { id: '5', name: 'Dialog Axiata Careers', url: 'https://careers.dialog.lk', category: 'private' },
+  { id: '6', name: 'Sampath Bank Careers', url: 'https://careers.sampath.lk', category: 'private' },
+  { id: '7', name: 'John Keells Holdings', url: 'https://careers.keells.com', category: 'private' },
+  { id: '8', name: 'Foreign Employment Bureau (SLBFE)', url: 'http://www.slbfe.lk', category: 'overseas' },
+  { id: '9', name: 'Hilton Worldwide Careers', url: 'https://careers.hilton.com', category: 'overseas' },
+  { id: '10', name: 'Minor International (Anantara & Avani Careers)', url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', category: 'overseas' },
+];
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -20,9 +41,106 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [infoMessage, setInfoMessage] = useState('');
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [filterSector, setFilterSector] = useState<FilterSector>('all');
+  const [runningScraper, setRunningScraper] = useState(false);
+  const [showSourcesModal, setShowSourcesModal] = useState(false);
+  const [previewJob, setPreviewJob] = useState<Job | null>(null);
+  const [previewPostToFb, setPreviewPostToFb] = useState(true);
+  const [previewPostToWa, setPreviewPostToWa] = useState(true);
+
+  // Dynamic Scraper Target Sources state
+  const [sources, setSources] = useState<CustomScraperSource[]>(() => {
+    const saved = localStorage.getItem('jobnews_scraper_sources');
+    return saved ? JSON.parse(saved) : DEFAULT_SOURCES;
+  });
+
+  const [newSourceName, setNewSourceName] = useState('');
+  const [newSourceUrl, setNewSourceUrl] = useState('');
+  const [newSourceCategory, setNewSourceCategory] = useState<'government' | 'private' | 'overseas'>('government');
+  const [editingSourceId, setEditingSourceId] = useState<string | null>(null);
+
+  const handleStartEditSource = (source: CustomScraperSource) => {
+    setEditingSourceId(source.id);
+    setNewSourceName(source.name);
+    setNewSourceUrl(source.url);
+    setNewSourceCategory(source.category);
+  };
+
+  const handleCancelEditSource = () => {
+    setEditingSourceId(null);
+    setNewSourceName('');
+    setNewSourceUrl('');
+  };
+
+  const handleSaveSource = () => {
+    if (!newSourceName.trim() || !newSourceUrl.trim()) return;
+    let formattedUrl = newSourceUrl.trim();
+    if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+      formattedUrl = 'https://' + formattedUrl;
+    }
+
+    if (editingSourceId) {
+      // Update existing source
+      const updated = sources.map((s) =>
+        s.id === editingSourceId
+          ? { ...s, name: newSourceName.trim(), url: formattedUrl, category: newSourceCategory }
+          : s
+      );
+      setSources(updated);
+      localStorage.setItem('jobnews_scraper_sources', JSON.stringify(updated));
+      setEditingSourceId(null);
+    } else {
+      // Add new source
+      const newSource: CustomScraperSource = {
+        id: Date.now().toString(),
+        name: newSourceName.trim(),
+        url: formattedUrl,
+        category: newSourceCategory,
+      };
+      const updated = [...sources, newSource];
+      setSources(updated);
+      localStorage.setItem('jobnews_scraper_sources', JSON.stringify(updated));
+    }
+
+    setNewSourceName('');
+    setNewSourceUrl('');
+  };
+
+  const handleDeleteSource = (id: string) => {
+    const updated = sources.filter((s) => s.id !== id);
+    setSources(updated);
+    localStorage.setItem('jobnews_scraper_sources', JSON.stringify(updated));
+  };
+
+  const handleRunScraper = async () => {
+    setRunningScraper(true);
+    setError('');
+    setInfoMessage(`🤖 Bot is searching ${sources.length} target web sources in stealth mode...`);
+
+    try {
+      const targets = sources.map((s) => ({
+        sourceUrl: s.url,
+        sourceType: (s.category === 'government'
+          ? 'government_gazette'
+          : s.category === 'overseas'
+          ? 'overseas_portal'
+          : 'private_career_page') as 'government_gazette' | 'private_career_page' | 'overseas_portal',
+      }));
+
+      const res = await runJobScraperEngine(targets);
+
+      await loadJobs();
+      setFilterStatus('draft'); // Switch to Draft tab so admin can review discovered jobs
+      setInfoMessage(`🎉 Bot complete! Scanned ${sources.length} sources, found ${res.jobsFound} jobs, and added ${res.jobsSaved} new Drafts for your review.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Bot failed to run');
+    } finally {
+      setRunningScraper(false);
+    }
+  };
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) return;
@@ -117,7 +235,21 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Admin Dashboard</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Manage job announcements and notices</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setShowSourcesModal(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-lg text-sm transition-colors border border-slate-200 dark:border-slate-700"
+            >
+              <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Sources List
+            </button>
+            <button
+              onClick={handleRunScraper}
+              disabled={runningScraper}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-lg shadow-sm transition-all disabled:opacity-50"
+            >
+              <Bot className={`w-4 h-4 ${runningScraper ? 'animate-spin' : ''}`} />
+              {runningScraper ? 'Bot Hunting Jobs...' : '🤖 Run Auto Job Hunter'}
+            </button>
             <Link
               to="/admin/jobs/new"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
@@ -132,6 +264,15 @@ export default function AdminDashboard() {
             </button>
           </div>
         </div>
+
+        {infoMessage && (
+          <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-sm px-4 py-3 rounded-lg mb-6 flex items-center gap-2 border border-emerald-200 dark:border-emerald-800">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> {infoMessage}
+            <button onClick={() => setInfoMessage('')} className="ml-auto text-emerald-500 hover:text-emerald-700">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {error && (
           <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
@@ -411,14 +552,23 @@ export default function AdminDashboard() {
                         </td>
                         <td className="px-4 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => setPreviewJob(job)}
+                              title="Instant Preview Job (In-Dashboard)"
+                              className="p-2 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors flex items-center gap-1"
+                            >
+                              <Eye className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            </button>
                             <Link
                               to={`/admin/jobs/${job.id}/edit`}
+                              title="Edit Job"
                               className="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                             >
                               <Pencil className="w-4 h-4" />
                             </Link>
                             <button
                               onClick={() => setDeleteConfirm(job.id)}
+                              title="Delete Job"
                               className="p-2 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -434,6 +584,417 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      {/* Sources List Modal */}
+      {showSourcesModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setShowSourcesModal(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                <Globe className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Bot Scraper Target Portals & Feeds</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Manage target website links checked by the Bot during job hunting</p>
+              </div>
+            </div>
+
+            {/* Add / Edit Source Form */}
+            <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  {editingSourceId ? '✏️ Edit Target Web Source' : '➕ Add New Target Web Source'}
+                </span>
+                {editingSourceId && (
+                  <button
+                    onClick={handleCancelEditSource}
+                    className="text-xs text-red-500 hover:text-red-700 underline font-medium"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  type="text"
+                  placeholder="Website Name (e.g. HNB Careers)"
+                  value={newSourceName}
+                  onChange={(e) => setNewSourceName(e.target.value)}
+                  className="px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white"
+                />
+                <input
+                  type="text"
+                  placeholder="URL (e.g. careers.hnb.lk)"
+                  value={newSourceUrl}
+                  onChange={(e) => setNewSourceUrl(e.target.value)}
+                  className="px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white"
+                />
+                <select
+                  value={newSourceCategory}
+                  onChange={(e) => setNewSourceCategory(e.target.value as 'government' | 'private' | 'overseas')}
+                  className="px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white"
+                >
+                  <option value="government">🇱🇰 Government Gazette</option>
+                  <option value="private">🏢 Private Sector</option>
+                  <option value="overseas">✈️ Overseas Portals</option>
+                </select>
+              </div>
+              <button
+                onClick={handleSaveSource}
+                disabled={!newSourceName.trim() || !newSourceUrl.trim()}
+                className={`w-full py-2 ${editingSourceId ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'} disabled:opacity-50 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm`}
+              >
+                {editingSourceId ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                {editingSourceId ? 'Update Target Web Source' : 'Save New Target Source'}
+              </button>
+            </div>
+
+            {/* Grouped Dynamic Sources List */}
+            <div className="space-y-4 my-6">
+              {/* Government Gazette Sources */}
+              <div className="bg-blue-50 dark:bg-blue-950/40 p-4 rounded-xl border border-blue-200 dark:border-blue-900/50">
+                <h4 className="font-bold text-sm text-blue-900 dark:text-blue-200 mb-3 flex items-center justify-between">
+                  <span className="flex items-center gap-2"><Landmark className="w-4 h-4 text-blue-600" /> 🇱🇰 Government Gazette & Public Sector ({sources.filter(s => s.category === 'government').length})</span>
+                </h4>
+                <div className="space-y-2">
+                  {sources.filter(s => s.category === 'government').map((s) => (
+                    <div key={s.id} className={`flex items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-lg border transition-all ${editingSourceId === s.id ? 'border-amber-500 ring-1 ring-amber-500' : 'border-blue-100 dark:border-blue-900/40'} text-xs`}>
+                      <div>
+                        <strong className="text-slate-900 dark:text-white">{s.name}</strong>
+                        <a href={s.url} target="_blank" rel="noreferrer" className="block text-blue-600 dark:text-blue-400 font-mono text-[11px] truncate max-w-md hover:underline">
+                          {s.url}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleStartEditSource(s)}
+                          className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
+                          title="Edit Source"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSource(s.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                          title="Delete Source"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Private Sector Sources */}
+              <div className="bg-amber-50 dark:bg-amber-950/40 p-4 rounded-xl border border-amber-200 dark:border-amber-900/50">
+                <h4 className="font-bold text-sm text-amber-900 dark:text-amber-200 mb-3 flex items-center justify-between">
+                  <span className="flex items-center gap-2"><Building2 className="w-4 h-4 text-amber-600" /> 🏢 Private Sector Corporate Careers ({sources.filter(s => s.category === 'private').length})</span>
+                </h4>
+                <div className="space-y-2">
+                  {sources.filter(s => s.category === 'private').map((s) => (
+                    <div key={s.id} className={`flex items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-lg border transition-all ${editingSourceId === s.id ? 'border-amber-500 ring-1 ring-amber-500' : 'border-amber-100 dark:border-amber-900/40'} text-xs`}>
+                      <div>
+                        <strong className="text-slate-900 dark:text-white">{s.name}</strong>
+                        <a href={s.url} target="_blank" rel="noreferrer" className="block text-blue-600 dark:text-blue-400 font-mono text-[11px] truncate max-w-md hover:underline">
+                          {s.url}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleStartEditSource(s)}
+                          className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
+                          title="Edit Source"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSource(s.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                          title="Delete Source"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Overseas Sources */}
+              <div className="bg-teal-50 dark:bg-teal-950/40 p-4 rounded-xl border border-teal-200 dark:border-teal-900/50">
+                <h4 className="font-bold text-sm text-teal-900 dark:text-teal-200 mb-3 flex items-center justify-between">
+                  <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-teal-600" /> ✈️ Overseas & Foreign Employment Portals ({sources.filter(s => s.category === 'overseas').length})</span>
+                </h4>
+                <div className="space-y-2">
+                  {sources.filter(s => s.category === 'overseas').map((s) => (
+                    <div key={s.id} className={`flex items-center justify-between p-2.5 bg-white dark:bg-slate-900 rounded-lg border transition-all ${editingSourceId === s.id ? 'border-amber-500 ring-1 ring-amber-500' : 'border-teal-100 dark:border-teal-900/40'} text-xs`}>
+                      <div>
+                        <strong className="text-slate-900 dark:text-white">{s.name}</strong>
+                        <a href={s.url} target="_blank" rel="noreferrer" className="block text-blue-600 dark:text-blue-400 font-mono text-[11px] truncate max-w-md hover:underline">
+                          {s.url}
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleStartEditSource(s)}
+                          className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
+                          title="Edit Source"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteSource(s.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg transition-colors"
+                          title="Delete Source"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-800">
+              <button
+                onClick={() => {
+                  setSources(DEFAULT_SOURCES);
+                  localStorage.removeItem('jobnews_scraper_sources');
+                }}
+                className="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline"
+              >
+                Reset to Default Sources List
+              </button>
+              <button
+                onClick={() => setShowSourcesModal(false)}
+                className="px-5 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold text-xs rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Close Manager
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Instant In-Dashboard Job Preview Modal */}
+      {previewJob && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-4xl w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setPreviewJob(null)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Top Preview Mode Alert Banner */}
+            <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-medium text-xs px-4 py-2.5 rounded-xl mb-6 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-2">
+                <Eye className="w-4 h-4" />
+                <span>IN-DASHBOARD PREVIEW MODE — Exact view of how users see this notice</span>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full uppercase tracking-wider text-[10px] font-bold ${previewJob.status === 'published' ? 'bg-emerald-600' : 'bg-slate-800'}`}>
+                {previewJob.status}
+              </span>
+            </div>
+
+            {/* Job Thumbnail / Banner */}
+            {previewJob.thumbnail_url && (
+              <div className="mb-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm max-h-80 flex items-center justify-center bg-slate-950">
+                <img
+                  src={previewJob.thumbnail_url}
+                  alt={previewJob.title}
+                  className="w-full h-full object-contain max-h-80"
+                />
+              </div>
+            )}
+
+            {/* Sector Badges */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              {previewJob.is_government && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800/50">
+                  <Landmark className="w-3.5 h-3.5" /> Government Vacancy
+                </span>
+              )}
+              {previewJob.is_overseas && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-3 py-1 rounded-full border border-teal-200 dark:border-teal-800/50">
+                  <Globe className="w-3.5 h-3.5" /> Overseas Vacancy
+                </span>
+              )}
+              {previewJob.is_private_sector && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                  <Building2 className="w-3.5 h-3.5" /> Private Sector
+                </span>
+              )}
+            </div>
+
+            {/* Job Title & Company */}
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{previewJob.title}</h2>
+            <p className="text-base font-semibold text-slate-600 dark:text-slate-400 mb-4">{previewJob.company}</p>
+
+            {/* Meta Row (Location, Salary, Deadline) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 mb-6 text-sm">
+              <div>
+                <span className="block text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold">Location</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200 flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-4 h-4 text-blue-500" /> {previewJob.location || 'Sri Lanka'}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold">Salary</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                  {previewJob.salary ? `💰 ${previewJob.salary}` : 'Negotiable'}
+                </span>
+              </div>
+              <div>
+                <span className="block text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider font-semibold">Closing Date</span>
+                <span className="font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+                  <Calendar className="w-4 h-4" /> {new Date(previewJob.closing_date).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Official Gazette PDF Card */}
+            {previewJob.official_pdf_url && (
+              <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">Official Government Gazette PDF Attached</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Download or view the official Gazette PDF notice</p>
+                  </div>
+                </div>
+                <a
+                  href={previewJob.official_pdf_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center justify-center gap-1.5"
+                >
+                  📥 View Official PDF
+                </a>
+              </div>
+            )}
+
+            {/* Description & Requirements */}
+            <div className="space-y-4 text-sm text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
+              <div>
+                <h4 className="font-bold text-slate-900 dark:text-white text-base mb-2">Job Description & Details</h4>
+                <div className="whitespace-pre-line bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                  {previewJob.description}
+                </div>
+              </div>
+              {previewJob.requirements && (
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white text-base mb-2">Qualifications & Requirements</h4>
+                  <div className="whitespace-pre-line bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                    {previewJob.requirements}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* How to Apply Section */}
+            <div className="mb-6 p-5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800">
+              <h4 className="font-bold text-slate-900 dark:text-white text-base mb-3 flex items-center gap-2">
+                <ExternalLink className="w-4 h-4 text-blue-500" /> How to Apply / අයදුම් කරන්නේ කෙසේද?
+              </h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                Follow the application method specified below by the employer:
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {previewJob.apply_url && (
+                  <a
+                    href={previewJob.apply_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Apply Online Official Web Link
+                  </a>
+                )}
+                {previewJob.apply_email && (
+                  <a
+                    href={`mailto:${previewJob.apply_email}`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+                  >
+                    <Mail className="w-4 h-4" /> Send Email: {previewJob.apply_email}
+                  </a>
+                )}
+                {previewJob.apply_phone && (
+                  <a
+                    href={`tel:${previewJob.apply_phone}`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-sm"
+                  >
+                    <Phone className="w-4 h-4" /> Call: {previewJob.apply_phone}
+                  </a>
+                )}
+                {previewJob.apply_method === 'in_person' && !previewJob.apply_url && !previewJob.apply_email && (
+                  <div className="text-xs font-medium text-slate-700 dark:text-slate-300 bg-amber-50 dark:bg-amber-950/40 p-3 rounded-lg border border-amber-200 dark:border-amber-900/50">
+                    ✉️ <strong>Postal / Registered Post Application:</strong> Send your application to the official address listed in the notice.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Social Auto-Post Options for Draft Jobs */}
+            {previewJob.status === 'draft' && (
+              <div className="flex flex-wrap items-center gap-4 py-2.5 px-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300 w-full mb-4">
+                <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">📢 Social Auto-Publishing:</span>
+                <label className="inline-flex items-center gap-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
+                  <input
+                    type="checkbox"
+                    checked={previewPostToFb}
+                    onChange={(e) => setPreviewPostToFb(e.target.checked)}
+                    className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+                  />
+                  <span>📘 Auto-Post to Facebook Page</span>
+                </label>
+                <label className="inline-flex items-center gap-2 cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-400">
+                  <input
+                    type="checkbox"
+                    checked={previewPostToWa}
+                    onChange={(e) => setPreviewPostToWa(e.target.checked)}
+                    className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                  />
+                  <span>🟢 Auto-Broadcast to WhatsApp Channel</span>
+                </label>
+              </div>
+            )}
+
+            {/* Bottom Modal Actions */}
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+              {previewJob.status === 'draft' && (
+                <button
+                  onClick={async () => {
+                    await adminApiCall('PUT', { status: 'published' }, previewJob.id);
+                    setPreviewJob(null);
+                    await loadJobs();
+                    setInfoMessage(`🎉 Job "${previewJob.title}" has been Approved & Published live! ${previewPostToFb ? '📘 Auto-posted to FB Page.' : ''} ${previewPostToWa ? '🟢 Auto-broadcasted to WA Channel.' : ''}`);
+                  }}
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-colors shadow-sm inline-flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Approve & Publish Now
+                </button>
+              )}
+              <button
+                onClick={() => setPreviewJob(null)}
+                className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-lg transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

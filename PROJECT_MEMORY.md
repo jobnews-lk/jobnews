@@ -56,13 +56,17 @@
 
 ---
 
-## 6. Future Roadmap & Upcoming Tasks
-1. **Bot Integration (Current Priority):**
-   * Automating job vacancy alerts and distribution (e.g. Telegram Channel Auto-Poster, Facebook Page Auto-Poster, WhatsApp Alert Bot, or Website AI Chatbot).
-   * Exact specs and implementation to be finalized with the user.
-2. **Custom Domain & SEO Optimization:**
+## 6. Future Roadmap & Master Bot Plan
+1. **Automated Job Hunting & Multi-Platform Auto-Poster System (Active Focus):**
+   * **Master Plan:** [`docs/AUTOMATED_JOB_BOT_PLAN.md`](file:///c:/Users/Lenovo/Desktop/My%20Website/project/docs/AUTOMATED_JOB_BOT_PLAN.md)
+   * **Implementation Plan:** [`implementation_plan.md`](file:///C:/Users/Lenovo/.gemini/antigravity/brain/d7e6120b-ce17-4c70-96c8-5e40a79f5413/implementation_plan.md)
+   * **Phase 1 (COMPLETED & READY):** Multi-Platform Auto-Distributor Utilities (`src/lib/facebookAutoPoster.ts` & `src/lib/whatsappAutoPoster.ts`). Facebook Graph API & WhatsApp Channel Broadcast API integration with Admin Toggles (`[x] Auto-Post to FB` / `[x] Auto-Post to WA`).
+   * **Phase 2 (COMPLETED & READY):** Automated Job Hunter Engine (`src/lib/jobScraperEngine.ts`), AI Gazette PDF Parser (`src/lib/gazettePdfParser.ts`), and Auto-Dynamic Job Banner Generator (`src/lib/jobBannerGenerator.ts`). Stealth human-like delays, 3-Type categorization, 1-to-1 `AdminJobForm` field extraction, **Gazette PDF Auto-Attach (`official_pdf_url`)**, detailed Gazette envelope/postal application instructions in Requirements, and copyright-safe thumbnail generation.
+   * **Phase 3 (COMPLETED & READY):** Admin Dashboard (`AdminDashboard.tsx`) with `🤖 Run Auto Job Hunter` control, mandatory `Draft` status pending queue, **`🌐 Dynamic Sources Manager` (Add, Edit `✏️`, and Delete `🗑️` Web Sources per Category with LocalStorage & Database Persistence)**, and one-click `Approve & Publish` workflow. Added **👁️ Instant In-Dashboard Job Preview Modal** allowing admins to inspect full job details, auto-generated banners, attached Gazette PDFs, and click `Approve & Publish Now` directly inside the preview popup! Verified Workday Career Portals support (e.g., `Minor International / Anantara & Avani Careers` `https://minor.wd102.myworkdayjobs.com/en-US/Careers`) with 3-Stage Smart Location Filtering (Sri Lanka, Maldives, UAE, Qatar, Oman, Bahrain, Seychelles, Saudi Arabia, Japan, Romania, etc.).
+2. **Custom Domain & SEO Optimization & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
+   * **Cross-Browser Theme Compatibility (Fixed):** Added `<meta name="color-scheme" content="light dark" />` in `index.html`, `forced-color-adjust: none;` in `index.css`, and explicit `root.style.colorScheme` & `body` class toggles in `ThemeContext.tsx` to prevent Samsung Internet Browser and legacy Android browsers from forcibly locking the UI into dark mode. Guaranteed consistent default load behavior across PC, Laptop, Tablet, and Mobile based on user preference or OS system theme.
 
 ---
 
-*Last Updated: 2026-08-01 by Antigravity AI*
+*Last Updated: 2026-08-03 by Antigravity AI*

@@ -4,7 +4,9 @@ import { ArrowLeft } from 'lucide-react';
 import AdminJobForm from '../components/AdminJobForm';
 import ErrorBoundary from '../components/ErrorBoundary';
 import { adminApiCall, supabase } from '../lib/supabase';
-import type { Country, Category } from '../lib/supabase';
+import type { Country, Category, Job } from '../lib/supabase';
+import { postJobToFacebook } from '../lib/facebookAutoPoster';
+import { postJobToWhatsApp } from '../lib/whatsappAutoPoster';
 
 export default function AdminNewJob() {
   const navigate = useNavigate();
@@ -26,8 +28,21 @@ export default function AdminNewJob() {
   const handleSubmit = async (data: Record<string, unknown>) => {
     setError('');
     setSubmitting(true);
+    const { postToFacebook, postToWhatsApp, ...jobData } = data;
+
     try {
-      await adminApiCall('POST', data);
+      const result = await adminApiCall('POST', jobData);
+      const createdJob = result?.data as Job;
+
+      if (createdJob && createdJob.status === 'published') {
+        if (postToFacebook) {
+          postJobToFacebook(createdJob).catch((e) => console.error('FB AutoPost Error:', e));
+        }
+        if (postToWhatsApp) {
+          postJobToWhatsApp(createdJob).catch((e) => console.error('WA AutoPost Error:', e));
+        }
+      }
+
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create job');

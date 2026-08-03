@@ -32,6 +32,8 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [isPrivateSector, setIsPrivateSector] = useState(job?.is_private_sector || false);
   const [categoryId, setCategoryId] = useState(job?.category_id || '');
   const [countryId, setCountryId] = useState(job?.country_id || '');
+  const [postToFacebook, setPostToFacebook] = useState(true);
+  const [postToWhatsApp, setPostToWhatsApp] = useState(true);
   const [countryList, setCountryList] = useState<Country[]>(countries || []);
   const [showAddCountry, setShowAddCountry] = useState(false);
   const [newCountryName, setNewCountryName] = useState('');
@@ -223,6 +225,8 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       pdfs: galleryPdfs,
       replaceImages: true,
       replacePdfs: true,
+      postToFacebook: status === 'published' ? postToFacebook : false,
+      postToWhatsApp: status === 'published' ? postToWhatsApp : false,
     };
     onSubmit(data);
   };
@@ -262,7 +266,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       {/* Status */}
       <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
         <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 mb-3">
           {(['draft', 'published'] as const).map((s) => (
             <button
               key={s}
@@ -281,9 +285,37 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             </button>
           ))}
         </div>
+
+        {/* Social Media Auto-Poster Toggles */}
+        {status === 'published' && (
+          <div className="mt-4 pt-3 border-t border-slate-200 space-y-2">
+            <span className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Social Media Auto-Publishing</span>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={postToFacebook}
+                  onChange={(e) => setPostToFacebook(e.target.checked)}
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
+                />
+                <span>Auto-Post to <strong>Facebook Page</strong></span>
+              </label>
+              <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={postToWhatsApp}
+                  onChange={(e) => setPostToWhatsApp(e.target.checked)}
+                  className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+                />
+                <span>Auto-Broadcast to <strong>WhatsApp Channel</strong></span>
+              </label>
+            </div>
+          </div>
+        )}
+
         <p className="text-xs text-slate-500 mt-2">
           {status === 'published'
-            ? 'This job will be visible to the public on the website.'
+            ? 'This job will be visible to the public on the website and broadcast to selected social channels.'
             : 'This job will be saved as a draft and only visible in the admin dashboard.'}
         </p>
       </div>
@@ -604,6 +636,33 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             />
           </div>
         )}
+      </div>
+
+      {/* Social Media Auto-Post Toggles */}
+      <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800 space-y-2">
+        <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+          📢 Social Media Auto-Publish Options:
+        </span>
+        <div className="flex flex-wrap items-center gap-6 text-xs text-slate-700 dark:text-slate-300">
+          <label className="inline-flex items-center gap-2 cursor-pointer hover:text-blue-600">
+            <input
+              type="checkbox"
+              checked={postToFacebook}
+              onChange={(e) => setPostToFacebook(e.target.checked)}
+              className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+            />
+            <span className="font-medium">📘 Auto-Post to Facebook Page</span>
+          </label>
+          <label className="inline-flex items-center gap-2 cursor-pointer hover:text-emerald-600">
+            <input
+              type="checkbox"
+              checked={postToWhatsApp}
+              onChange={(e) => setPostToWhatsApp(e.target.checked)}
+              className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+            />
+            <span className="font-medium">🟢 Auto-Broadcast to WhatsApp Channel</span>
+          </label>
+        </div>
       </div>
 
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">

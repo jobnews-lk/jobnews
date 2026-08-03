@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye } from 'lucide-react';
 import { supabase, type Job } from '../lib/supabase';
 import SaveJobButton from '../components/SaveJobButton';
+import { useAuth } from '../context/AuthContext';
 
 export default function JobDetail() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
+  const isPreviewParam = searchParams.get('preview') === 'true';
+
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageIndex, setImageIndex] = useState(0);
@@ -34,17 +39,22 @@ export default function JobDetail() {
   useEffect(() => {
     async function loadJob() {
       if (!id) return;
-      const { data } = await supabase
+      let query = supabase
         .from('jobs')
         .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
-        .eq('id', id)
-        .eq('status', 'published')
-        .maybeSingle();
+        .eq('id', id);
+
+      // Only filter by published status if NOT in admin preview mode
+      if (!isAdmin && !isPreviewParam) {
+        query = query.eq('status', 'published');
+      }
+
+      const { data } = await query.maybeSingle();
       if (data) setJob(data as Job);
       setLoading(false);
     }
     loadJob();
-  }, [id]);
+  }, [id, isAdmin, isPreviewParam]);
 
   if (loading) {
     return (
@@ -93,6 +103,17 @@ export default function JobDetail() {
   return (
     <div className="py-10 px-4">
       <div className="max-w-4xl mx-auto">
+        {/* Admin Preview Mode Alert Banner */}
+        {job.status === 'draft' && (
+          <div className="bg-amber-500 text-white font-semibold text-sm px-4 py-3 rounded-xl mb-6 flex items-center justify-between shadow-md animate-pulse">
+            <div className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              <span>ADMIN PREVIEW MODE — This job is currently a DRAFT and NOT visible to public users.</span>
+            </div>
+            <span className="bg-white/20 text-xs px-2.5 py-1 rounded-full uppercase tracking-wider font-bold">Draft Preview</span>
+          </div>
+        )}
+
         <div className="flex justify-between items-center mb-6">
           <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back

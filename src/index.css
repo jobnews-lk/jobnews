@@ -6,6 +6,17 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light dark;
+}
+
+html.light {
+  color-scheme: light;
+  forced-color-adjust: none;
+}
+
+html.dark {
+  color-scheme: dark;
+  forced-color-adjust: none;
 }
 
 body {
