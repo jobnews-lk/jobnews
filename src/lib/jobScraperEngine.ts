@@ -14,14 +14,21 @@ export interface ScraperEngineResult {
 }
 
 // Target countries Sri Lankans frequently apply for
-const SRI_LANKA_FRIENDLY_LOCATIONS = [
-  'Sri Lanka', 'Maldives', 'UAE', 'Dubai', 'Abu Dhabi', 'Qatar', 'Doha',
-  'Oman', 'Muscat', 'Bahrain', 'Seychelles', 'Saudi', 'Riyadh', 'Jeddah',
-  'Kuwait', 'Malaysia', 'Japan', 'Romania', 'Poland', 'Cyprus', 'Malta'
+const TARGET_SEARCH_LOCATIONS = [
+  { name: 'Sri Lanka', isOverseas: false },
+  { name: 'Maldives', isOverseas: true },
+  { name: 'Seychelles', isOverseas: true },
+  { name: 'Dubai', countryName: 'UAE', isOverseas: true },
+  { name: 'Qatar', isOverseas: true },
+  { name: 'Oman', isOverseas: true },
+  { name: 'Bahrain', isOverseas: true },
+  { name: 'Saudi Arabia', isOverseas: true },
+  { name: 'Kuwait', isOverseas: true },
+  { name: 'Malaysia', isOverseas: true }
 ];
 
 /**
- * Real-Time Background Job Hunter Engine.
+ * Real-Time Stealth Job Hunter Engine.
  * Supports Workday Portals (*.myworkdayjobs.com), HTML Career Portals & Gazette PDF feeds.
  */
 export async function runJobScraperEngine(targets: ScrapedJobTarget[]): Promise<ScraperEngineResult> {
@@ -31,8 +38,8 @@ export async function runJobScraperEngine(targets: ScrapedJobTarget[]): Promise<
 
   for (const target of targets) {
     try {
-      // Stealth Human-like delay (1.5 - 3 seconds pause between targets)
-      await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 1500) + 1500));
+      // Stealth Human-like delay (1-2 seconds pause between targets)
+      await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 1000) + 1000));
 
       const url = target.sourceUrl.trim();
 
@@ -63,7 +70,7 @@ export async function runJobScraperEngine(targets: ScrapedJobTarget[]): Promise<
 }
 
 /**
- * Real Workday Portal API Extractor
+ * Real Workday Portal API Extractor using location-based targeted search
  * Extracts real live job postings from Workday endpoints (e.g. minor.wd102.myworkdayjobs.com)
  */
 async function scrapeWorkdayPortal(portalUrl: string): Promise<{ found: number; saved: number; errors: string[] }> {
@@ -78,66 +85,81 @@ async function scrapeWorkdayPortal(portalUrl: string): Promise<{ found: number; 
 
     // Extract clientPath (e.g. Careers from /en-US/Careers)
     const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
-    const clientPath = pathSegments[pathSegments.length - 1] || 'Careers';
-
-    const apiUrl = `https://${host}/wday/cxs/${tenant}/${clientPath}/jobs`;
-
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        appliedFacets: {},
-        limit: 20,
-        offset: 0,
-        searchText: '',
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(`Workday API HTTP ${res.status}: ${res.statusText}`);
+    let clientPath = 'Careers';
+    if (pathSegments.length > 0) {
+      clientPath = pathSegments[pathSegments.length - 1];
     }
 
-    const data = await res.json();
-    const postings = data.jobPostings || [];
-    found = postings.length;
+    const rawApiUrl = `https://${host}/wday/cxs/${tenant}/${clientPath}/jobs`;
 
-    for (const item of postings) {
-      const title = item.title;
-      const locationText = item.locationsText || 'Overseas';
-      const externalPath = item.externalPath || '';
-      const fullApplyUrl = `https://${host}${externalPath}`;
-      const companyName = (item.bulletFields && item.bulletFields[1]) || 'Minor International / Anantara';
+    // Cross-origin CORS proxy URL for browser execution
+    const corsProxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawApiUrl)}`;
 
-      // Extract country name matching Sri Lanka friendly locations
-      let countryName = 'Overseas';
-      for (const loc of SRI_LANKA_FRIENDLY_LOCATIONS) {
-        if (locationText.toLowerCase().includes(loc.toLowerCase())) {
-          countryName = loc;
-          break;
+    for (const locItem of TARGET_SEARCH_LOCATIONS) {
+      try {
+        const payload = {
+          appliedFacets: {},
+          limit: 20,
+          offset: 0,
+          searchText: locItem.name,
+        };
+
+        // Try direct fetch first, fallback to CORS proxy if browser blocks CORS
+        let res: Response | null = null;
+        try {
+          res = await fetch(rawApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(payload),
+          });
+        } catch {
+          // CORS fallback for browser
+          res = await fetch(corsProxyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(payload),
+          });
         }
+
+        if (!res || !res.ok) continue;
+
+        const data = await res.json();
+        const postings = data.jobPostings || [];
+        found += postings.length;
+
+        for (const item of postings) {
+          const title = item.title;
+          const locationText = item.locationsText || locItem.name;
+          const externalPath = item.externalPath || '';
+          
+          // Form exact 100% working Workday job view URL
+          const fullApplyUrl = `https://${host}${parsedUrl.pathname}${externalPath}`;
+          
+          const companyName = item.bulletFields?.[2] || item.bulletFields?.[1] || `${tenant.toUpperCase()} International`;
+          const actualCountry = locItem.countryName || locItem.name;
+
+          // Prepare extracted job object
+          const extractedJob: ExtractedGazetteJob = {
+            title: title,
+            company: companyName,
+            description: `Official Vacancy: ${title} at ${companyName}.\nLocation: ${locationText}.\nPosted Date: ${item.postedOn || 'Recently'}.\nJob Reference ID: ${item.bulletFields?.[0] || 'JR'}.\n\nApply directly via the official Workday career portal.`,
+            requirements: `Location: ${locationText}\nQualifications and experience as specified in the official hotel career announcement.\n\nOpen for candidates with work visa / permit support.`,
+            closingDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+            applyMethod: 'online',
+            applyUrl: fullApplyUrl,
+            medium: 'English',
+            salary: null,
+            isGovernment: false,
+            isOverseas: locItem.isOverseas,
+            isPrivateSector: !locItem.isOverseas,
+          };
+
+          const isSaved = await saveScrapedJobToDraft(extractedJob, actualCountry);
+          if (isSaved) saved++;
+        }
+      } catch (locErr) {
+        console.warn(`[Workday Scraper] Location fetch warning for ${locItem.name}:`, locErr);
       }
-
-      // Prepare extracted job object
-      const extractedJob: ExtractedGazetteJob = {
-        title: title,
-        company: companyName,
-        description: `Official Job Vacancy: ${title} at ${companyName}.\nLocation: ${locationText}.\nPosted: ${item.postedOn || 'Recently'}.\nJob Reference ID: ${item.bulletFields?.[0] || 'JR'}.\n\nApply directly via the official Workday career portal.`,
-        requirements: `Location: ${locationText}\nQualifications and experience as specified in the official hotel career announcement.\n\nOpen for overseas candidates with work visa / permit support.`,
-        closingDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
-        applyMethod: 'online',
-        applyUrl: fullApplyUrl,
-        medium: 'English',
-        salary: null,
-        isGovernment: false,
-        isOverseas: countryName !== 'Sri Lanka',
-        isPrivateSector: countryName === 'Sri Lanka',
-      };
-
-      const isSaved = await saveScrapedJobToDraft(extractedJob, countryName);
-      if (isSaved) saved++;
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Workday scrape error';
