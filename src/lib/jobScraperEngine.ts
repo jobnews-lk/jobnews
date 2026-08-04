@@ -238,6 +238,9 @@ async function scrapeGenericCareerPage(pageUrl: string, sourceType: string): Pro
  */
 async function saveScrapedJobToDraft(extracted: ExtractedGazetteJob, countryName = 'Sri Lanka'): Promise<boolean> {
   try {
+    // Small 50ms pause between DB inserts to prevent PostgreSQL statement timeout
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
     // 1. Deduplication check: check if job with same title + company exists
     const { data: existing } = await supabase
       .from('jobs')
