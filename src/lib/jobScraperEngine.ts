@@ -28,6 +28,34 @@ const TARGET_SEARCH_LOCATIONS = [
 ];
 
 /**
+ * Checks if a job is fresh (posted within the last 5 days).
+ * Rejects old jobs posted 6+ days ago or 30+ days ago.
+ */
+function isJobFresh(postedOnText: string): boolean {
+  if (!postedOnText) return true; // Default allow if unknown
+  const lower = postedOnText.toLowerCase();
+
+  // Reject explicitly old jobs (30+ days, 15 days ago, etc.)
+  if (lower.includes('30+') || lower.includes('month')) {
+    return false;
+  }
+
+  // Parse "X days ago"
+  const daysMatch = lower.match(/(\d+)\+?\s*day/);
+  if (daysMatch) {
+    const daysAgo = parseInt(daysMatch[1], 10);
+    return daysAgo <= 5; // Reject if older than 5 days!
+  }
+
+  // Accept recent keywords
+  if (lower.includes('today') || lower.includes('yesterday')) {
+    return true;
+  }
+
+  return true;
+}
+
+/**
  * Real-Time Stealth Job Hunter Engine.
  * Supports Workday Portals (*.myworkdayjobs.com), HTML Career Portals & Gazette PDF feeds.
  */
@@ -72,6 +100,7 @@ export async function runJobScraperEngine(targets: ScrapedJobTarget[]): Promise<
 /**
  * Real Workday Portal API Extractor using location-based targeted search
  * Extracts real live job postings from Workday endpoints (e.g. minor.wd102.myworkdayjobs.com)
+ * Filters out old jobs posted >5 days ago.
  */
 async function scrapeWorkdayPortal(portalUrl: string): Promise<{ found: number; saved: number; errors: string[] }> {
   let found = 0;
@@ -128,6 +157,14 @@ async function scrapeWorkdayPortal(portalUrl: string): Promise<{ found: number; 
         found += postings.length;
 
         for (const item of postings) {
+          const postedOnText = item.postedOn || '';
+
+          // FRESHNESS FILTER: Reject old jobs posted 6+ days ago or 30+ days ago!
+          if (!isJobFresh(postedOnText)) {
+            console.log(`[Job Scraper Filter] Skipped old job (>5 days): "${item.title}" (${postedOnText})`);
+            continue;
+          }
+
           const title = item.title;
           const locationText = item.locationsText || locItem.name;
           const externalPath = item.externalPath || '';
@@ -142,7 +179,7 @@ async function scrapeWorkdayPortal(portalUrl: string): Promise<{ found: number; 
           const extractedJob: ExtractedGazetteJob = {
             title: title,
             company: companyName,
-            description: `Official Vacancy: ${title} at ${companyName}.\nLocation: ${locationText}.\nPosted Date: ${item.postedOn || 'Recently'}.\nJob Reference ID: ${item.bulletFields?.[0] || 'JR'}.\n\nApply directly via the official Workday career portal.`,
+            description: `Official Vacancy: ${title} at ${companyName}.\nLocation: ${locationText}.\nPosted Date: ${postedOnText || 'Recently'}.\nJob Reference ID: ${item.bulletFields?.[0] || 'JR'}.\n\nApply directly via the official Workday career portal.`,
             requirements: `Location: ${locationText}\nQualifications and experience as specified in the official hotel career announcement.\n\nOpen for candidates with work visa / permit support.`,
             closingDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
             applyMethod: 'online',
@@ -234,23 +271,36 @@ async function scrapeGenericCareerPage(pageUrl: string, sourceType: string): Pro
 
 /**
  * Saves an extracted scraped job into Supabase strictly as a DRAFT item for Admin Approval.
- * Includes deduplication check and auto-generated copyright-safe Job Banner.
+ * Includes enhanced deduplication check (apply_url OR title+company) and auto-generated copyright-safe Job Banner.
  */
 async function saveScrapedJobToDraft(extracted: ExtractedGazetteJob, countryName = 'Sri Lanka'): Promise<boolean> {
   try {
     // Small 50ms pause between DB inserts to prevent PostgreSQL statement timeout
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    // 1. Deduplication check: check if job with same title + company exists
-    const { data: existing } = await supabase
-      .from('jobs')
-      .select('id')
-      .eq('title', extracted.title)
-      .eq('company', extracted.company)
-      .maybeSingle();
+    // 1. Enhanced Deduplication check: check by apply_url or title+company
+    let existingJob = null;
+    if (extracted.applyUrl) {
+      const { data } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('apply_url', extracted.applyUrl)
+        .maybeSingle();
+      existingJob = data;
+    }
 
-    if (existing) {
-      console.log(`[Job Scraper] Duplicate job skipped: ${extracted.title} (${extracted.company})`);
+    if (!existingJob) {
+      const { data } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('title', extracted.title)
+        .eq('company', extracted.company)
+        .maybeSingle();
+      existingJob = data;
+    }
+
+    if (existingJob) {
+      console.log(`[Job Scraper Deduplication] Skipped already existing job: ${extracted.title} (${extracted.company})`);
       return false;
     }
 
