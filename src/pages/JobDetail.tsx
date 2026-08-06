@@ -23,16 +23,59 @@ export default function JobDetail() {
     if (!text) return null;
     return text.split('\n').filter(line => line.trim() !== '').map((line, i) => {
       const trimmed = line.trim();
-      const isBullet = forceBullets || trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•');
-      if (isBullet) {
+
+      // 1. Detect Numbered Items (e.g. "1.", "1)", "(01)")
+      const numberMatch = trimmed.match(/^(\(?\d{1,2}\)?[\.\)]\s*)(.+)/);
+      if (numberMatch) {
+        const numLabel = numberMatch[1].trim();
+        const restText = numberMatch[2];
         return (
-          <div key={i} className="flex gap-2 items-start mt-2">
-            <span className="text-blue-500 font-bold mt-0.5">•</span>
-            <span className="leading-relaxed">{trimmed.replace(/^[-*•]\s*/, '')}</span>
+          <div key={i} className="flex gap-2.5 items-start mt-3.5 bg-blue-50/40 dark:bg-slate-800/40 p-3 rounded-xl border border-blue-100/60 dark:border-slate-800">
+            <span className="shrink-0 px-2 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-md mt-0.5">
+              {numLabel}
+            </span>
+            <span className="leading-relaxed text-slate-800 dark:text-slate-200 font-medium">
+              {restText}
+            </span>
           </div>
         );
       }
-      return <div key={i} className={i > 0 ? "mt-3 leading-relaxed" : "leading-relaxed"}>{line}</div>;
+
+      // 2. Detect Key-Value Pairs (e.g. "තනතුර: ...", "පුරප්පාඩු සංඛ්‍යාව: ...")
+      const colonMatch = trimmed.match(/^([^:]+:\s*)(.+)/);
+      const isBullet = forceBullets || trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•');
+
+      if (colonMatch && !trimmed.startsWith('http') && !trimmed.startsWith('https')) {
+        const keyPart = colonMatch[1];
+        const valPart = colonMatch[2];
+        return (
+          <div key={i} className="flex gap-2.5 items-start mt-2.5">
+            <span className="text-blue-600 dark:text-blue-400 font-bold shrink-0 mt-1 text-sm">🔹</span>
+            <div className="leading-relaxed">
+              <strong className="text-slate-900 dark:text-white font-semibold">{keyPart}</strong>
+              <span className="text-slate-700 dark:text-slate-300 ml-1">{valPart}</span>
+            </div>
+          </div>
+        );
+      }
+
+      // 3. Detect Bullet Items
+      if (isBullet) {
+        const cleaned = trimmed.replace(/^[-*•]\s*/, '');
+        return (
+          <div key={i} className="flex gap-2.5 items-start mt-2.5">
+            <span className="text-blue-500 dark:text-blue-400 font-bold shrink-0 mt-1 text-xs">🔹</span>
+            <span className="leading-relaxed text-slate-700 dark:text-slate-300">{cleaned}</span>
+          </div>
+        );
+      }
+
+      // 4. Standard Paragraph
+      return (
+        <div key={i} className={i > 0 ? "mt-3 leading-relaxed text-slate-700 dark:text-slate-300" : "leading-relaxed text-slate-700 dark:text-slate-300"}>
+          {line}
+        </div>
+      );
     });
   };
 
