@@ -153,9 +153,9 @@ export default function AdminDashboard() {
     setLoading(true);
     const { data, error: err } = await supabase
       .from('jobs')
-      .select('id, title, company, salary, location, description, requirements, closing_date, posted_date, post_type, apply_method, apply_url, apply_email, apply_phone, is_government, is_overseas, is_private_sector, status, thumbnail_url, official_pdf_url, created_at, category_id, country_id')
+      .select('id, title, company, salary, location, closing_date, posted_date, post_type, apply_method, apply_url, apply_email, apply_phone, is_government, is_overseas, is_private_sector, status, thumbnail_url, official_pdf_url, created_at, category_id, country_id')
       .order('created_at', { ascending: false })
-      .limit(150);
+      .limit(100);
     if (err) {
       setError(err.message);
     } else if (data) {
