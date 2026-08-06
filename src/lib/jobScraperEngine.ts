@@ -28,15 +28,15 @@ const TARGET_SEARCH_LOCATIONS = [
 ];
 
 /**
- * Checks if a job is fresh (posted within the last 5 days).
- * Rejects old jobs posted 6+ days ago or 30+ days ago.
+ * Checks if a job is fresh (posted within the last 14 days).
+ * Rejects old jobs posted 15+ days ago or 30+ days ago.
  */
 function isJobFresh(postedOnText: string): boolean {
   if (!postedOnText) return true; // Default allow if unknown
   const lower = postedOnText.toLowerCase();
 
-  // Reject explicitly old jobs (30+ days, 15 days ago, etc.)
-  if (lower.includes('30+') || lower.includes('month')) {
+  // Reject explicitly old jobs (30+ days, 15+ days ago, month ago)
+  if (lower.includes('30+') || lower.includes('month') || lower.includes('15 day') || lower.includes('20 day')) {
     return false;
   }
 
@@ -44,7 +44,7 @@ function isJobFresh(postedOnText: string): boolean {
   const daysMatch = lower.match(/(\d+)\+?\s*day/);
   if (daysMatch) {
     const daysAgo = parseInt(daysMatch[1], 10);
-    return daysAgo <= 5; // Reject if older than 5 days!
+    return daysAgo <= 14; // Allow jobs up to 14 days old!
   }
 
   // Accept recent keywords
