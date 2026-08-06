@@ -63,10 +63,29 @@
    * **Phase 1 (COMPLETED & READY):** Multi-Platform Auto-Distributor Utilities (`src/lib/facebookAutoPoster.ts` & `src/lib/whatsappAutoPoster.ts`). Facebook Graph API & WhatsApp Channel Broadcast API integration with Admin Toggles (`[x] Auto-Post to FB` / `[x] Auto-Post to WA`).
    * **Phase 2 (COMPLETED & READY):** Automated Job Hunter Engine (`src/lib/jobScraperEngine.ts`), AI Gazette PDF Parser (`src/lib/gazettePdfParser.ts`), and Auto-Dynamic Job Banner Generator (`src/lib/jobBannerGenerator.ts`). Stealth human-like delays, 3-Type categorization, 1-to-1 `AdminJobForm` field extraction, **Gazette PDF Auto-Attach (`official_pdf_url`)**, detailed Gazette envelope/postal application instructions in Requirements, and copyright-safe thumbnail generation.
    * **Phase 3 (COMPLETED & READY):** Admin Dashboard (`AdminDashboard.tsx`) with `🤖 Run Auto Job Hunter` control, mandatory `Draft` status pending queue, **`🌐 Dynamic Sources Manager` (Add, Edit `✏️`, and Delete `🗑️` Web Sources per Category with LocalStorage & Database Persistence)**, and one-click `Approve & Publish` workflow. Added **👁️ Instant In-Dashboard Job Preview Modal** allowing admins to inspect full job details, auto-generated banners, attached Gazette PDFs, and click `Approve & Publish Now` directly inside the preview popup! Verified Workday Career Portals support (e.g., `Minor International / Anantara & Avani Careers` `https://minor.wd102.myworkdayjobs.com/en-US/Careers`) with 3-Stage Smart Location Filtering (Sri Lanka, Maldives, UAE, Qatar, Oman, Bahrain, Seychelles, Saudi Arabia, Japan, Romania, etc.).
+   * **Latest Features, Rules & UI Enhancements (Updated August 2026):**
+     * **Document Hints & Multi-PDF Attachments (`AdminJobForm.tsx`, `JobDetail.tsx`):**
+       Added document label text inputs for each uploaded PDF in `AdminJobForm`. On `JobDetail.tsx`, rendered interactive attachment cards displaying custom titles (e.g. *"Official Application Form (Sinhala)"*, *"Marking Scheme"*) with View PDF and Download actions.
+     * **Sri Lanka Emblem / Logo Protection Rule:**
+       Enforced strict rule to NEVER show scraped government logos/emblems on public cards. Aligned `ImageNoticeCard.tsx` and `JobDetail.tsx` so both display the exact same clean primary image (`images[0]`).
+     * **Unlimited Age Active Vacancies Filter (`jobScraperEngine.ts`):**
+       Updated `isJobActiveAndOpen` filter to accept all active open vacancies regardless of posted age (including 30+ days old).
+     * **Zero Banner Text Cropping (`VacancyCard.tsx`, `TextNoticeCard.tsx`, `jobBannerGenerator.ts`):**
+       Added top safety margins in canvas banner generator and updated card containers to use `object-contain` with blurred letterboxing background so no banner text is cropped.
+     * **Mobile UI/UX Responsiveness Fix (`JobDetail.tsx`):**
+       Redesigned document attachment cards with a top-title and bottom-actions row layout (`break-words`, `leading-snug`). Preserved custom font sizes while eliminating text truncation (`O...`, `මාර්ග...`) and button overlapping on Honor X7c and all smart phones.
+     * **Smart Content Auto-Formatter (`JobDetail.tsx`):**
+       Enhanced `formatContent` in `JobDetail.tsx` to automatically parse:
+       1. **Key-Value Pairs (`තනතුර:`, `පුරප්පාඩු සංඛ්‍යාව:`):** Rendered with `🔹` blue icons and bold keys.
+       2. **Numbered Lists (`1.`, `2)`, `(01)`):** Rendered with blue numbered pill badges (`[1.]`, `[2.]`).
+       3. **Bullet Points (`-`, `*`, `•`):** Rendered with `🔹` gradient icons.
+     * **Security Posture & Cloudflare Readiness:**
+       Verified Supabase RLS, SQLi immunity via parameterized queries, XSS sanitization, and prepared Cloudflare Managed Challenge & Edge Caching architecture.
+
 2. **Custom Domain & SEO Optimization & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
    * **Cross-Browser Theme Compatibility (Fixed):** Added `<meta name="color-scheme" content="light dark" />` in `index.html`, `forced-color-adjust: none;` in `index.css`, and explicit `root.style.colorScheme` & `body` class toggles in `ThemeContext.tsx` to prevent Samsung Internet Browser and legacy Android browsers from forcibly locking the UI into dark mode. Guaranteed consistent default load behavior across PC, Laptop, Tablet, and Mobile based on user preference or OS system theme.
 
 ---
 
-*Last Updated: 2026-08-03 by Antigravity AI*
+*Last Updated: 2026-08-06 by Antigravity AI*
