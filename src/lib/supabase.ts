@@ -91,7 +91,7 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
   }
 
   if (method === 'POST' && body) {
-    const { images, pdfs, thumbnail_url, official_pdf_url, replaceImages, replacePdfs, ...jobData } = body;
+    const { images, pdfs, thumbnail_url, official_pdf_url, replaceImages, replacePdfs, postToFacebook, postToWhatsApp, ...jobData } = body;
     
     const { data: job, error } = await supabase.from('jobs').insert({
       ...jobData,
@@ -124,7 +124,7 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
   }
 
   if (method === 'PUT' && jobId && body) {
-    const { images, pdfs, thumbnail_url, official_pdf_url, replaceImages, replacePdfs, ...jobData } = body;
+    const { images, pdfs, thumbnail_url, official_pdf_url, replaceImages, replacePdfs, postToFacebook, postToWhatsApp, ...jobData } = body;
     
     const { data: job, error } = await supabase.from('jobs').update({
       ...jobData,

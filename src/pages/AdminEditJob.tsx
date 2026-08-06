@@ -37,8 +37,22 @@ export default function AdminEditJob() {
     if (!id) return;
     setError('');
     setSubmitting(true);
+    const { postToFacebook, postToWhatsApp, ...jobData } = data;
     try {
-      await adminApiCall('PUT', data, id);
+      const result = await adminApiCall('PUT', jobData, id);
+      const updatedJob = (result?.data || { ...jobData, id }) as Job;
+
+      if (updatedJob && updatedJob.status === 'published') {
+        if (postToFacebook) {
+          const { postJobToFacebook } = await import('../lib/facebookAutoPoster');
+          postJobToFacebook(updatedJob).catch((e) => console.error('FB AutoPost Error:', e));
+        }
+        if (postToWhatsApp) {
+          const { postJobToWhatsApp } = await import('../lib/whatsappAutoPoster');
+          postJobToWhatsApp(updatedJob).catch((e) => console.error('WA AutoPost Error:', e));
+        }
+      }
+
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update job');
