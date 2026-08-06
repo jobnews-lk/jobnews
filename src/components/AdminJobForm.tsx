@@ -555,6 +555,21 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               label="Official Notice PDF (optional)"
               maxFiles={1}
             />
+            <FileUpload
+              bucket="job-pdfs"
+              folder="attachments"
+              accept="application/pdf"
+              multiple={true}
+              value={galleryPdfs.map((p) => p.url)}
+              onChange={(urls) => {
+                setGalleryPdfs(urls.map((url) => ({
+                  url,
+                  filename: url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf',
+                })));
+              }}
+              label="Additional PDFs & Application Documents (optional)"
+              maxFiles={10}
+            />
           </div>
         )}
 
@@ -601,6 +616,21 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               label="Additional Gallery Images (optional)"
               maxFiles={10}
             />
+            <FileUpload
+              bucket="job-pdfs"
+              folder="attachments"
+              accept="application/pdf"
+              multiple={true}
+              value={galleryPdfs.map((p) => p.url)}
+              onChange={(urls) => {
+                setGalleryPdfs(urls.map((url) => ({
+                  url,
+                  filename: url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf',
+                })));
+              }}
+              label="Additional PDFs & Application Documents (optional)"
+              maxFiles={10}
+            />
           </div>
         )}
 
@@ -633,6 +663,32 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               onChange={(urls) => setOfficialPdfUrl(urls[0] || '')}
               label="Attachment PDF (optional)"
               maxFiles={1}
+            />
+            <FileUpload
+              bucket="job-images"
+              folder="notices"
+              accept="image/*"
+              multiple={true}
+              compress={true}
+              value={galleryImages}
+              onChange={setGalleryImages}
+              label="Additional Gallery Images (optional)"
+              maxFiles={10}
+            />
+            <FileUpload
+              bucket="job-pdfs"
+              folder="attachments"
+              accept="application/pdf"
+              multiple={true}
+              value={galleryPdfs.map((p) => p.url)}
+              onChange={(urls) => {
+                setGalleryPdfs(urls.map((url) => ({
+                  url,
+                  filename: url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf',
+                })));
+              }}
+              label="Additional PDFs & Application Documents (optional)"
+              maxFiles={10}
             />
           </div>
         )}
