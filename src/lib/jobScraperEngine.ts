@@ -28,30 +28,19 @@ const TARGET_SEARCH_LOCATIONS = [
 ];
 
 /**
- * Checks if a job is fresh (posted within the last 14 days).
- * Rejects old jobs posted 15+ days ago or 30+ days ago.
+ * Checks if a job is active and open to apply.
+ * Accepts all active vacancies (even if posted 30+ days ago) as long as they are still open to apply.
+ * Only rejects if explicitly marked as closed or expired.
  */
-function isJobFresh(postedOnText: string): boolean {
-  if (!postedOnText) return true; // Default allow if unknown
-  const lower = postedOnText.toLowerCase();
+function isJobActiveAndOpen(postedOnText: string = '', title: string = ''): boolean {
+  const lower = (postedOnText + ' ' + title).toLowerCase();
 
-  // Reject explicitly old jobs (30+ days, 15+ days ago, month ago)
-  if (lower.includes('30+') || lower.includes('month') || lower.includes('15 day') || lower.includes('20 day')) {
+  // Reject if explicitly marked as closed, filled or expired
+  if (lower.includes('closed') || lower.includes('expired') || lower.includes('no longer accepting') || lower.includes('filled')) {
     return false;
   }
 
-  // Parse "X days ago"
-  const daysMatch = lower.match(/(\d+)\+?\s*day/);
-  if (daysMatch) {
-    const daysAgo = parseInt(daysMatch[1], 10);
-    return daysAgo <= 14; // Allow jobs up to 14 days old!
-  }
-
-  // Accept recent keywords
-  if (lower.includes('today') || lower.includes('yesterday')) {
-    return true;
-  }
-
+  // All open active vacancies are accepted!
   return true;
 }
 
@@ -159,9 +148,9 @@ async function scrapeWorkdayPortal(portalUrl: string): Promise<{ found: number; 
         for (const item of postings) {
           const postedOnText = item.postedOn || '';
 
-          // FRESHNESS FILTER: Reject old jobs posted 6+ days ago or 30+ days ago!
-          if (!isJobFresh(postedOnText)) {
-            console.log(`[Job Scraper Filter] Skipped old job (>5 days): "${item.title}" (${postedOnText})`);
+          // ACTIVE STATUS FILTER: Only reject if explicitly marked closed or expired
+          if (!isJobActiveAndOpen(postedOnText, item.title)) {
+            console.log(`[Job Scraper Filter] Skipped closed/expired job: "${item.title}" (${postedOnText})`);
             continue;
           }
 
