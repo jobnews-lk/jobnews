@@ -91,15 +91,11 @@ export default function JobDetail() {
   const images = job.job_images?.sort((a, b) => a.sort_order - b.sort_order) || [];
   const pdfs = job.job_pdfs || [];
 
-  const rawImages = [
-    ...(job.thumbnail_url ? [{ id: 'thumbnail', url: job.thumbnail_url, sort_order: -1 }] : []),
-    ...images,
-  ];
-
-  // Deduplicate images by URL to prevent showing duplicate thumbnails!
-  const allImages = rawImages.filter((img, index, self) =>
-    index === self.findIndex((t) => t.url === img.url)
-  );
+  // Show ONLY the clean Home Page image (thumbnail_url) inside the post detail page
+  // to avoid displaying secondary scraped images containing official government logos.
+  const allImages = job.thumbnail_url 
+    ? [{ id: 'thumbnail', url: job.thumbnail_url, sort_order: -1 }]
+    : images;
 
   const hasPdf = job.official_pdf_url || pdfs.length > 0;
   const pdfUrl = job.official_pdf_url || (pdfs[0]?.url || null);
