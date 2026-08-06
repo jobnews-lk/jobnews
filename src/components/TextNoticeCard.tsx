@@ -16,8 +16,13 @@ export default function TextNoticeCard({ job }: TextNoticeCardProps) {
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition-shadow">
       {job.thumbnail_url && (
-        <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 overflow-hidden relative shrink-0">
-          <img src={job.thumbnail_url} alt={job.title} className="w-full h-full object-cover" />
+        <div className="aspect-[16/9] bg-slate-900 overflow-hidden relative shrink-0">
+          <div 
+            className="absolute inset-0 bg-cover bg-center blur-xl opacity-50 dark:opacity-40 scale-125"
+            style={{ backgroundImage: `url(${job.thumbnail_url})` }}
+          />
+          <div className="absolute inset-0 bg-black/20 dark:bg-black/40" />
+          <img src={job.thumbnail_url} alt={job.title} className="w-full h-full object-contain relative z-10 drop-shadow-md" />
         </div>
       )}
       <div className="p-4 md:p-5 flex-1 flex flex-col">

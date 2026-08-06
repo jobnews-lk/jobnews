@@ -49,12 +49,12 @@ export function generateJobBanner(options: BannerOptions): string {
   // 2. Top Header Brand Bar (JobNews.lk)
   ctx.fillStyle = '#2563eb'; // blue-600
   ctx.beginPath();
-  ctx.roundRect(60, 50, 220, 48, 10);
+  ctx.roundRect(60, 60, 220, 48, 10);
   ctx.fill();
 
   ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = '#ffffff';
-  ctx.fillText('JobNews.lk', 85, 83);
+  ctx.fillText('JobNews.lk', 85, 93);
 
   // Sector / Category Badge
   let badgeText = 'JOB VACANCY';
@@ -73,42 +73,45 @@ export function generateJobBanner(options: BannerOptions): string {
 
   ctx.fillStyle = badgeBg;
   ctx.beginPath();
-  ctx.roundRect(300, 50, ctx.measureText(badgeText).width + 30, 48, 10);
+  ctx.roundRect(300, 60, ctx.measureText(badgeText).width + 30, 48, 10);
   ctx.fill();
 
   ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = '#ffffff';
-  ctx.fillText(badgeText, 315, 81);
+  ctx.fillText(badgeText, 315, 91);
 
-  // 3. Company Name
-  ctx.font = '600 28px system-ui, -apple-system, sans-serif';
+  // 3. Company Name (Shifted down for safe top margin)
+  ctx.font = '600 26px system-ui, -apple-system, sans-serif';
   ctx.fillStyle = '#94a3b8'; // slate-400
   const companyText = (options.company || 'ORGANIZATION').toUpperCase();
-  ctx.fillText(companyText.length > 55 ? companyText.substring(0, 52) + '...' : companyText, 60, 160);
+  ctx.fillText(companyText.length > 55 ? companyText.substring(0, 52) + '...' : companyText, 60, 165);
 
-  // 4. Main Job Title (Bold & Prominent)
-  ctx.font = 'bold 52px system-ui, -apple-system, sans-serif';
+  // 4. Main Job Title (Dynamic Font Size to Prevent Overlap & Truncation)
+  const isLongTitle = options.title.length > 35;
+  const titleFontSize = isLongTitle ? 42 : 48;
+  ctx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
   ctx.fillStyle = '#ffffff';
 
   const titleWords = options.title.split(' ');
   let line1 = '';
   let line2 = '';
+  const maxLineLength = isLongTitle ? 35 : 30;
 
   for (const word of titleWords) {
-    if ((line1 + word).length < 32) {
+    if ((line1 + word).length < maxLineLength) {
       line1 += (line1 ? ' ' : '') + word;
     } else {
       line2 += (line2 ? ' ' : '') + word;
     }
   }
 
-  ctx.fillText(line1, 60, 230);
+  ctx.fillText(line1, 60, 235);
   if (line2) {
-    ctx.fillText(line2.length > 35 ? line2.substring(0, 32) + '...' : line2, 60, 295);
+    ctx.fillText(line2.length > 38 ? line2.substring(0, 35) + '...' : line2, 60, 295);
   }
 
   // 5. Details Section (Location, Salary, Deadline, Medium)
-  const detailY = line2 ? 370 : 310;
+  const detailY = line2 ? 370 : 315;
 
   // Location / Country
   const locText = `📍 ${options.location || options.country || 'Sri Lanka'}`;

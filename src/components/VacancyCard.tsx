@@ -45,15 +45,25 @@ export default function VacancyCard({ job }: VacancyCardProps) {
     <Link to={`/jobs/${job.id}`} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col">
       {/* Thumbnail */}
       {thumbnail ? (
-        <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
-          <img src={thumbnail} alt={job.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        <div className="aspect-[16/9] bg-slate-900 overflow-hidden relative shrink-0">
+          {/* Blurred Background to letterbox banners naturally without cropping */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center blur-xl opacity-50 dark:opacity-40 scale-125"
+            style={{ backgroundImage: `url(${thumbnail})` }}
+          />
+          <div className="absolute inset-0 bg-black/20 dark:bg-black/40" />
+          <img 
+            src={thumbnail} 
+            alt={job.title} 
+            className="w-full h-full object-contain relative z-10 drop-shadow-md group-hover:scale-105 transition-transform duration-500" 
+          />
           {job.post_type === 'image' && job.job_images && job.job_images.length > 1 && (
-            <div className="absolute top-2 right-2 flex items-center gap-1 text-xs font-medium text-white bg-black/40 px-2 py-1 rounded-full">
+            <div className="absolute top-2 right-2 z-20 flex items-center gap-1 text-xs font-medium text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded-full">
               <ImageIcon className="w-3 h-3" /> {job.job_images.length}
             </div>
           )}
           {job.official_pdf_url && (
-            <div className="absolute bottom-2 left-2 flex items-center gap-1 text-xs font-medium text-white bg-red-500/80 px-2 py-1 rounded-full">
+            <div className="absolute bottom-2 left-2 z-20 flex items-center gap-1 text-xs font-medium text-white bg-red-500/90 backdrop-blur-md px-2 py-1 rounded-full">
               <FileDown className="w-3 h-3" /> PDF
             </div>
           )}
