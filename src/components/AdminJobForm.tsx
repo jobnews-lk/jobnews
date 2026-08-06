@@ -210,7 +210,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       closing_date: closingDate,
       posted_date: postedDate,
       apply_method: applyMethod,
-      apply_url: applyMethod === 'online' ? applyUrl || null : null,
+      apply_url: applyMethod === 'online' ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null) : null,
       apply_email: applyMethod === 'email' ? applyEmail || null : null,
       apply_phone: applyMethod === 'phone' ? applyPhone || null : null,
       is_government: isGovernment,
@@ -492,7 +492,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
         </div>
         {applyMethod === 'online' && (
           <div className="mt-3">
-            <input type="url" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="Application URL" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input type="text" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="Application URL (e.g. www.doenets.lk or https://...)" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         )}
         {applyMethod === 'email' && (
