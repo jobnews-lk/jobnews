@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X } from 'lucide-react';
+import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2 } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { supabase, type Country, type Category, type Job } from '../lib/supabase';
 
@@ -555,21 +555,67 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               label="Official Notice PDF (optional)"
               maxFiles={1}
             />
-            <FileUpload
-              bucket="job-pdfs"
-              folder="attachments"
-              accept="application/pdf"
-              multiple={true}
-              value={galleryPdfs.map((p) => p.url)}
-              onChange={(urls) => {
-                setGalleryPdfs(urls.map((url) => ({
-                  url,
-                  filename: url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf',
-                })));
-              }}
-              label="Additional PDFs & Application Documents (optional)"
-              maxFiles={10}
-            />
+
+            {/* Additional PDFs & Document Hints */}
+            <div className="space-y-4">
+              <FileUpload
+                bucket="job-pdfs"
+                folder="attachments"
+                accept="application/pdf"
+                multiple={true}
+                value={galleryPdfs.map((p) => p.url)}
+                onChange={(urls) => {
+                  setGalleryPdfs((prev) => {
+                    return urls.map((url) => {
+                      const existing = prev.find((item) => item.url === url);
+                      if (existing) return existing;
+                      const defaultName = url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf';
+                      return { url, filename: defaultName };
+                    });
+                  });
+                }}
+                label="Additional PDFs & Application Documents (optional)"
+                maxFiles={10}
+              />
+
+              {galleryPdfs.length > 0 && (
+                <div className="space-y-3 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    📌 Document Hints & Labels for Applicants:
+                  </span>
+                  {galleryPdfs.map((pdf, idx) => (
+                    <div key={pdf.url + idx} className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                      <FileText className="w-5 h-5 text-red-500 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-medium">
+                          Document {idx + 1} Hint / Title:
+                        </label>
+                        <input
+                          type="text"
+                          value={pdf.filename}
+                          onChange={(e) => {
+                            const updatedName = e.target.value;
+                            setGalleryPdfs((prev) =>
+                              prev.map((item, i) => (i === idx ? { ...item, filename: updatedName } : item))
+                            );
+                          }}
+                          placeholder="e.g. Official Application Form (Sinhala), Marking Scheme, Gazette Notice"
+                          className="w-full text-xs px-3 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGalleryPdfs((prev) => prev.filter((_, i) => i !== idx))}
+                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Remove Document"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -616,21 +662,67 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               label="Additional Gallery Images (optional)"
               maxFiles={10}
             />
-            <FileUpload
-              bucket="job-pdfs"
-              folder="attachments"
-              accept="application/pdf"
-              multiple={true}
-              value={galleryPdfs.map((p) => p.url)}
-              onChange={(urls) => {
-                setGalleryPdfs(urls.map((url) => ({
-                  url,
-                  filename: url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf',
-                })));
-              }}
-              label="Additional PDFs & Application Documents (optional)"
-              maxFiles={10}
-            />
+
+            {/* Additional PDFs & Document Hints */}
+            <div className="space-y-4">
+              <FileUpload
+                bucket="job-pdfs"
+                folder="attachments"
+                accept="application/pdf"
+                multiple={true}
+                value={galleryPdfs.map((p) => p.url)}
+                onChange={(urls) => {
+                  setGalleryPdfs((prev) => {
+                    return urls.map((url) => {
+                      const existing = prev.find((item) => item.url === url);
+                      if (existing) return existing;
+                      const defaultName = url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf';
+                      return { url, filename: defaultName };
+                    });
+                  });
+                }}
+                label="Additional PDFs & Application Documents (optional)"
+                maxFiles={10}
+              />
+
+              {galleryPdfs.length > 0 && (
+                <div className="space-y-3 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    📌 Document Hints & Labels for Applicants:
+                  </span>
+                  {galleryPdfs.map((pdf, idx) => (
+                    <div key={pdf.url + idx} className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                      <FileText className="w-5 h-5 text-red-500 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-medium">
+                          Document {idx + 1} Hint / Title:
+                        </label>
+                        <input
+                          type="text"
+                          value={pdf.filename}
+                          onChange={(e) => {
+                            const updatedName = e.target.value;
+                            setGalleryPdfs((prev) =>
+                              prev.map((item, i) => (i === idx ? { ...item, filename: updatedName } : item))
+                            );
+                          }}
+                          placeholder="e.g. Official Application Form (Sinhala), Marking Scheme, Gazette Notice"
+                          className="w-full text-xs px-3 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGalleryPdfs((prev) => prev.filter((_, i) => i !== idx))}
+                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Remove Document"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -675,21 +767,67 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               label="Additional Gallery Images (optional)"
               maxFiles={10}
             />
-            <FileUpload
-              bucket="job-pdfs"
-              folder="attachments"
-              accept="application/pdf"
-              multiple={true}
-              value={galleryPdfs.map((p) => p.url)}
-              onChange={(urls) => {
-                setGalleryPdfs(urls.map((url) => ({
-                  url,
-                  filename: url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf',
-                })));
-              }}
-              label="Additional PDFs & Application Documents (optional)"
-              maxFiles={10}
-            />
+
+            {/* Additional PDFs & Document Hints */}
+            <div className="space-y-4">
+              <FileUpload
+                bucket="job-pdfs"
+                folder="attachments"
+                accept="application/pdf"
+                multiple={true}
+                value={galleryPdfs.map((p) => p.url)}
+                onChange={(urls) => {
+                  setGalleryPdfs((prev) => {
+                    return urls.map((url) => {
+                      const existing = prev.find((item) => item.url === url);
+                      if (existing) return existing;
+                      const defaultName = url.split('/').pop()?.replace(/^\d+-/, '') || 'Document.pdf';
+                      return { url, filename: defaultName };
+                    });
+                  });
+                }}
+                label="Additional PDFs & Application Documents (optional)"
+                maxFiles={10}
+              />
+
+              {galleryPdfs.length > 0 && (
+                <div className="space-y-3 bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    📌 Document Hints & Labels for Applicants:
+                  </span>
+                  {galleryPdfs.map((pdf, idx) => (
+                    <div key={pdf.url + idx} className="flex items-center gap-3 bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+                      <FileText className="w-5 h-5 text-red-500 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1 font-medium">
+                          Document {idx + 1} Hint / Title:
+                        </label>
+                        <input
+                          type="text"
+                          value={pdf.filename}
+                          onChange={(e) => {
+                            const updatedName = e.target.value;
+                            setGalleryPdfs((prev) =>
+                              prev.map((item, i) => (i === idx ? { ...item, filename: updatedName } : item))
+                            );
+                          }}
+                          placeholder="e.g. Official Application Form (Sinhala), Marking Scheme, Gazette Notice"
+                          className="w-full text-xs px-3 py-1.5 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGalleryPdfs((prev) => prev.filter((_, i) => i !== idx))}
+                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        title="Remove Document"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
