@@ -168,18 +168,51 @@ export default function AdminLogin() {
     }
   };
 
+  // Anti-Brute-Force Rate Limiting Lockout State
+  const [failedAttempts, setFailedAttempts] = useState<number>(() => {
+    return parseInt(localStorage.getItem('admin_login_failed_count') || '0', 10);
+  });
+  const [lockoutTime, setLockoutTime] = useState<number>(() => {
+    return parseInt(localStorage.getItem('admin_login_lockout_until') || '0', 10);
+  });
+
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Check if account is currently locked out
+    if (lockoutTime && Date.now() < lockoutTime) {
+      const remainingMins = Math.ceil((lockoutTime - Date.now()) / (1000 * 60));
+      setError(`🔒 Anti-Brute-Force Lockout: Too many failed login attempts. Please try again in ${remainingMins} minute(s).`);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error: signInErr } = await signIn(email, password);
       if (signInErr) {
-        setError(signInErr.message || 'Invalid credentials');
+        const newCount = failedAttempts + 1;
+        setFailedAttempts(newCount);
+        localStorage.setItem('admin_login_failed_count', newCount.toString());
+
+        if (newCount >= 5) {
+          const lockUntil = Date.now() + 15 * 60 * 1000; // 15 Minute Cooldown
+          setLockoutTime(lockUntil);
+          localStorage.setItem('admin_login_lockout_until', lockUntil.toString());
+          setError('🔒 Too many failed login attempts. Account temporarily locked for 15 minutes to prevent brute-force attacks.');
+        } else {
+          setError(`Invalid credentials. Warning: ${5 - newCount} attempt(s) remaining before security lockout.`);
+        }
         setLoading(false);
         return;
       }
+
+      // Reset lockout counter on clean successful password entry
+      setFailedAttempts(0);
+      setLockoutTime(0);
+      localStorage.removeItem('admin_login_failed_count');
+      localStorage.removeItem('admin_login_lockout_until');
 
       await processMfa();
       setLoading(false);
