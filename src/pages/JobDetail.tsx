@@ -18,6 +18,29 @@ export default function JobDetail() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+
+  const handleDownloadPdf = async (url: string, filename: string) => {
+    try {
+      setDownloading(url);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Network response was not ok');
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Download error:', err);
+      window.open(url, '_blank');
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   const formatContent = (text: string | null | undefined, forceBullets: boolean = false) => {
     if (!text) return null;
@@ -293,10 +316,14 @@ export default function JobDetail() {
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                         View PDF
                       </button>
-                      <a href={job.official_pdf_url} download target="_blank" rel="noopener noreferrer"
-                        className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-white hover:text-blue-600 transition-colors">
+                      <button
+                        onClick={() => handleDownloadPdf(job.official_pdf_url!, 'Official_Notice.pdf')}
+                        disabled={downloading === job.official_pdf_url}
+                        className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-white hover:text-blue-600 transition-colors disabled:opacity-50"
+                        title="Download PDF"
+                      >
                         <Download className="w-4 h-4" />
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -390,16 +417,14 @@ export default function JobDetail() {
                           >
                             <Eye className="w-4 h-4" /> View PDF
                           </button>
-                          <a
-                            href={job.official_pdf_url}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold"
+                          <button
+                            onClick={() => handleDownloadPdf(job.official_pdf_url!, 'Official_Notice.pdf')}
+                            disabled={downloading === job.official_pdf_url}
+                            className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50"
                             title="Download PDF"
                           >
                             <Download className="w-4 h-4" /> <span className="sm:hidden text-xs">Download</span>
-                          </a>
+                          </button>
                         </div>
                       </div>
                     )}
@@ -428,16 +453,14 @@ export default function JobDetail() {
                           >
                             <Eye className="w-4 h-4" /> View PDF
                           </button>
-                          <a
-                            href={pdfItem.url}
-                            download
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold"
+                          <button
+                            onClick={() => handleDownloadPdf(pdfItem.url, pdfItem.filename || `Document_${idx + 1}.pdf`)}
+                            disabled={downloading === pdfItem.url}
+                            className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50"
                             title="Download PDF"
                           >
                             <Download className="w-4 h-4" /> <span className="sm:hidden text-xs">Download</span>
-                          </a>
+                          </button>
                         </div>
                       </div>
                     ))}
