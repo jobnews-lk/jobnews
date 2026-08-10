@@ -37,7 +37,7 @@ export default function Jobs() {
   useEffect(() => {
     // Session Cache for instant rendering
     try {
-      const cached = sessionStorage.getItem('jn_all_jobs');
+      const cached = localStorage.getItem('jn_all_jobs');
       if (cached && !search && !selectedCountry && !selectedCategory) {
         setJobs(JSON.parse(cached));
         setLoading(false);
@@ -79,7 +79,7 @@ export default function Jobs() {
       if (data) {
         setJobs(data as Job[]);
         if (!search && !selectedCountry && !selectedCategory) {
-          sessionStorage.setItem('jn_all_jobs', JSON.stringify(data));
+          localStorage.setItem('jn_all_jobs', JSON.stringify(data));
         }
       }
       setLoading(false);

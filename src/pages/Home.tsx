@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, MapPin, FolderOpen, ArrowRight, Building2, Calendar, FileText, ImageIcon, Type, Globe, Landmark, Plane, Briefcase, TrendingUp, Clock, Newspaper, ChevronRight } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
+import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
 import AdPlaceholder from '../components/AdPlaceholder';
 
 export default function Home() {
@@ -61,12 +62,12 @@ export default function Home() {
   };
   
   useEffect(() => {
-    // 1. Instant Cache Hydration (SWR - 0ms initial render)
+    // 1. Permanent Local Storage Hydration (0ms instant render across browser restarts)
     try {
-      const cachedJobs = sessionStorage.getItem('jn_home_jobs');
-      const cachedClosing = sessionStorage.getItem('jn_home_closing');
-      const cachedCountries = sessionStorage.getItem('jn_home_countries');
-      const cachedCategories = sessionStorage.getItem('jn_home_categories');
+      const cachedJobs = localStorage.getItem('jn_home_jobs');
+      const cachedClosing = localStorage.getItem('jn_home_closing');
+      const cachedCountries = localStorage.getItem('jn_home_countries');
+      const cachedCategories = localStorage.getItem('jn_home_categories');
 
       if (cachedJobs) setLatestJobs(JSON.parse(cachedJobs));
       if (cachedClosing) setClosingJobs(JSON.parse(cachedClosing));
@@ -98,7 +99,7 @@ export default function Home() {
           if (res.data) {
             setLatestJobs(res.data as Job[]);
             setLoading(false);
-            sessionStorage.setItem('jn_home_jobs', JSON.stringify(res.data));
+            localStorage.setItem('jn_home_jobs', JSON.stringify(res.data));
           }
         });
 
@@ -114,26 +115,26 @@ export default function Home() {
         .then(res => {
           if (res.data) {
             setClosingJobs(res.data as Job[]);
-            sessionStorage.setItem('jn_home_closing', JSON.stringify(res.data));
+            localStorage.setItem('jn_home_closing', JSON.stringify(res.data));
           }
         });
 
       // Fetch Metadata (Countries & Categories)
-      const fetchMetadata = Promise.all([
+      Promise.all([
         supabase.from('countries').select('id, name, slug').order('name'),
         supabase.from('categories').select('id, name, slug').order('name')
       ]).then(([ctsRes, catsRes]) => {
         if (ctsRes.data) {
           setCountries(ctsRes.data as Country[]);
-          sessionStorage.setItem('jn_home_countries', JSON.stringify(ctsRes.data));
+          localStorage.setItem('jn_home_countries', JSON.stringify(ctsRes.data));
         }
         if (catsRes.data) {
           setCategories(catsRes.data as Category[]);
-          sessionStorage.setItem('jn_home_categories', JSON.stringify(catsRes.data));
+          localStorage.setItem('jn_home_categories', JSON.stringify(catsRes.data));
         }
       });
 
-      await Promise.allSettled([fetchLatestJobs, fetchClosingJobs, fetchMetadata]);
+      await Promise.allSettled([fetchLatestJobs, fetchClosingJobs]);
     }
 
     load();
@@ -403,12 +404,8 @@ export default function Home() {
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 animate-pulse">
-                <div className="h-8 w-full bg-slate-200 rounded mb-3" />
-                <div className="h-4 w-2/3 bg-slate-200 rounded mb-2" />
-                <div className="h-4 w-1/2 bg-slate-200 rounded" />
-              </div>
+            {[...Array(6)].map((_, i) => (
+              <VacancyCardSkeleton key={i} />
             ))}
           </div>
         ) : latestJobs.length === 0 ? (

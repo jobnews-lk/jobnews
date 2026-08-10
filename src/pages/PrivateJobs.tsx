@@ -10,7 +10,7 @@ export default function PrivateJobs() {
 
   useEffect(() => {
     try {
-      const cached = sessionStorage.getItem('jn_pvt_jobs');
+      const cached = localStorage.getItem('jn_pvt_jobs');
       if (cached) {
         setJobs(JSON.parse(cached));
         setLoading(false);
@@ -26,7 +26,7 @@ export default function PrivateJobs() {
         .order('created_at', { ascending: false });
       if (data) {
         setJobs(data as Job[]);
-        sessionStorage.setItem('jn_pvt_jobs', JSON.stringify(data));
+        localStorage.setItem('jn_pvt_jobs', JSON.stringify(data));
       }
       setLoading(false);
     }

@@ -10,7 +10,7 @@ export default function OverseasJobs() {
 
   useEffect(() => {
     try {
-      const cached = sessionStorage.getItem('jn_ovs_jobs');
+      const cached = localStorage.getItem('jn_ovs_jobs');
       if (cached) {
         setJobs(JSON.parse(cached));
         setLoading(false);
@@ -26,7 +26,7 @@ export default function OverseasJobs() {
         .order('created_at', { ascending: false });
       if (data) {
         setJobs(data as Job[]);
-        sessionStorage.setItem('jn_ovs_jobs', JSON.stringify(data));
+        localStorage.setItem('jn_ovs_jobs', JSON.stringify(data));
       }
       setLoading(false);
     }

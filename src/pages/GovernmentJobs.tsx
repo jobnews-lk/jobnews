@@ -10,7 +10,7 @@ export default function GovernmentJobs() {
 
   useEffect(() => {
     try {
-      const cached = sessionStorage.getItem('jn_gov_jobs');
+      const cached = localStorage.getItem('jn_gov_jobs');
       if (cached) {
         setJobs(JSON.parse(cached));
         setLoading(false);
@@ -26,7 +26,7 @@ export default function GovernmentJobs() {
         .order('created_at', { ascending: false });
       if (data) {
         setJobs(data as Job[]);
-        sessionStorage.setItem('jn_gov_jobs', JSON.stringify(data));
+        localStorage.setItem('jn_gov_jobs', JSON.stringify(data));
       }
       setLoading(false);
     }
