@@ -35,10 +35,19 @@ export default function Jobs() {
   }, [search, selectedCountry, selectedCategory, countries, categories]);
 
   useEffect(() => {
+    // Session Cache for instant rendering
+    try {
+      const cached = sessionStorage.getItem('jn_all_jobs');
+      if (cached && !search && !selectedCountry && !selectedCategory) {
+        setJobs(JSON.parse(cached));
+        setLoading(false);
+      }
+    } catch (e) {}
+
     async function loadData() {
       const [ctsRes, catsRes] = await Promise.all([
-        supabase.from('countries').select('*').order('name'),
-        supabase.from('categories').select('*').order('name')
+        supabase.from('countries').select('id, name, slug').order('name'),
+        supabase.from('categories').select('id, name, slug').order('name')
       ]);
       if (ctsRes.data) setCountries(ctsRes.data);
       if (catsRes.data) setCategories(catsRes.data);
@@ -49,7 +58,12 @@ export default function Jobs() {
   useEffect(() => {
     async function loadJobs() {
       setLoading(true);
-      let query = supabase.from('jobs').select('*, countries(*), categories(*), job_images(*), job_pdfs(*)').eq('status', 'published').order('created_at', { ascending: false });
+      let query = supabase
+        .from('jobs')
+        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
       if (selectedCountry) {
         const ct = countries.find(c => c.slug === selectedCountry);
         if (ct) query = query.eq('country_id', ct.id);
@@ -62,12 +76,16 @@ export default function Jobs() {
         query = query.or(`title.ilike.%${search}%,company.ilike.%${search}%,description.ilike.%${search}%`);
       }
       const { data } = await query;
-      if (data) setJobs(data as Job[]);
+      if (data) {
+        setJobs(data as Job[]);
+        if (!search && !selectedCountry && !selectedCategory) {
+          sessionStorage.setItem('jn_all_jobs', JSON.stringify(data));
+        }
+      }
       setLoading(false);
     }
-    if (countries.length > 0 && categories.length > 0) {
-      loadJobs();
-    }
+    
+    loadJobs();
   }, [search, selectedCountry, selectedCategory, countries, categories]);
 
   useEffect(() => {

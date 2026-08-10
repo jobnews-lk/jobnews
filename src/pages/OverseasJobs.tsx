@@ -9,14 +9,25 @@ export default function OverseasJobs() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem('jn_ovs_jobs');
+      if (cached) {
+        setJobs(JSON.parse(cached));
+        setLoading(false);
+      }
+    } catch (e) {}
+
     async function load() {
       const { data } = await supabase
         .from('jobs')
-        .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
+        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
         .eq('is_overseas', true)
         .eq('status', 'published')
         .order('created_at', { ascending: false });
-      if (data) setJobs(data as Job[]);
+      if (data) {
+        setJobs(data as Job[]);
+        sessionStorage.setItem('jn_ovs_jobs', JSON.stringify(data));
+      }
       setLoading(false);
     }
     load();

@@ -61,38 +61,81 @@ export default function Home() {
   };
   
   useEffect(() => {
+    // 1. Instant Cache Hydration (SWR - 0ms initial render)
+    try {
+      const cachedJobs = sessionStorage.getItem('jn_home_jobs');
+      const cachedClosing = sessionStorage.getItem('jn_home_closing');
+      const cachedCountries = sessionStorage.getItem('jn_home_countries');
+      const cachedCategories = sessionStorage.getItem('jn_home_categories');
+
+      if (cachedJobs) setLatestJobs(JSON.parse(cachedJobs));
+      if (cachedClosing) setClosingJobs(JSON.parse(cachedClosing));
+      if (cachedCountries) setCountries(JSON.parse(cachedCountries));
+      if (cachedCategories) setCategories(JSON.parse(cachedCategories));
+
+      if (cachedJobs) {
+        setLoading(false);
+      }
+    } catch (e) {
+      console.warn('Cache read error:', e);
+    }
+
+    // 2. Optimized Background Fetch (Progressive Loading)
     async function load() {
       const todayStr = new Date().toISOString().split('T')[0];
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 10);
       const nextWeekStr = nextWeek.toISOString().split('T')[0];
 
-      const [jobsRes, ctsRes, catsRes, closingRes] = await Promise.all([
-        supabase
-          .from('jobs')
-          .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false })
-          .limit(12),
-        supabase.from('countries').select('*').order('name'),
-        supabase.from('categories').select('*').order('name'),
-        supabase
-          .from('jobs')
-          .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
-          .eq('status', 'published')
-          .gte('closing_date', todayStr)
-          .lte('closing_date', nextWeekStr)
-          .order('closing_date', { ascending: true })
-          .limit(4)
-      ]);
+      // Fetch Latest Jobs first & render immediately
+      const fetchLatestJobs = supabase
+        .from('jobs')
+        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(12)
+        .then(res => {
+          if (res.data) {
+            setLatestJobs(res.data as Job[]);
+            setLoading(false);
+            sessionStorage.setItem('jn_home_jobs', JSON.stringify(res.data));
+          }
+        });
 
-      if (jobsRes.data) setLatestJobs(jobsRes.data as Job[]);
-      if (ctsRes.data) setCountries(ctsRes.data);
-      if (catsRes.data) setCategories(catsRes.data);
-      if (closingRes.data) setClosingJobs(closingRes.data as Job[]);
-      
-      setLoading(false);
+      // Fetch Closing Soon Jobs
+      const fetchClosingJobs = supabase
+        .from('jobs')
+        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+        .eq('status', 'published')
+        .gte('closing_date', todayStr)
+        .lte('closing_date', nextWeekStr)
+        .order('closing_date', { ascending: true })
+        .limit(4)
+        .then(res => {
+          if (res.data) {
+            setClosingJobs(res.data as Job[]);
+            sessionStorage.setItem('jn_home_closing', JSON.stringify(res.data));
+          }
+        });
+
+      // Fetch Metadata (Countries & Categories)
+      const fetchMetadata = Promise.all([
+        supabase.from('countries').select('id, name, slug').order('name'),
+        supabase.from('categories').select('id, name, slug').order('name')
+      ]).then(([ctsRes, catsRes]) => {
+        if (ctsRes.data) {
+          setCountries(ctsRes.data as Country[]);
+          sessionStorage.setItem('jn_home_countries', JSON.stringify(ctsRes.data));
+        }
+        if (catsRes.data) {
+          setCategories(catsRes.data as Category[]);
+          sessionStorage.setItem('jn_home_categories', JSON.stringify(catsRes.data));
+        }
+      });
+
+      await Promise.allSettled([fetchLatestJobs, fetchClosingJobs, fetchMetadata]);
     }
+
     load();
   }, []);
 
