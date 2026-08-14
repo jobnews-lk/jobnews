@@ -126,9 +126,12 @@ export default function VacancyCard({ job }: VacancyCardProps) {
           </div>
         </div>
 
-        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <span className="text-xs text-slate-400">{job.categories?.name || 'General'}</span>
-          <div className="flex items-center gap-2">
+        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+          <span className="text-xs text-slate-400 truncate max-w-[100px] sm:max-w-[120px]">{job.categories?.name || 'General'}</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 text-xs font-bold rounded-lg group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-all shadow-sm">
+              Details <ChevronRight className="w-3.5 h-3.5" />
+            </span>
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -142,14 +145,11 @@ export default function VacancyCard({ job }: VacancyCardProps) {
                   alert('Link copied to clipboard! 📋');
                 }
               }}
-              className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-medium rounded-lg transition-colors border border-slate-200 dark:border-slate-800 shrink-0"
               title="Share Vacancy"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Share</span>
             </button>
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold rounded-lg group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-all shadow-sm">
-              View Details <ChevronRight className="w-3.5 h-3.5" />
-            </span>
           </div>
         </div>
       </div>
