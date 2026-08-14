@@ -5,11 +5,17 @@ interface ShareButtonsProps {
   title: string;
   company?: string;
   url?: string;
+  jobId?: string;
 }
 
-export default function ShareButtons({ title, company, url }: ShareButtonsProps) {
+export default function ShareButtons({ title, company, url, jobId }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
-  const shareUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+  const rawUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+  
+  // Extract jobId if not provided directly
+  const extractedId = jobId || rawUrl.split('/jobs/')[1]?.split('?')[0] || rawUrl.split('/og/')[1]?.split('?')[0];
+  const shareUrl = extractedId ? `https://jobnews.lk/og/${extractedId}` : rawUrl;
+
   const companyStr = company ? ` at ${company}` : '';
   const shareText = `🔍 Job Notice: ${title}${companyStr}\n\nApply now via JobNews.lk:`;
 
@@ -23,7 +29,7 @@ export default function ShareButtons({ title, company, url }: ShareButtonsProps)
           url: shareUrl,
         });
       } catch (e) {
-        // Share cancelled by user or not supported
+        // Share cancelled by user
       }
     } else {
       handleCopyLink();
@@ -37,7 +43,7 @@ export default function ShareButtons({ title, company, url }: ShareButtonsProps)
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // WhatsApp Share URL
+  // WhatsApp Share URL (Sends OG preview link so WhatsApp fetches dynamic banner)
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + '\n' + shareUrl)}`;
 
   // Facebook Share URL

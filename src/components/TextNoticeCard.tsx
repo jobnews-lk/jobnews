@@ -83,7 +83,7 @@ export default function TextNoticeCard({ job }: TextNoticeCardProps) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              const shareUrl = `${window.location.origin}/jobs/${job.id}`;
+              const shareUrl = `${window.location.origin}/og/${job.id}`;
               const shareText = `🔍 Job Notice: ${job.title}${job.company ? ' at ' + job.company : ''}\n\nApply now via JobNews.lk:`;
               if (navigator.share) {
                 navigator.share({ title: job.title, text: shareText, url: shareUrl }).catch(() => {});
