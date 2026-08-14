@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle } from 'lucide-react';
 import { supabase, type Job } from '../lib/supabase';
 import SaveJobButton from '../components/SaveJobButton';
+import ShareButtons from '../components/ShareButtons';
 import { useAuth } from '../context/AuthContext';
 
 export default function JobDetail() {
@@ -278,6 +279,11 @@ export default function JobDetail() {
                   {isExpired ? 'Application Closed' : `Closes ${closing.toLocaleDateString()} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`}
                 </span>
               </div>
+            </div>
+
+            {/* Share Vacancy Action Bar */}
+            <div className="mt-4">
+              <ShareButtons title={job.title} company={job.company} />
             </div>
           </div>
         </div>

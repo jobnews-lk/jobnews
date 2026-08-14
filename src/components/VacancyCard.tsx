@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, ChevronRight, FileDown } from 'lucide-react';
+import { MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, ChevronRight, FileDown, Share2 } from 'lucide-react';
 import type { Job } from '../lib/supabase';
 
 interface VacancyCardProps {
@@ -128,9 +128,29 @@ export default function VacancyCard({ job }: VacancyCardProps) {
 
         <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <span className="text-xs text-slate-400">{job.categories?.name || 'General'}</span>
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold rounded-lg group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-all shadow-sm">
-            View Details <ChevronRight className="w-3.5 h-3.5" />
-          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const shareUrl = `${window.location.origin}/jobs/${job.id}`;
+                const shareText = `🔍 Job Notice: ${job.title}${job.company ? ' at ' + job.company : ''}\n\nApply now via JobNews.lk:`;
+                if (navigator.share) {
+                  navigator.share({ title: job.title, text: shareText, url: shareUrl }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(shareUrl);
+                  alert('Link copied to clipboard! 📋');
+                }
+              }}
+              className="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Share Vacancy"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold rounded-lg group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/50 transition-all shadow-sm">
+              View Details <ChevronRight className="w-3.5 h-3.5" />
+            </span>
+          </div>
         </div>
       </div>
     </Link>
