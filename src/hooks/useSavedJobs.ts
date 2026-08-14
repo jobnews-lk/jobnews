@@ -1,24 +1,44 @@
 import { useState, useEffect } from 'react';
 
 export function useSavedJobs() {
-  const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
+  const [savedJobIds, setSavedJobIds] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('savedJobs');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem('savedJobs');
-    if (stored) {
+    const sync = () => {
       try {
-        setSavedJobIds(JSON.parse(stored));
+        const stored = localStorage.getItem('savedJobs');
+        setSavedJobIds(stored ? JSON.parse(stored) : []);
       } catch (e) {
         console.error('Failed to parse saved jobs', e);
       }
-    }
+    };
+
+    window.addEventListener('storage', sync);
+    window.addEventListener('savedJobsChanged', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('savedJobsChanged', sync);
+    };
   }, []);
+
+  const updateStorage = (updated: string[]) => {
+    localStorage.setItem('savedJobs', JSON.stringify(updated));
+    window.dispatchEvent(new Event('savedJobsChanged'));
+  };
 
   const saveJob = (jobId: string) => {
     setSavedJobIds((prev) => {
       if (prev.includes(jobId)) return prev;
       const updated = [...prev, jobId];
-      localStorage.setItem('savedJobs', JSON.stringify(updated));
+      updateStorage(updated);
       return updated;
     });
   };
@@ -26,7 +46,7 @@ export function useSavedJobs() {
   const removeJob = (jobId: string) => {
     setSavedJobIds((prev) => {
       const updated = prev.filter((id) => id !== jobId);
-      localStorage.setItem('savedJobs', JSON.stringify(updated));
+      updateStorage(updated);
       return updated;
     });
   };
@@ -41,5 +61,5 @@ export function useSavedJobs() {
 
   const isSaved = (jobId: string) => savedJobIds.includes(jobId);
 
-  return { savedJobIds, toggleSavedJob, isSaved };
+  return { savedJobIds, toggleSavedJob, isSaved, count: savedJobIds.length };
 }

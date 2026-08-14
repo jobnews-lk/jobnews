@@ -1,8 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon, Search, MessageCircle } from 'lucide-react';
+import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon, Search, MessageCircle, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useSavedJobs } from '../hooks/useSavedJobs';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -10,6 +11,7 @@ export default function Navbar() {
   const location = useLocation();
   const { user, isAdmin, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { count: savedCount } = useSavedJobs();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -52,7 +54,14 @@ export default function Navbar() {
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas</Link>
-            <Link to="/saved-jobs" className={navLinkClass('/saved-jobs')}>Saved Jobs</Link>
+            <Link to="/saved-jobs" className={`${navLinkClass('/saved-jobs')} inline-flex items-center gap-1.5`}>
+              Saved Jobs
+              {savedCount > 0 && (
+                <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-extrabold bg-red-500 text-white rounded-full min-w-[18px] h-4 shadow-sm animate-pulse">
+                  {savedCount}
+                </span>
+              )}
+            </Link>
             
             <a
               href="https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y"
@@ -108,7 +117,14 @@ export default function Navbar() {
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government Jobs</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas Jobs</Link>
-            <Link to="/saved-jobs" className={navLinkClass('/saved-jobs')}>Saved Jobs</Link>
+            <Link to="/saved-jobs" className={`${navLinkClass('/saved-jobs')} inline-flex items-center justify-between`}>
+              <span>Saved Jobs</span>
+              {savedCount > 0 && (
+                <span className="px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
+                  {savedCount}
+                </span>
+              )}
+            </Link>
             <Link to="/about" className={navLinkClass('/about')}>About</Link>
             <Link to="/contact" className={navLinkClass('/contact')}>Contact</Link>
             {user && (
