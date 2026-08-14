@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import TopTicker from './TopTicker';
 import MobileBottomNav from './MobileBottomNav';
+import WhatsAppFloatingButton from './WhatsAppFloatingButton';
 
 export default function Layout() {
   return (
@@ -15,6 +16,7 @@ export default function Layout() {
       </main>
       <Footer />
       <MobileBottomNav />
+      <WhatsAppFloatingButton />
     </div>
   );
 }

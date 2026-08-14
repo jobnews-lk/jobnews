@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle } from 'lucide-react';
 import { supabase, type Job } from '../lib/supabase';
 import SaveJobButton from '../components/SaveJobButton';
 import { useAuth } from '../context/AuthContext';
@@ -384,6 +384,31 @@ export default function JobDetail() {
                   </div>
                 </div>
               )}
+
+              {/* WhatsApp Channel Promo Card */}
+              <div className="mb-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 border border-emerald-200/90 dark:border-emerald-800/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm transition-all">
+                <div className="flex items-center gap-3.5 text-center sm:text-left">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
+                    <MessageCircle className="w-6 h-6 fill-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center justify-center sm:justify-start gap-1.5">
+                      Get Instant Job Alerts on WhatsApp! 🇱🇰
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                      Join our Official WhatsApp Channel for real-time Sri Lanka vacancy updates.
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href="https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm hover:scale-105 active:scale-95 shrink-0"
+                >
+                  <MessageCircle className="w-4 h-4 fill-white" /> Join Channel 💚
+                </a>
+              </div>
 
               {/* Official PDF & Attachments */}
               {(job.official_pdf_url || (pdfs && pdfs.length > 0)) && (

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Newspaper, ArrowRight } from 'lucide-react';
+import { Newspaper, ArrowRight, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Footer() {
@@ -14,11 +14,19 @@ export default function Footer() {
               <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                 <Newspaper className="w-4 h-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-white">JobNews</span>
+              <span className="text-lg font-bold text-white">JobNews.lk</span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
+            <p className="text-sm text-slate-400 leading-relaxed max-w-sm mb-4">
               Your trusted source for official job vacancy announcements. Browse government, private sector, and overseas job notices from verified employers.
             </p>
+            <a
+              href="https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm"
+            >
+              <MessageCircle className="w-4 h-4 fill-white" /> Join WhatsApp Channel 💚
+            </a>
           </div>
           <div>
             <h3 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Quick Links</h3>

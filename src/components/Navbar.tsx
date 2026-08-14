@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon, Search } from 'lucide-react';
+import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon, Search, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -53,8 +53,16 @@ export default function Navbar() {
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas</Link>
             <Link to="/saved-jobs" className={navLinkClass('/saved-jobs')}>Saved Jobs</Link>
-            <Link to="/about" className={navLinkClass('/about')}>About</Link>
-            <Link to="/contact" className={navLinkClass('/contact')}>Contact</Link>
+            
+            <a
+              href="https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center gap-1.5 text-xs font-bold shadow-sm transition-all hover:scale-105 active:scale-95"
+            >
+              <MessageCircle className="w-4 h-4 fill-white" /> WhatsApp
+            </a>
+
             {user && (
               <Link
                 to="/admin"
