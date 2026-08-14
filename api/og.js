@@ -1,4 +1,23 @@
 export default async function handler(req, res) {
+  // 0. Proxy image to strip Supabase x-robots-tag: none header for WhatsApp & Facebook
+  if (req.query.img) {
+    try {
+      const imgUrl = req.query.img;
+      const imgRes = await fetch(imgUrl);
+      if (!imgRes.ok) throw new Error('Failed to fetch image');
+      const arrayBuffer = await imgRes.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(200).send(buffer);
+    } catch (err) {
+      return res.redirect(req.query.img);
+    }
+  }
+
   // Extract id from query params or URL
   const { id } = req.query;
 
@@ -65,6 +84,11 @@ export default async function handler(req, res) {
 
   const ogCanonicalUrl = id ? `https://www.jobnews.lk/jobs/${id}` : "https://www.jobnews.lk";
 
+  // Use proxy image URL to strip Supabase x-robots-tag: none header for WhatsApp and Facebook crawlers
+  const proxyImageUrl = imageUrl.startsWith('http')
+    ? `https://www.jobnews.lk/api/og?img=${encodeURIComponent(imageUrl)}`
+    : imageUrl;
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -78,8 +102,8 @@ export default async function handler(req, res) {
   <meta property="og:site_name" content="JobNews.lk" />
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
-  <meta property="og:image" content="${escapeHtml(imageUrl)}" />
-  <meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />
+  <meta property="og:image" content="${escapeHtml(proxyImageUrl)}" />
+  <meta property="og:image:secure_url" content="${escapeHtml(proxyImageUrl)}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:url" content="${escapeHtml(ogCanonicalUrl)}" />
@@ -88,7 +112,7 @@ export default async function handler(req, res) {
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
-  <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
+  <meta name="twitter:image" content="${escapeHtml(proxyImageUrl)}" />
 
   <!-- Client side redirect for regular browser visitors -->
   <script>
