@@ -79,6 +79,8 @@
        1. **Key-Value Pairs (`තනතුර:`, `පුරප්පාඩු සංඛ්‍යාව:`):** Rendered with `🔹` blue icons and bold keys.
        2. **Numbered Lists (`1.`, `2)`, `(01)`):** Rendered with blue numbered pill badges (`[1.]`, `[2.]`).
        3. **Bullet Points (`-`, `*`, `•`):** Rendered with `🔹` gradient icons.
+     * **Share Vacancy Action Suite (COMPLETED):**
+       Created `ShareButtons.tsx` with support for Native Web Share API (Mobile Device Share Sheet), WhatsApp direct pre-filled sharing, Facebook share, Telegram share, and instant Copy Link to clipboard with feedback toasts across all job cards and detail pages.
      * **Official WhatsApp Channel Integration (COMPLETED):**
        Integrated official WhatsApp Channel link (`https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y`) across `Navbar.tsx`, `JobDetail.tsx`, `Footer.tsx`, and created a responsive `WhatsAppFloatingButton.tsx` badge for maximum user engagement and channel subscriber growth.
      * **Speed & Initial Load Optimization (COMPLETED):**
