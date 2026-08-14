@@ -29,7 +29,7 @@ export default function TextNoticeCard({ job }: TextNoticeCardProps) {
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           {job.is_government && <Badge icon={<Landmark className="w-3 h-3" />} text="Government" color="blue" />}
           {job.is_overseas && <Badge icon={<Globe className="w-3 h-3" />} text="Overseas" color="teal" />}
-          <Badge icon={<Type className="w-3 h-3" />} text="Text Notice" color="slate" />
+          {!job.is_government && !job.is_overseas && <Badge icon={<Briefcase className="w-3 h-3" />} text="Private Sector" color="indigo" />}
         </div>
         <div className="flex items-start justify-between gap-3 mb-2">
           <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug">{job.title}</h3>

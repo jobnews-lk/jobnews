@@ -36,7 +36,7 @@ export default function PdfNoticeCard({ job }: PdfNoticeCardProps) {
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           {job.is_government && <Badge icon={<Landmark className="w-3 h-3" />} text="Government" color="blue" />}
           {job.is_overseas && <Badge icon={<Globe className="w-3 h-3" />} text="Overseas" color="teal" />}
-          <Badge icon={<FileText className="w-3 h-3" />} text="PDF Notice" color="red" />
+          {!job.is_government && !job.is_overseas && <Badge icon={<Briefcase className="w-3 h-3" />} text="Private Sector" color="indigo" />}
         </div>
         <div className="flex items-start justify-between gap-3 mb-3">
           <h3 className="font-bold text-slate-900 dark:text-white text-base md:text-lg leading-snug">{job.title}</h3>

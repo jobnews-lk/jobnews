@@ -100,7 +100,11 @@ export default function VacancyCard({ job }: VacancyCardProps) {
               <Globe className="w-3 h-3" /> Overseas
             </span>
           )}
-          {getPostTypeBadge()}
+          {!job.is_government && !job.is_overseas && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+              <Briefcase className="w-3 h-3" /> Private Sector
+            </span>
+          )}
         </div>
 
         {/* Title */}
