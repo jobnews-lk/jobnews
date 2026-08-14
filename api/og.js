@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
 
   const escapeHtml = (str) => {
     if (!str) return '';
