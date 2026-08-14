@@ -71,25 +71,6 @@ export default function PdfNoticeCard({ job }: PdfNoticeCardProps) {
             <Clock className="w-3.5 h-3.5" /> {isExpired ? 'Closed' : `Closes ${closing.toLocaleDateString()}`}
           </span>
         </div>
-        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2 flex-wrap">
-          <Link to={`/jobs/${job.id}`} className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-semibold rounded-lg transition-colors">
-            <Eye className="w-3.5 h-3.5" /> Notice
-          </Link>
-          {hasApplyUrl && (
-            <a href={job.apply_url!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-blue-200 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 text-xs md:text-sm font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
-              <ExternalLink className="w-3.5 h-3.5" /> Apply
-            </a>
-          )}
-          {job.apply_method === 'email' && job.apply_email && (
-            <a href={`mailto:${job.apply_email}`} className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-blue-200 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 text-xs md:text-sm font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
-              <ExternalLink className="w-3.5 h-3.5" /> Apply by Email
-            </a>
-          )}
-          {job.apply_method === 'phone' && job.apply_phone && (
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs md:text-sm font-medium rounded-lg">
-              <ExternalLink className="w-3.5 h-3.5" /> {job.apply_phone}
-            </span>
-
         <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1.5 flex-wrap">
           <div className="flex items-center gap-1.5 flex-wrap">
             {pdfUrl && (
