@@ -117,7 +117,10 @@ export default function JobDetail() {
       }
 
       const { data } = await query.maybeSingle();
-      if (data) setJob(data as Job);
+      if (data) {
+        setJob(data as Job);
+        document.title = `${data.title} | JobNews.lk`;
+      }
       setLoading(false);
     }
     loadJob();
@@ -167,8 +170,46 @@ export default function JobDetail() {
   const pdfUrl = job.official_pdf_url || (pdfs[0]?.url || null);
   const pdfFilename = pdfs[0]?.filename || 'Official Notice.pdf';
 
+  // Google Jobs Structured Data (JSON-LD)
+  const jsonLdData = {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    "title": job.title,
+    "description": job.description || `Official vacancy announcement for ${job.title} at ${job.company || 'JobNews.lk'}. Apply now via JobNews.lk.`,
+    "identifier": {
+      "@type": "PropertyValue",
+      "name": job.company || "JobNews.lk",
+      "value": job.id
+    },
+    "datePosted": job.posted_date || job.created_at,
+    "validThrough": job.closing_date ? new Date(job.closing_date).toISOString() : undefined,
+    "employmentType": "FULL_TIME",
+    "hiringOrganization": {
+      "@type": "Organization",
+      "name": job.company || "Government / Private Organization",
+      "sameAs": "https://jobnews.lk",
+      "logo": allImages.length > 0 ? allImages[0].url : "https://jobnews.lk/favicon.svg"
+    },
+    "jobLocation": {
+      "@type": "Place",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": job.location || (job.countries?.name || "Sri Lanka"),
+        "addressCountry": job.countries?.code || (job.is_overseas ? "OVERSEAS" : "LK")
+      }
+    },
+    "directApply": true,
+    "url": `https://jobnews.lk/jobs/${job.id}`
+  };
+
   return (
     <div className="py-10 px-4">
+      {/* Google Jobs Structured Data Script */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
+      />
+
       <div className="max-w-4xl mx-auto">
         {/* Admin Preview Mode Alert Banner */}
         {job.status === 'draft' && (
