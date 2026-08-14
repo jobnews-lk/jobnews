@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Calendar, Clock, Globe, Landmark, ChevronLeft, ChevronRight, X, ZoomIn, ImageIcon, ExternalLink, MapPin as MapPinIcon, Share2 } from 'lucide-react';
+import { MapPin, Calendar, Clock, Globe, Landmark, ChevronLeft, ChevronRight, X, ZoomIn, ImageIcon, ExternalLink, MapPin as MapPinIcon, Share2, Briefcase } from 'lucide-react';
 import type { Job } from '../lib/supabase';
 import { Badge } from './NoticeBadge';
 import SaveJobButton from './SaveJobButton';
