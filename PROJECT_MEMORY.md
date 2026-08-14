@@ -79,6 +79,8 @@
        1. **Key-Value Pairs (`තනතුර:`, `පුරප්පාඩු සංඛ්‍යාව:`):** Rendered with `🔹` blue icons and bold keys.
        2. **Numbered Lists (`1.`, `2)`, `(01)`):** Rendered with blue numbered pill badges (`[1.]`, `[2.]`).
        3. **Bullet Points (`-`, `*`, `•`):** Rendered with `🔹` gradient icons.
+     * **Official WhatsApp Channel Integration (COMPLETED):**
+       Integrated official WhatsApp Channel link (`https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y`) across `Navbar.tsx`, `JobDetail.tsx`, `Footer.tsx`, and created a responsive `WhatsAppFloatingButton.tsx` badge for maximum user engagement and channel subscriber growth.
      * **Speed & Initial Load Optimization (COMPLETED):**
        Implemented **Stale-While-Revalidate (SWR) Session Caching & Parallel Progressive Loading** across `Home.tsx`, `Jobs.tsx`, `GovernmentJobs.tsx`, `PrivateJobs.tsx`, and `OverseasJobs.tsx`. Eliminates multi-query sequential waiting (`Promise.all` bottlenecks) and payload bloat, achieving instant (sub-100ms) job list rendering.
      * **Security Posture & Cloudflare Enterprise Readiness (COMPLETED):**
