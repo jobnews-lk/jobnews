@@ -63,7 +63,7 @@ export default async function handler(req, res) {
       .replace(/'/g, '&#039;');
   };
 
-  const ogCanonicalUrl = id ? `https://www.jobnews.lk/og/${id}` : "https://www.jobnews.lk";
+  const ogCanonicalUrl = id ? `https://www.jobnews.lk/jobs/${id}` : "https://www.jobnews.lk";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
