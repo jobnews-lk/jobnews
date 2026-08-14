@@ -5,6 +5,17 @@
       "destination": "/api/og?id=:id"
     },
     {
+      "source": "/jobs/:id",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot|bot|crawler).*"
+        }
+      ],
+      "destination": "/api/og?id=:id"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

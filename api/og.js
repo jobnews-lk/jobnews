@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // Extract id from query params or URL
   const { id } = req.query;
 
   const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://uaznuhmsntkuxoxzivys.supabase.co";
@@ -6,7 +7,7 @@ export default async function handler(req, res) {
 
   let title = "JobNews.lk - Sri Lanka's Latest Job Vacancies";
   let description = "Find the latest Government, Private, and Overseas job vacancies in Sri Lanka. JobNews.lk is your trusted portal for official job announcements.";
-  let imageUrl = "https://jobnews.lk/og-default.jpg";
+  let imageUrl = "https://jobnews.lk/og-banner.png";
   let targetUrl = "https://jobnews.lk";
 
   if (id) {
@@ -33,7 +34,7 @@ export default async function handler(req, res) {
           : `Official vacancy announcement for ${job.title}. Location: ${job.location || 'Sri Lanka'}. Apply now via JobNews.lk.`;
 
         // Check for primary image, thumbnail, or default
-        if (job.job_images && job.job_images.length > 0) {
+        if (job.job_images && job.job_images.length > 0 && job.job_images[0].url) {
           imageUrl = job.job_images[0].url;
         } else if (job.thumbnail_url) {
           imageUrl = job.thumbnail_url;
@@ -42,6 +43,11 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error('OG API error:', err);
     }
+  }
+
+  // Ensure absolute HTTPS URL for OpenGraph images
+  if (imageUrl && !imageUrl.startsWith('http')) {
+    imageUrl = `https://jobnews.lk${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -65,34 +71,35 @@ export default async function handler(req, res) {
   <title>${escapeHtml(title)} | JobNews.lk</title>
   <meta name="description" content="${escapeHtml(description)}">
   
-  <!-- Open Graph / Facebook / WhatsApp -->
+  <!-- Open Graph / Facebook / WhatsApp Meta Tags -->
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="JobNews.lk" />
   <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
   <meta property="og:image" content="${escapeHtml(imageUrl)}" />
   <meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />
-  <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:url" content="${escapeHtml(targetUrl)}" />
 
-  <!-- Twitter Card -->
+  <!-- Twitter Card Meta Tags -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escapeHtml(title)}" />
   <meta name="twitter:description" content="${escapeHtml(description)}" />
   <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
 
-  <!-- Instant Client Redirect for human visitors -->
+  <!-- Client side redirect for regular browser visitors -->
   <script>
-    window.location.href = "${targetUrl}";
+    if (!navigator.userAgent.match(/(facebookexternalhit|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot|bot|crawler)/i)) {
+      window.location.replace("${targetUrl}");
+    }
   </script>
   <meta http-equiv="refresh" content="0;url=${targetUrl}" />
 </head>
 <body style="font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; text-align: center;">
-  <h2>${escapeHtml(title)}</h2>
-  <img src="${escapeHtml(imageUrl)}" style="max-width: 100%; max-height: 450px; border-radius: 12px; margin: 1.5rem 0; box-shadow: 0 10px 25px rgba(0,0,0,0.5);" />
-  <p>Loading vacancy announcement on JobNews.lk...</p>
+  <h2 style="margin-bottom: 1rem;">${escapeHtml(title)}</h2>
+  <img src="${escapeHtml(imageUrl)}" style="max-width: 100%; max-height: 450px; border-radius: 12px; margin: 1rem 0; box-shadow: 0 10px 25px rgba(0,0,0,0.5);" />
+  <p style="margin-top: 1rem; color: #94a3b8;">Redirecting to JobNews.lk...</p>
 </body>
 </html>`;
 
