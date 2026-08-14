@@ -125,7 +125,7 @@ export default function Home() {
       // Fetch Latest Jobs first & render immediately
       const fetchLatestJobs = supabase
         .from('jobs')
-        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+        .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
         .limit(12)
@@ -140,7 +140,7 @@ export default function Home() {
       // Fetch Closing Soon Jobs
       const fetchClosingJobs = supabase
         .from('jobs')
-        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+        .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
         .eq('status', 'published')
         .gte('closing_date', todayStr)
         .lte('closing_date', nextWeekStr)
