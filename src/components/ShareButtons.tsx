@@ -14,7 +14,7 @@ export default function ShareButtons({ title, company, url, jobId }: ShareButton
   
   // Extract jobId if not provided directly
   const extractedId = jobId || rawUrl.split('/jobs/')[1]?.split('?')[0] || rawUrl.split('/og/')[1]?.split('?')[0];
-  const shareUrl = extractedId ? `https://jobnews.lk/og/${extractedId}` : rawUrl;
+  const shareUrl = extractedId ? `https://jobnews.lk/jobs/${extractedId}` : rawUrl;
 
   const companyStr = company ? ` at ${company}` : '';
   const shareText = `🔍 Job Notice: ${title}${companyStr}\n\nApply now via JobNews.lk:`;
