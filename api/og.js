@@ -74,7 +74,6 @@ export default async function handler(req, res) {
   <meta name="description" content="${escapeHtml(description)}">
   
   <!-- Open Graph / Facebook / WhatsApp Meta Tags -->
-  <meta property="fb:app_id" content="966843648900000" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="JobNews.lk" />
   <meta property="og:title" content="${escapeHtml(title)}" />
