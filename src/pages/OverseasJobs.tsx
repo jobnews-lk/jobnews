@@ -5,8 +5,21 @@ import { supabase, type Job } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
 
 export default function OverseasJobs() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [jobs, setJobs] = useState<Job[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_ovs_jobs');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    try {
+      return !localStorage.getItem('jn_ovs_jobs');
+    } catch (e) {
+      return true;
+    }
+  });
 
   useEffect(() => {
     try {

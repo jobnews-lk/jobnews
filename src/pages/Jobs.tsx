@@ -6,10 +6,37 @@ import LatestJobFeed from '../components/LatestJobFeed';
 
 export default function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [jobs, setJobs] = useState<Job[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_all_jobs');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [countries, setCountries] = useState<Country[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_jobs_countries');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_jobs_categories');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    try {
+      return !localStorage.getItem('jn_all_jobs');
+    } catch (e) {
+      return true;
+    }
+  });
   
   const initialSearch = searchParams.get('search') || '';
   const [searchInput, setSearchInput] = useState(initialSearch);

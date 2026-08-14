@@ -29,6 +29,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     root.classList.add(theme);
     body.classList.add(theme);
     root.style.colorScheme = theme;
+    root.style.backgroundColor = theme === 'dark' ? '#0f172a' : '#ffffff';
     localStorage.setItem('theme', theme);
   }, [theme]);
 

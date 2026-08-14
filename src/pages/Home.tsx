@@ -7,14 +7,48 @@ import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
 import AdPlaceholder from '../components/AdPlaceholder';
 
 export default function Home() {
-  const [latestJobs, setLatestJobs] = useState<Job[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [latestJobs, setLatestJobs] = useState<Job[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_home_jobs');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [closingJobs, setClosingJobs] = useState<Job[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_home_closing');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [countries, setCountries] = useState<Country[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_home_countries');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_home_categories');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [search, setSearch] = useState('');
   const [searchCountry, setSearchCountry] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [closingJobs, setClosingJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState<boolean>(() => {
+    try {
+      return !localStorage.getItem('jn_home_jobs');
+    } catch (e) {
+      return true;
+    }
+  });
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   
