@@ -94,7 +94,6 @@ export default async function handler(req, res) {
       window.location.replace("${targetUrl}");
     }
   </script>
-  <meta http-equiv="refresh" content="0;url=${targetUrl}" />
 </head>
 <body style="font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; text-align: center;">
   <h2 style="margin-bottom: 1rem;">${escapeHtml(title)}</h2>
