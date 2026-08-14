@@ -63,6 +63,8 @@ export default async function handler(req, res) {
       .replace(/'/g, '&#039;');
   };
 
+  const ogCanonicalUrl = id ? `https://www.jobnews.lk/og/${id}` : "https://www.jobnews.lk";
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -81,7 +83,7 @@ export default async function handler(req, res) {
   <meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:url" content="${escapeHtml(targetUrl)}" />
+  <meta property="og:url" content="${escapeHtml(ogCanonicalUrl)}" />
 
   <!-- Twitter Card Meta Tags -->
   <meta name="twitter:card" content="summary_large_image" />
