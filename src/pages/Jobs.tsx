@@ -91,31 +91,36 @@ export default function Jobs() {
         setLoading(true);
       }
 
-      let query = supabase
-        .from('jobs')
-        .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
+      try {
+        let query = supabase
+          .from('jobs')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false });
 
-      if (selectedCountry) {
-        const ct = countries.find(c => c.slug === selectedCountry);
-        if (ct) query = query.eq('country_id', ct.id);
-      }
-      if (selectedCategory) {
-        const cat = categories.find(c => c.slug === selectedCategory);
-        if (cat) query = query.eq('category_id', cat.id);
-      }
-      if (search) {
-        query = query.or(`title.ilike.%${search}%,company.ilike.%${search}%,description.ilike.%${search}%`);
-      }
-      const { data } = await query;
-      if (data) {
-        setJobs(data as Job[]);
-        if (!search && !selectedCountry && !selectedCategory) {
-          localStorage.setItem('jn_all_jobs', JSON.stringify(data));
+        if (selectedCountry) {
+          const ct = countries.find(c => c.slug === selectedCountry);
+          if (ct) query = query.eq('country_id', ct.id);
         }
+        if (selectedCategory) {
+          const cat = categories.find(c => c.slug === selectedCategory);
+          if (cat) query = query.eq('category_id', cat.id);
+        }
+        if (search) {
+          query = query.or(`title.ilike.%${search}%,company.ilike.%${search}%,description.ilike.%${search}%`);
+        }
+        const { data, error } = await query;
+        if (!error && data) {
+          setJobs(data as Job[]);
+          if (!search && !selectedCountry && !selectedCategory) {
+            localStorage.setItem('jn_all_jobs', JSON.stringify(data));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching jobs:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     
     loadJobs();
