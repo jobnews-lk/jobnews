@@ -122,13 +122,13 @@ export default function Home() {
       nextWeek.setDate(nextWeek.getDate() + 10);
       const nextWeekStr = nextWeek.toISOString().split('T')[0];
 
-      // Fetch Latest Jobs first & render immediately
+      // Fetch Latest Jobs first & render immediately (24 initial jobs for complete coverage)
       const fetchLatestJobs = supabase
         .from('jobs')
         .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
         .eq('status', 'published')
         .order('created_at', { ascending: false })
-        .limit(12)
+        .limit(24)
         .then(res => {
           if (res.data) {
             setLatestJobs(res.data as Job[]);
@@ -145,7 +145,7 @@ export default function Home() {
         .gte('closing_date', todayStr)
         .lte('closing_date', nextWeekStr)
         .order('closing_date', { ascending: true })
-        .limit(4)
+        .limit(6)
         .then(res => {
           if (res.data) {
             setClosingJobs(res.data as Job[]);
@@ -448,7 +448,18 @@ export default function Home() {
             <p className="text-sm text-slate-400 mt-1">New announcements will appear here as soon as they are published.</p>
           </div>
         ) : (
-          <LatestJobFeed jobs={latestJobs} />
+          <>
+            <LatestJobFeed jobs={latestJobs} />
+            <div className="mt-10 text-center">
+              <Link
+                to="/jobs"
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:gap-3"
+              >
+                <span>View All Job Notices (තවත් රැකියා බලන්න)</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </>
         )}
       </section>
 
