@@ -31,17 +31,24 @@ export default function PrivateJobs() {
     } catch (e) {}
 
     async function load() {
-      const { data } = await supabase
-        .from('jobs')
-        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
-        .eq('is_government', false)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
-      if (data) {
-        setJobs(data as Job[]);
-        localStorage.setItem('jn_pvt_jobs', JSON.stringify(data));
+      try {
+        const { data, error } = await supabase
+          .from('jobs')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+          .eq('is_government', false)
+          .eq('is_overseas', false)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          setJobs(data as Job[]);
+          localStorage.setItem('jn_pvt_jobs', JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error('Error fetching private jobs:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     load();
   }, []);

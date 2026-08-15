@@ -31,17 +31,23 @@ export default function OverseasJobs() {
     } catch (e) {}
 
     async function load() {
-      const { data } = await supabase
-        .from('jobs')
-        .select('*, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
-        .eq('is_overseas', true)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false });
-      if (data) {
-        setJobs(data as Job[]);
-        localStorage.setItem('jn_ovs_jobs', JSON.stringify(data));
+      try {
+        const { data, error } = await supabase
+          .from('jobs')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+          .eq('is_overseas', true)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false });
+
+        if (!error && data) {
+          setJobs(data as Job[]);
+          localStorage.setItem('jn_ovs_jobs', JSON.stringify(data));
+        }
+      } catch (err) {
+        console.error('Error fetching overseas jobs:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     load();
   }, []);
