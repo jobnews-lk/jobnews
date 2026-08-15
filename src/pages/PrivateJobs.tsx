@@ -40,7 +40,7 @@ export default function PrivateJobs() {
       try {
         const { data, error } = await supabase
           .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary_info, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
           .eq('is_government', false)
           .eq('is_overseas', false)
           .eq('status', 'published')
