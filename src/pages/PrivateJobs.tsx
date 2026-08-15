@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, ArrowLeft } from 'lucide-react';
-import { supabase, type Job } from '../lib/supabase';
+import { Briefcase, ArrowLeft, Search, FolderOpen, X } from 'lucide-react';
+import { supabase, type Job, type Category } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
 
 export default function PrivateJobs() {
@@ -14,6 +14,7 @@ export default function PrivateJobs() {
       return [];
     }
   });
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState<boolean>(() => {
     try {
       const cached = localStorage.getItem('jn_pvt_jobs');
@@ -24,21 +25,34 @@ export default function PrivateJobs() {
     }
   });
 
-  useEffect(() => {
-    try {
-      const cached = localStorage.getItem('jn_pvt_jobs');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setJobs(parsed);
-          setLoading(false);
-        }
-      }
-    } catch (e) {}
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
+  // 300ms Debounce for ultra-fast typing without lag
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput), 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  useEffect(() => {
+    async function loadMetadata() {
+      const { data } = await supabase.from('categories').select('id, name, slug').order('name');
+      if (data) setCategories(data as Category[]);
+    }
+    loadMetadata();
+  }, []);
+
+  useEffect(() => {
     async function load() {
+      if (!search && !selectedCategory && jobs.length > 0) {
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('jobs')
           .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
           .eq('is_government', false)
@@ -46,9 +60,22 @@ export default function PrivateJobs() {
           .eq('status', 'published')
           .order('created_at', { ascending: false });
 
+        if (selectedCategory) {
+          const cat = categories.find(c => c.slug === selectedCategory);
+          if (cat) query = query.eq('category_id', cat.id);
+        }
+
+        if (search) {
+          query = query.or(`title.ilike.%${search}%,company.ilike.%${search}%,description.ilike.%${search}%`);
+        }
+
+        const { data, error } = await query;
+
         if (!error && data) {
           setJobs(data as Job[]);
-          localStorage.setItem('jn_pvt_jobs', JSON.stringify(data));
+          if (!search && !selectedCategory) {
+            localStorage.setItem('jn_pvt_jobs', JSON.stringify(data));
+          }
         }
       } catch (err) {
         console.error('Error fetching private jobs:', err);
@@ -57,41 +84,97 @@ export default function PrivateJobs() {
       }
     }
     load();
-  }, []);
+  }, [search, selectedCategory]);
+
+  const activeFilters = useMemo(() => {
+    const list: { label: string; type: string }[] = [];
+    if (search) list.push({ label: `Search: ${search}`, type: 'search' });
+    const cat = categories.find(c => c.slug === selectedCategory);
+    if (cat) list.push({ label: cat.name, type: 'category' });
+    return list;
+  }, [search, selectedCategory, categories]);
+
+  const clearFilter = (type: string) => {
+    if (type === 'search') {
+      setSearch('');
+      setSearchInput('');
+    }
+    if (type === 'category') setSelectedCategory('');
+  };
 
   return (
     <div className="py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-blue-600 mb-3 transition-colors">
+          <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-3 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to Home
           </Link>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+              <Briefcase className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-900">Private Sector Jobs</h1>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Private Sector Jobs</h1>
           </div>
-          <p className="text-slate-500">Vacancies in top companies, startups, and NGOs</p>
+          <p className="text-slate-500 dark:text-slate-400">Vacancies in top companies, startups, and NGOs</p>
         </div>
 
-        <div className="mb-4 text-sm text-slate-500">
+        {/* Search & Filter Bar */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 mb-6 transition-colors shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search private jobs by title, company, or keyword..."
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              />
+            </div>
+            <div className="relative w-full sm:w-64">
+              <FolderOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white dark:bg-slate-800 transition-colors"
+              >
+                <option value="">All Categories</option>
+                {categories.map(cat => <option key={cat.id} value={cat.slug}>{cat.name}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Active Filters */}
+        {activeFilters.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            {activeFilters.map((f, i) => (
+              <span key={i} className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-full text-sm font-medium">
+                {f.label}
+                <button onClick={() => clearFilter(f.type)} className="hover:text-blue-900 dark:hover:text-blue-200"><X className="w-3.5 h-3.5" /></button>
+              </span>
+            ))}
+            <button onClick={() => { setSearch(''); setSearchInput(''); setSelectedCategory(''); }} className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 underline">Clear all</button>
+          </div>
+        )}
+
+        <div className="mb-4 text-sm text-slate-500 dark:text-slate-400">
           {loading ? 'Loading notices...' : `${jobs.length} notice${jobs.length !== 1 ? 's' : ''} found`}
         </div>
 
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 animate-pulse">
-                <div className="h-8 w-full bg-slate-200 rounded mb-3" />
-                <div className="h-4 w-2/3 bg-slate-200 rounded mb-2" />
-                <div className="h-4 w-1/2 bg-slate-200 rounded" />
+              <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 animate-pulse">
+                <div className="h-8 w-full bg-slate-200 dark:bg-slate-700 rounded mb-3" />
+                <div className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded mb-2" />
+                <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-700 rounded" />
               </div>
             ))}
           </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-            <p className="text-lg font-medium text-slate-500 dark:text-slate-400">No private sector job notices currently available.</p>
+            <p className="text-lg font-medium text-slate-500 dark:text-slate-400">No private sector job notices match your search.</p>
           </div>
         ) : (
           <LatestJobFeed jobs={jobs} />
