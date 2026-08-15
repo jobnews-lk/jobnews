@@ -34,6 +34,11 @@ export default function ImageNoticeCard({ job }: ImageNoticeCardProps) {
   const prev = () => setCurrentIndex((i) => Math.max(0, i - 1));
   const next = () => setCurrentIndex((i) => Math.min(images.length - 1, i + 1));
 
+  const postedDateRaw = job.posted_date || job.created_at;
+  const postedDateFormatted = postedDateRaw && !isNaN(new Date(postedDateRaw).getTime())
+    ? new Date(postedDateRaw).toLocaleDateString()
+    : 'Recently';
+
   return (
     <div className="flex flex-col h-full bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition-shadow">
       {/* Image Gallery */}
@@ -91,38 +96,18 @@ export default function ImageNoticeCard({ job }: ImageNoticeCardProps) {
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs md:text-sm text-slate-500 dark:text-slate-400 mb-4">
           <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" /> {job.countries?.name || job.location || 'N/A'}</span>
-          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Posted {new Date(job.posted_date).toLocaleDateString()}</span>
+          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> Posted {postedDateFormatted}</span>
           <span className={`flex items-center gap-1 ${isExpired ? 'text-red-500' : ''}`}>
             <Clock className="w-3.5 h-3.5" /> {isExpired ? 'Closed' : `Closes ${closing.toLocaleDateString()}`}
           </span>
           {job.categories?.name && <span className="flex items-center gap-1"><ImageIcon className="w-3.5 h-3.5" /> {job.categories.name}</span>}
         </div>
-        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 flex-wrap">
-          <button onClick={() => setLightboxOpen(true)} className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm shrink-0">
+        <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+          <button onClick={() => setLightboxOpen(true)} className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm shrink-0">
             <ZoomIn className="w-3.5 h-3.5" /> Notice
           </button>
-          {hasApplyUrl && (
-            <a href={job.apply_url!} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-blue-200 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors shrink-0">
-              <ExternalLink className="w-3.5 h-3.5" /> Apply
-            </a>
-          )}
-          {job.apply_method === 'email' && job.apply_email && (
-            <a href={`mailto:${job.apply_email}`} className="inline-flex items-center gap-1 px-2.5 py-1.5 border border-blue-200 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors shrink-0">
-              <ExternalLink className="w-3.5 h-3.5" /> Email
-            </a>
-          )}
-          {job.apply_method === 'phone' && job.apply_phone && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-lg shrink-0">
-              <ExternalLink className="w-3.5 h-3.5" /> {job.apply_phone}
-            </span>
-          )}
-          {job.apply_method === 'in_person' && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium rounded-lg shrink-0">
-              <MapPinIcon className="w-3.5 h-3.5" /> In Person
-            </span>
-          )}
 
-          {/* Details Button right next to Apply with tight 6px gap */}
+          {/* Details Button */}
           <Link to={`/jobs/${job.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 text-xs font-bold rounded-lg transition-colors shadow-sm shrink-0">
             Details <ChevronRight className="w-3.5 h-3.5" />
           </Link>
@@ -141,7 +126,7 @@ export default function ImageNoticeCard({ job }: ImageNoticeCardProps) {
                 alert('Link copied to clipboard! 📋');
               }
             }}
-            className="p-1.5 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-slate-200 dark:border-slate-800 shrink-0"
+            className="p-1.5 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors border border-slate-200 dark:border-slate-800 shrink-0 ml-auto"
             title="Share Vacancy"
           >
             <Share2 className="w-4 h-4" />
