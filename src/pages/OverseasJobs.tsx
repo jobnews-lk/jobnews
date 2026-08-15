@@ -30,15 +30,7 @@ export default function OverseasJobs() {
       return [];
     }
   });
-  const [loading, setLoading] = useState<boolean>(() => {
-    try {
-      const cached = localStorage.getItem('jn_ovs_jobs');
-      const parsed = cached ? JSON.parse(cached) : [];
-      return !Array.isArray(parsed) || parsed.length === 0;
-    } catch (e) {
-      return true;
-    }
-  });
+  const [loading, setLoading] = useState<boolean>(jobs.length === 0);
 
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -52,26 +44,9 @@ export default function OverseasJobs() {
   }, [searchInput]);
 
   useEffect(() => {
-    async function loadMetadata() {
-      const [ctsRes, catsRes] = await Promise.all([
-        supabase.from('countries').select('id, name, slug').order('name'),
-        supabase.from('categories').select('id, name, slug').order('name')
-      ]);
-      if (ctsRes.data) {
-        setCountries(ctsRes.data as Country[]);
-        localStorage.setItem('jn_ovs_countries', JSON.stringify(ctsRes.data));
-      }
-      if (catsRes.data) {
-        setCategories(catsRes.data as Category[]);
-        localStorage.setItem('jn_ovs_categories', JSON.stringify(catsRes.data));
-      }
-    }
-    loadMetadata();
-  }, []);
+    let isSubscribed = true;
 
-  useEffect(() => {
     async function load() {
-      // Only set skeleton loading if there is an active filter or no cached jobs
       const isFiltered = Boolean(search || selectedCountry || selectedCategory);
       if (isFiltered || jobs.length === 0) {
         setLoading(true);
@@ -99,21 +74,41 @@ export default function OverseasJobs() {
           query = query.or(`title.ilike.%${search}%,company.ilike.%${search}%,description.ilike.%${search}%`);
         }
 
-        const { data, error } = await query;
+        const [jobRes, ctsRes, catsRes] = await Promise.all([
+          query,
+          countries.length === 0 ? supabase.from('countries').select('id, name, slug').order('name') : Promise.resolve(null),
+          categories.length === 0 ? supabase.from('categories').select('id, name, slug').order('name') : Promise.resolve(null)
+        ]);
 
-        if (!error && data) {
-          setJobs(data as Job[]);
-          if (!isFiltered) {
-            localStorage.setItem('jn_ovs_jobs', JSON.stringify(data));
+        if (isSubscribed) {
+          if (ctsRes?.data) {
+            setCountries(ctsRes.data as Country[]);
+            localStorage.setItem('jn_ovs_countries', JSON.stringify(ctsRes.data));
+          }
+          if (catsRes?.data) {
+            setCategories(catsRes.data as Category[]);
+            localStorage.setItem('jn_ovs_categories', JSON.stringify(catsRes.data));
+          }
+          if (!jobRes.error && jobRes.data) {
+            setJobs(jobRes.data as Job[]);
+            if (!isFiltered) {
+              localStorage.setItem('jn_ovs_jobs', JSON.stringify(jobRes.data));
+            }
           }
         }
       } catch (err) {
         console.error('Error fetching overseas jobs:', err);
       } finally {
-        setLoading(false);
+        if (isSubscribed) {
+          setLoading(false);
+        }
       }
     }
     load();
+
+    return () => {
+      isSubscribed = false;
+    };
   }, [search, selectedCountry, selectedCategory]);
 
   const activeFilters = useMemo(() => {

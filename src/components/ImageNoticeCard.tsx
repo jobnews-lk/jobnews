@@ -47,13 +47,13 @@ export default function ImageNoticeCard({ job }: ImageNoticeCardProps) {
           {/* Blurred Background to fill letterboxing naturally */}
           <div 
             className="absolute inset-0 bg-cover bg-center blur-xl opacity-60 dark:opacity-40 scale-125 transition-all duration-300"
-            style={{ backgroundImage: `url(${images[currentIndex].url})` }}
+            style={{ backgroundImage: `url(${job.thumbnail_url || images[currentIndex].url})` }}
           />
           {/* Subtle overlay for better contrast */}
           <div className="absolute inset-0 bg-white/20 dark:bg-black/30" />
           
           <div className="aspect-[4/3] relative z-10 cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
-            <img src={images[currentIndex].url} alt={`${job.title} - ${currentIndex + 1}`} className="w-full h-full object-contain drop-shadow-lg transition-transform duration-300" />
+            <img src={images[currentIndex].url} alt={`${job.title} - ${currentIndex + 1}`} loading="lazy" decoding="async" className="w-full h-full object-contain drop-shadow-lg transition-transform duration-300" />
             <div className="absolute top-3 right-3 w-9 h-9 bg-black/40 rounded-full flex items-center justify-center text-white hover:bg-black/60 transition-colors">
               <ZoomIn className="w-4 h-4" />
             </div>
@@ -75,7 +75,7 @@ export default function ImageNoticeCard({ job }: ImageNoticeCardProps) {
             <div className="flex gap-1.5 p-2 bg-slate-900/50 overflow-x-auto">
               {images.map((img, idx) => (
                 <button key={img.id} onClick={() => setCurrentIndex(idx)} className={`shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-colors ${idx === currentIndex ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}>
-                  <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  <img src={img.url} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
