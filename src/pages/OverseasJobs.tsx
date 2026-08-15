@@ -14,8 +14,22 @@ export default function OverseasJobs() {
       return [];
     }
   });
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [countries, setCountries] = useState<Country[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_ovs_countries');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_ovs_categories');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState<boolean>(() => {
     try {
       const cached = localStorage.getItem('jn_ovs_jobs');
@@ -43,17 +57,23 @@ export default function OverseasJobs() {
         supabase.from('countries').select('id, name, slug').order('name'),
         supabase.from('categories').select('id, name, slug').order('name')
       ]);
-      if (ctsRes.data) setCountries(ctsRes.data as Country[]);
-      if (catsRes.data) setCategories(catsRes.data as Category[]);
+      if (ctsRes.data) {
+        setCountries(ctsRes.data as Country[]);
+        localStorage.setItem('jn_ovs_countries', JSON.stringify(ctsRes.data));
+      }
+      if (catsRes.data) {
+        setCategories(catsRes.data as Category[]);
+        localStorage.setItem('jn_ovs_categories', JSON.stringify(catsRes.data));
+      }
     }
     loadMetadata();
   }, []);
 
   useEffect(() => {
     async function load() {
-      if (!search && !selectedCountry && !selectedCategory && jobs.length > 0) {
-        setLoading(false);
-      } else {
+      // Only set skeleton loading if there is an active filter or no cached jobs
+      const isFiltered = Boolean(search || selectedCountry || selectedCategory);
+      if (isFiltered || jobs.length === 0) {
         setLoading(true);
       }
 
@@ -83,7 +103,7 @@ export default function OverseasJobs() {
 
         if (!error && data) {
           setJobs(data as Job[]);
-          if (!search && !selectedCountry && !selectedCategory) {
+          if (!isFiltered) {
             localStorage.setItem('jn_ovs_jobs', JSON.stringify(data));
           }
         }
