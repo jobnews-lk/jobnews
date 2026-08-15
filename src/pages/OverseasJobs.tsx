@@ -8,14 +8,17 @@ export default function OverseasJobs() {
   const [jobs, setJobs] = useState<Job[]>(() => {
     try {
       const cached = localStorage.getItem('jn_ovs_jobs');
-      return cached ? JSON.parse(cached) : [];
+      const parsed = cached ? JSON.parse(cached) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       return [];
     }
   });
   const [loading, setLoading] = useState<boolean>(() => {
     try {
-      return !localStorage.getItem('jn_ovs_jobs');
+      const cached = localStorage.getItem('jn_ovs_jobs');
+      const parsed = cached ? JSON.parse(cached) : [];
+      return !Array.isArray(parsed) || parsed.length === 0;
     } catch (e) {
       return true;
     }
@@ -25,8 +28,11 @@ export default function OverseasJobs() {
     try {
       const cached = localStorage.getItem('jn_ovs_jobs');
       if (cached) {
-        setJobs(JSON.parse(cached));
-        setLoading(false);
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setJobs(parsed);
+          setLoading(false);
+        }
       }
     } catch (e) {}
 
