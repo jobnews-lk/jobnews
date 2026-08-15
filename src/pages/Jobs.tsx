@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, SlidersHorizontal, X, MapPin, FolderOpen } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Search, SlidersHorizontal, X, MapPin, FolderOpen, ArrowLeft } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
 
@@ -147,6 +147,9 @@ export default function Jobs() {
     <div className="py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
+          <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-3 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Home
+          </Link>
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">All Job Notices</h1>
           <p className="text-slate-500 dark:text-slate-400">Browse all official job announcements and vacancies</p>
         </div>

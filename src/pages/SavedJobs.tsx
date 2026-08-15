@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, type Job } from '../lib/supabase';
 import { useSavedJobs } from '../hooks/useSavedJobs';
 import LatestJobFeed from '../components/LatestJobFeed';
-import { Heart, Search } from 'lucide-react';
+import { Heart, Search, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function SavedJobs() {
@@ -39,6 +39,9 @@ export default function SavedJobs() {
     <div className="py-10 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
+          <Link to="/" className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 mb-3 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Back to Home
+          </Link>
           <div className="flex items-center gap-3 mb-2">
             <Heart className="w-8 h-8 text-red-500 fill-current" />
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Saved Jobs</h1>
