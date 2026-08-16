@@ -448,18 +448,7 @@ export default function Home() {
             <p className="text-sm text-slate-400 mt-1">New announcements will appear here as soon as they are published.</p>
           </div>
         ) : (
-          <>
-            <LatestJobFeed jobs={latestJobs} />
-            <div className="mt-10 text-center">
-              <Link
-                to="/jobs"
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-blue-500/20 transition-all hover:gap-3"
-              >
-                <span>View All Job Notices (තවත් රැකියා බලන්න)</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </>
+          <LatestJobFeed jobs={latestJobs} />
         )}
       </section>
 
