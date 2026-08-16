@@ -89,6 +89,12 @@
        Upgraded SWR caching from `sessionStorage` to permanent `localStorage` (`jn_home_jobs`, `jn_all_jobs`, `jn_gov_jobs`, `jn_pvt_jobs`, `jn_ovs_jobs`), ensuring 0ms instant job list rendering even across browser restarts. Added Vite `manualChunks` code-splitting in `vite.config.ts` (shrunk main bundle size by 70%) and configured Cloudflare Edge CDN Cache-Control headers in `vercel.json` (`public, max-age=31536000, immutable`).
      * **Security Posture & Cloudflare Enterprise Readiness (COMPLETED):**
        Verified Supabase RLS, SQLi immunity via parameterized queries, XSS sanitization (`src/lib/sanitizer.ts`), and Anti-Brute-Force Rate Limiting Lockout (`AdminLogin.tsx`). Successfully integrated **Cloudflare CDN, Free SSL Certificate (HTTPS), WAF Anti-DDoS Protection, Cloudflare Fonts, Early Hints, and Speed Brain Optimization** for `jobnews.lk` (Nameservers updated at LK Domain Registry).
+     * **Facebook Page Auto-Poster Integration & Token Renewal System (COMPLETED - AUGUST 2026):**
+       * **Meta App:** `JobNews Auto Poster` (App ID: `1593091269083965`)
+       * **Facebook Page:** `JobNews LK` (Page ID: `1129474863599981`)
+       * **Permissions:** `pages_manage_posts`, `pages_read_engagement`, `pages_show_list`
+       * **Environment File:** `.env` updated with `VITE_FACEBOOK_PAGE_ID` and `VITE_FACEBOOK_PAGE_ACCESS_TOKEN`.
+       * **Documentation & Renewal Manual:** Saved detailed token renewal and permanent token guide in [`FACEBOOK_TOKEN_RENEWAL.md`](file:///c:/Users/Lenovo/Desktop/My%20Website/project/FACEBOOK_TOKEN_RENEWAL.md).
 
 2. **Custom Domain & SEO Optimization & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
@@ -96,4 +102,4 @@
 
 ---
 
-*Last Updated: 2026-08-14 by Antigravity AI*
+*Last Updated: 2026-08-16 by Antigravity AI*
