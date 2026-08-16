@@ -1134,12 +1134,15 @@ export default function AdminDashboard() {
             <div className="space-y-4 mb-6">
               <div>
                 <FileUpload
-                  bucket="job-attachments"
+                  bucket="job-pdfs"
                   folder="gazettes"
                   accept=".pdf,application/pdf"
                   multiple={false}
                   value={uploadedGazettePdfs}
-                  onChange={setUploadedGazettePdfs}
+                  onChange={(urls) => {
+                    setUploadedGazettePdfs(urls);
+                    if (urls[0]) setGazettePdfUrl(urls[0]);
+                  }}
                   label="📁 Upload Gazette PDF File (Select file from Computer)"
                 />
               </div>
