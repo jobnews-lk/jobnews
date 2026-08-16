@@ -28,17 +28,19 @@ export default function AdminNewJob() {
   const handleSubmit = async (data: Record<string, unknown>) => {
     setError('');
     setSubmitting(true);
-    const { postToFacebook, postToWhatsApp, ...jobData } = data;
+    const shouldFB = Boolean(data.postToFacebook ?? data.post_to_facebook);
+    const shouldWA = Boolean(data.postToWhatsApp ?? data.post_to_whatsapp);
+    const { postToFacebook, post_to_facebook, postToWhatsApp, post_to_whatsapp, ...jobData } = data;
 
     try {
       const result = await adminApiCall('POST', jobData);
       const createdJob = result?.data as Job;
 
       if (createdJob && createdJob.status === 'published') {
-        if (postToFacebook) {
+        if (shouldFB) {
           postJobToFacebook(createdJob).catch((e) => console.error('FB AutoPost Error:', e));
         }
-        if (postToWhatsApp) {
+        if (shouldWA) {
           postJobToWhatsApp(createdJob).catch((e) => console.error('WA AutoPost Error:', e));
         }
       }

@@ -221,12 +221,12 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       status,
       thumbnail_url: thumbnailUrl || null,
       official_pdf_url: officialPdfUrl || null,
-      images: galleryImages,
-      pdfs: galleryPdfs,
+      gallery_images: galleryImages,
+      gallery_pdfs: galleryPdfs,
       replaceImages: true,
       replacePdfs: true,
-      postToFacebook: status === 'published' ? postToFacebook : false,
-      postToWhatsApp: status === 'published' ? postToWhatsApp : false,
+      post_to_facebook: status === 'published' ? postToFacebook : false,
+      post_to_whatsapp: status === 'published' ? postToWhatsApp : false,
     };
     onSubmit(data);
   };

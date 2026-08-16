@@ -7,6 +7,7 @@ import {
   Search, SlidersHorizontal, Bot, Eye, ExternalLink, Mail, Phone
 } from 'lucide-react';
 import { supabase, adminApiCall, type Job } from '../lib/supabase';
+import { parseGazettePdfText, type ExtractedGazetteJob } from '../lib/gazettePdfParser';
 import { useAuth } from '../context/AuthContext';
 import { runJobScraperEngine } from '../lib/jobScraperEngine';
 
@@ -46,10 +47,75 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [filterSector, setFilterSector] = useState<FilterSector>('all');
   const [runningScraper, setRunningScraper] = useState(false);
-  const [showSourcesModal, setShowSourcesModal] = useState(false);
-  const [previewJob, setPreviewJob] = useState<Job | null>(null);
-  const [previewPostToFb, setPreviewPostToFb] = useState(true);
-  const [previewPostToWa, setPreviewPostToWa] = useState(true);
+  const [showGazetteModal, setShowGazetteModal] = useState(false);
+  const [gazettePdfText, setGazettePdfText] = useState('');
+  const [gazettePdfUrl, setGazettePdfUrl] = useState('https://documents.gov.lk/files/gz/2026/8/2026-08-01(I-I)S.pdf');
+  const [parsingGazette, setParsingGazette] = useState(false);
+  const [extractedGazetteJobs, setExtractedGazetteJobs] = useState<ExtractedGazetteJob[]>([]);
+  const [importingGazetteJobs, setImportingGazetteJobs] = useState(false);
+
+  const handleParseGazette = async () => {
+    if (!gazettePdfText.trim()) {
+      setError('Please paste Gazette PDF text or content first.');
+      return;
+    }
+    setError('');
+    setParsingGazette(true);
+    try {
+      const results = await parseGazettePdfText(gazettePdfText, gazettePdfUrl);
+      setExtractedGazetteJobs(results);
+      if (results.length === 0) {
+        setError('No vacancy sections could be parsed from the provided text. Try pasting text containing vacancy numbers (e.g. 1. 2. 3.).');
+      } else {
+        setInfoMessage(`🔍 Successfully parsed ${results.length} vacancy notices from Gazette PDF! Review them below and click "Import All as Drafts".`);
+      }
+    } catch (err) {
+      setError('Failed to parse Gazette text.');
+    } finally {
+      setParsingGazette(false);
+    }
+  };
+
+  const handleImportGazetteJobs = async () => {
+    if (extractedGazetteJobs.length === 0) return;
+    setImportingGazetteJobs(true);
+    setError('');
+    let importedCount = 0;
+    try {
+      for (const item of extractedGazetteJobs) {
+        const payload = {
+          post_type: 'text',
+          title: item.title,
+          company: item.company,
+          salary: item.salary || null,
+          location: 'Sri Lanka',
+          description: item.description,
+          requirements: item.requirements,
+          closing_date: item.closingDate,
+          posted_date: new Date().toISOString().split('T')[0],
+          apply_method: item.applyMethod,
+          apply_url: item.applyUrl || null,
+          apply_email: item.applyEmail || null,
+          is_government: true,
+          is_overseas: false,
+          is_private_sector: false,
+          official_pdf_url: item.officialPdfUrl || null,
+          status: 'draft'
+        };
+        await adminApiCall('POST', payload);
+        importedCount++;
+      }
+      setShowGazetteModal(false);
+      setExtractedGazetteJobs([]);
+      setGazettePdfText('');
+      await loadJobs();
+      setInfoMessage(`🎉 Successfully created ${importedCount} Government Vacancy Drafts from Gazette PDF! You can now review and 1-click approve them below.`);
+    } catch (err) {
+      setError('Error importing some Gazette jobs into database.');
+    } finally {
+      setImportingGazetteJobs(false);
+    }
+  };
 
   // Dynamic Scraper Target Sources state
   const [sources, setSources] = useState<CustomScraperSource[]>(() => {
@@ -250,6 +316,12 @@ export default function AdminDashboard() {
             >
               <Bot className={`w-4 h-4 ${runningScraper ? 'animate-spin' : ''}`} />
               {runningScraper ? 'Bot Hunting Jobs...' : '🤖 Run Auto Job Hunter'}
+            </button>
+            <button
+              onClick={() => setShowGazetteModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg shadow-sm transition-all"
+            >
+              <FileText className="w-4 h-4" /> 📄 Gazette PDF Importer
             </button>
             <Link
               to="/admin/jobs/new"
@@ -552,7 +624,37 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-4 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {job.status === 'published' && (
+                              <>
+                                <button
+                                  onClick={async () => {
+                                    setInfoMessage('Broadcasting post to Facebook Page...');
+                                    const { postJobToFacebook } = await import('../lib/facebookAutoPoster');
+                                    const res = await postJobToFacebook(job);
+                                    if (res.success) setInfoMessage('✓ Posted to Facebook Page successfully!');
+                                    else setError(`Facebook Post Error: ${res.error}`);
+                                  }}
+                                  title="Broadcast to Facebook Page"
+                                  className="px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                                >
+                                  FB Post
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    setInfoMessage('Broadcasting post to WhatsApp Channel...');
+                                    const { postJobToWhatsApp } = await import('../lib/whatsappAutoPoster');
+                                    const res = await postJobToWhatsApp(job);
+                                    if (res.success) setInfoMessage('✓ Broadcasted to WhatsApp Channel successfully!');
+                                    else setError(`WhatsApp Broadcast Error: ${res.error}`);
+                                  }}
+                                  title="Broadcast to WhatsApp Channel"
+                                  className="px-2 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
+                                >
+                                  WA Post
+                                </button>
+                              </>
+                            )}
                             <button
                               onClick={() => setPreviewJob(job)}
                               title="Instant Preview Job (In-Dashboard)"
@@ -991,6 +1093,114 @@ export default function AdminDashboard() {
                 className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-lg transition-colors"
               >
                 Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gazette PDF Importer Modal */}
+      {showGazetteModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-3xl w-full p-6 md:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 my-8">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">📄 Import Vacancies from Government Gazette PDF</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Paste Gazette text or PDF content to auto-extract structured job drafts</p>
+                </div>
+              </div>
+              <button onClick={() => setShowGazetteModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Official Gazette PDF URL (e.g. documents.gov.lk)
+                </label>
+                <input
+                  type="url"
+                  value={gazettePdfUrl}
+                  onChange={(e) => setGazettePdfUrl(e.target.value)}
+                  placeholder="https://documents.gov.lk/files/gz/2026/8/2026-08-01(I-I)S.pdf"
+                  className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Paste Gazette PDF Vacancies Text Content (Sinhala / English / Tamil)
+                </label>
+                <textarea
+                  rows={8}
+                  value={gazettePdfText}
+                  onChange={(e) => setGazettePdfText(e.target.value)}
+                  placeholder={`1. කළමනාකරණ සහකාර තනතුර - රාජ්‍ය සේවා කොමිෂන් සභාව
+අයදුම්පත් භාරගන්නා අවසාන දිනය: 2026.08.31
+වැටුප් පරිමාණය: රු. 32,500 - 45,000
+
+2. ගණකාධිකාරී තනතුර - දේශීය ආදායම් දෙපාර්තමේන්තුව...`}
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder:text-slate-400"
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={handleParseGazette}
+                  disabled={parsingGazette || !gazettePdfText.trim()}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm rounded-lg transition-colors inline-flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Search className="w-4 h-4" />
+                  {parsingGazette ? 'Extracting Vacancies...' : '🔍 Parse Gazette Vacancies'}
+                </button>
+              </div>
+            </div>
+
+            {/* Extracted Vacancies Preview */}
+            {extractedGazetteJobs.length > 0 && (
+              <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-slate-900 dark:text-white text-base">
+                    Extracted Vacancies ({extractedGazetteJobs.length} found)
+                  </h4>
+                  <button
+                    onClick={handleImportGazetteJobs}
+                    disabled={importingGazetteJobs}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-lg transition-colors shadow-md inline-flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    {importingGazetteJobs ? 'Creating Job Drafts...' : `⚡ Create All ${extractedGazetteJobs.length} Draft Jobs`}
+                  </button>
+                </div>
+
+                <div className="max-h-72 overflow-y-auto space-y-3 pr-2">
+                  {extractedGazetteJobs.map((job, idx) => (
+                    <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">{job.title}</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded">
+                          {job.closingDate}
+                        </span>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-300 font-medium">🏢 {job.company}</p>
+                      {job.salary && <p className="text-amber-600 dark:text-amber-400">💰 {job.salary}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+              <button
+                onClick={() => setShowGazetteModal(false)}
+                className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-lg transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>
