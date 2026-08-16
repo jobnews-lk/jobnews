@@ -91,8 +91,25 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
   }
 
   if (method === 'POST' && body) {
-    const { images, pdfs, thumbnail_url, official_pdf_url, replaceImages, replacePdfs, postToFacebook, postToWhatsApp, ...jobData } = body;
+    const {
+      images,
+      pdfs,
+      gallery_images,
+      gallery_pdfs,
+      thumbnail_url,
+      official_pdf_url,
+      replaceImages,
+      replacePdfs,
+      postToFacebook,
+      post_to_facebook,
+      postToWhatsApp,
+      post_to_whatsapp,
+      ...jobData
+    } = body;
     
+    const finalImages = (gallery_images || images) as string[] | undefined;
+    const finalPdfs = (gallery_pdfs || pdfs) as any[] | undefined;
+
     const { data: job, error } = await supabase.from('jobs').insert({
       ...jobData,
       thumbnail_url: thumbnail_url || null,
@@ -101,8 +118,8 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
     
     if (error) throw new Error(error.message);
 
-    if (images && Array.isArray(images) && images.length > 0) {
-      const imageRecords = images.map((url: string, idx: number) => ({
+    if (finalImages && Array.isArray(finalImages) && finalImages.length > 0) {
+      const imageRecords = finalImages.map((url: string, idx: number) => ({
         job_id: job.id,
         url,
         sort_order: idx,
@@ -110,12 +127,12 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
       await supabase.from('job_images').insert(imageRecords);
     }
 
-    if (pdfs && Array.isArray(pdfs) && pdfs.length > 0) {
-      const pdfRecords = pdfs.map((pdf: any) => ({
+    if (finalPdfs && Array.isArray(finalPdfs) && finalPdfs.length > 0) {
+      const pdfRecords = finalPdfs.map((pdf: any) => ({
         job_id: job.id,
-        url: pdf.url,
-        filename: pdf.filename,
-        page_count: pdf.page_count || null,
+        url: typeof pdf === 'string' ? pdf : pdf.url,
+        filename: typeof pdf === 'string' ? (pdf.split('/').pop() || null) : (pdf.filename || null),
+        page_count: typeof pdf === 'string' ? null : (pdf.page_count || null),
       }));
       await supabase.from('job_pdfs').insert(pdfRecords);
     }
@@ -124,8 +141,25 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
   }
 
   if (method === 'PUT' && jobId && body) {
-    const { images, pdfs, thumbnail_url, official_pdf_url, replaceImages, replacePdfs, postToFacebook, postToWhatsApp, ...jobData } = body;
+    const {
+      images,
+      pdfs,
+      gallery_images,
+      gallery_pdfs,
+      thumbnail_url,
+      official_pdf_url,
+      replaceImages,
+      replacePdfs,
+      postToFacebook,
+      post_to_facebook,
+      postToWhatsApp,
+      post_to_whatsapp,
+      ...jobData
+    } = body;
     
+    const finalImages = (gallery_images || images) as string[] | undefined;
+    const finalPdfs = (gallery_pdfs || pdfs) as any[] | undefined;
+
     const { data: job, error } = await supabase.from('jobs').update({
       ...jobData,
       thumbnail_url: thumbnail_url || null,
@@ -134,10 +168,10 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
     
     if (error) throw new Error(error.message);
 
-    if (replaceImages && images && Array.isArray(images)) {
+    if (replaceImages && finalImages && Array.isArray(finalImages)) {
       await supabase.from('job_images').delete().eq('job_id', jobId);
-      if (images.length > 0) {
-        const imageRecords = images.map((url: string, idx: number) => ({
+      if (finalImages.length > 0) {
+        const imageRecords = finalImages.map((url: string, idx: number) => ({
           job_id: jobId,
           url,
           sort_order: idx,
@@ -146,14 +180,14 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
       }
     }
 
-    if (replacePdfs && pdfs && Array.isArray(pdfs)) {
+    if (replacePdfs && finalPdfs && Array.isArray(finalPdfs)) {
       await supabase.from('job_pdfs').delete().eq('job_id', jobId);
-      if (pdfs.length > 0) {
-        const pdfRecords = pdfs.map((pdf: any) => ({
+      if (finalPdfs.length > 0) {
+        const pdfRecords = finalPdfs.map((pdf: any) => ({
           job_id: jobId,
-          url: pdf.url,
-          filename: pdf.filename,
-          page_count: pdf.page_count || null,
+          url: typeof pdf === 'string' ? pdf : pdf.url,
+          filename: typeof pdf === 'string' ? (pdf.split('/').pop() || null) : (pdf.filename || null),
+          page_count: typeof pdf === 'string' ? null : (pdf.page_count || null),
         }));
         await supabase.from('job_pdfs').insert(pdfRecords);
       }
