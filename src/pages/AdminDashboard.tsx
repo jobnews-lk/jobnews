@@ -48,6 +48,10 @@ export default function AdminDashboard() {
   const [filterSector, setFilterSector] = useState<FilterSector>('all');
   const [runningScraper, setRunningScraper] = useState(false);
   const [showGazetteModal, setShowGazetteModal] = useState(false);
+  const [showSourcesModal, setShowSourcesModal] = useState(false);
+  const [previewJob, setPreviewJob] = useState<Job | null>(null);
+  const [previewPostToFb, setPreviewPostToFb] = useState(true);
+  const [previewPostToWa, setPreviewPostToWa] = useState(true);
   const [gazettePdfText, setGazettePdfText] = useState('');
   const [gazettePdfUrl, setGazettePdfUrl] = useState('https://documents.gov.lk/files/gz/2026/8/2026-08-01(I-I)S.pdf');
   const [parsingGazette, setParsingGazette] = useState(false);
