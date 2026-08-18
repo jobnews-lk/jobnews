@@ -92,7 +92,7 @@
        Verified Supabase RLS, SQLi immunity via parameterized queries, XSS sanitization (`src/lib/sanitizer.ts`), and Anti-Brute-Force Rate Limiting Lockout (`AdminLogin.tsx`). Successfully integrated **Cloudflare CDN, Free SSL Certificate (HTTPS), WAF Anti-DDoS Protection, Cloudflare Fonts, Early Hints, and Speed Brain Optimization** for `jobnews.lk` (Nameservers updated at LK Domain Registry).
       * **Facebook Page & WhatsApp Channel Auto-Poster Integration (COMPLETED - AUGUST 2026):**
         * **Meta App:** `JobNews Auto Poster` (App ID: `1593091269083965`)
-        * **Facebook Page:** `JobNews LK` (Page ID: `1129474863599981`)
+        * **Facebook Page:** `JobNews LK` (Page ID: `1054019937110087`)
         * **WhatsApp Business Account ID:** `2205978756639697`
         * **WhatsApp Phone Number ID:** `1214771975059705`
         * **Environment File:** `.env` updated with fresh `JobNews LK` Page Access Token (`VITE_FACEBOOK_PAGE_ACCESS_TOKEN` & `VITE_WHATSAPP_API_TOKEN`).
