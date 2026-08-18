@@ -95,9 +95,10 @@
         * **Facebook Page:** `JobNews LK` (Page ID: `1129474863599981`)
         * **WhatsApp Business Account ID:** `2205978756639697`
         * **WhatsApp Phone Number ID:** `1214771975059705`
-        * **Environment File:** `.env` updated with `VITE_FACEBOOK_PAGE_ID`, `VITE_FACEBOOK_PAGE_ACCESS_TOKEN`, `VITE_WHATSAPP_CHANNEL_API_URL`, and `VITE_WHATSAPP_API_TOKEN`.
+        * **Environment File:** `.env` updated with fresh `JobNews LK` Page Access Token (`VITE_FACEBOOK_PAGE_ACCESS_TOKEN` & `VITE_WHATSAPP_API_TOKEN`).
         * **Documentation & Renewal Manual:** Saved detailed token renewal and permanent token guide in [`FACEBOOK_TOKEN_RENEWAL.md`](file:///c:/Users/Lenovo/Desktop/My%20Website/project/FACEBOOK_TOKEN_RENEWAL.md).
         * **Async Navigation & Live Toast Feedback Fix (COMPLETED):** Updated `AdminEditJob.tsx` and `AdminNewJob.tsx` to await `Promise.all` auto-post network requests before redirecting, preventing browser fetch cancellation during SPA navigation. Added live toast feedback to `AdminDashboard.tsx` displaying instant Facebook/WhatsApp posting results.
+        * **Facebook Graph API `me/photos` Endpoint Fix (COMPLETED):** Updated `facebookAutoPoster.ts` to target `https://graph.facebook.com/v19.0/me/photos` instead of explicit page ID path, resolving Meta Page Access Token object permission mismatch errors.
 
 2. **Custom Domain & SEO Optimization & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.

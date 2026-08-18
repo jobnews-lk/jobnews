@@ -47,9 +47,12 @@ export async function postJobToFacebook(job: Job): Promise<FacebookPostResult> {
 
   try {
     // If job has a thumbnail image, post as a photo with caption
+    // Official Meta Graph API v19.0 Page Endpoints
+    const photoEndpoint = `https://graph.facebook.com/v19.0/${pageId}/photos`;
+    const feedEndpoint = `https://graph.facebook.com/v19.0/${pageId}/feed`;
+
     if (job.thumbnail_url) {
-      const fbPhotoEndpoint = `https://graph.facebook.com/v19.0/${pageId}/photos`;
-      const response = await fetch(fbPhotoEndpoint, {
+      let response = await fetch(photoEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -59,16 +62,29 @@ export async function postJobToFacebook(job: Job): Promise<FacebookPostResult> {
         }),
       });
 
-      const data = await response.json();
+      let data = await response.json();
+
       if (!response.ok || data.error) {
-        throw new Error(data.error?.message || 'Failed to post photo to Facebook');
+        // Fallback to page feed link post
+        const feedRes = await fetch(feedEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: caption,
+            link: jobUrl,
+            access_token: pageAccessToken,
+          }),
+        });
+        const feedData = await feedRes.json();
+        if (feedRes.ok && !feedData.error) {
+          return { success: true, postId: feedData.id };
+        }
+        throw new Error(data.error?.message || feedData.error?.message || 'Failed to post to Facebook Page');
       }
 
       return { success: true, postId: data.id || data.post_id };
     } else {
-      // Fallback to text link post if no thumbnail is available
-      const fbFeedEndpoint = `https://graph.facebook.com/v19.0/${pageId}/feed`;
-      const response = await fetch(fbFeedEndpoint, {
+      let response = await fetch(feedEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -78,9 +94,9 @@ export async function postJobToFacebook(job: Job): Promise<FacebookPostResult> {
         }),
       });
 
-      const data = await response.json();
+      let data = await response.json();
       if (!response.ok || data.error) {
-        throw new Error(data.error?.message || 'Failed to post text to Facebook');
+        throw new Error(data.error?.message || 'Failed to post text to Facebook Page');
       }
 
       return { success: true, postId: data.id };
