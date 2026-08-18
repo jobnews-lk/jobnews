@@ -36,16 +36,40 @@ export default function AdminNewJob() {
       const result = await adminApiCall('POST', jobData);
       const createdJob = result?.data as Job;
 
+      const infoParts: string[] = ['Job created successfully!'];
+
       if (createdJob && createdJob.status === 'published') {
+        const promises: Promise<any>[] = [];
         if (shouldFB) {
-          postJobToFacebook(createdJob).catch((e) => console.error('FB AutoPost Error:', e));
+          promises.push(postJobToFacebook(createdJob));
         }
         if (shouldWA) {
-          postJobToWhatsApp(createdJob).catch((e) => console.error('WA AutoPost Error:', e));
+          promises.push(postJobToWhatsApp(createdJob));
+        }
+
+        if (promises.length > 0) {
+          const autoResults = await Promise.all(promises);
+          let idx = 0;
+          if (shouldFB) {
+            const fbRes = autoResults[idx++];
+            if (fbRes?.success) {
+              infoParts.push('Posted to Facebook Page 📘');
+            } else {
+              infoParts.push(`FB AutoPost Notice: ${fbRes?.error || 'Failed to post to Facebook'}`);
+            }
+          }
+          if (shouldWA) {
+            const waRes = autoResults[idx++];
+            if (waRes?.success) {
+              infoParts.push('Broadcasted to WhatsApp Channel 🟢');
+            } else {
+              infoParts.push(`WhatsApp AutoPost Notice: ${waRes?.error || 'Failed to post to WhatsApp'}`);
+            }
+          }
         }
       }
 
-      navigate('/admin/dashboard');
+      navigate('/admin/dashboard', { state: { infoMessage: infoParts.join(' | ') } });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create job');
       setSubmitting(false);

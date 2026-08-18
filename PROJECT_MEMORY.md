@@ -1,6 +1,6 @@
 # JobNews.lk - Permanent Project Memory & Knowledge Base
 
-> **Note to AI Assistants:** This document contains the single source of truth for the `JobNews.lk` codebase history, architectural decisions, completed features, and future plans. Always read this file upon starting a session to maintain 100% continuity.
+> **Note to AI Assistants:** This document contains the single source of truth for the `JobNews.lk` codebase history, architectural decisions, completed features, ongoing tasks, and future plans. Always read this file immediately upon starting any session to guarantee 100% memory continuity and prevent any empty context loss. All project data, code updates, and progress must be permanently documented here.
 
 ---
 
@@ -9,6 +9,7 @@
 * **Initial Foundation:** Originally generated via `bolt.new` AI.
 * **Full Development & Maintenance:** Iteratively expanded, debugged, and refined using Antigravity AI pair programmer.
 * **Live Deployment:** GitHub Repository (`https://github.com/jobnews-lk/jobnews.git`) auto-deployed via **Vercel** (`https://jobnews.lk`).
+* **Git & Deployment Workflow:** All local code edits are tracked by **GitHub Desktop App** on PC. The user clicks the **Commit** and **Blue Push Origin Button** in GitHub Desktop to push updates live.
 
 ---
 
@@ -96,6 +97,7 @@
         * **WhatsApp Phone Number ID:** `1214771975059705`
         * **Environment File:** `.env` updated with `VITE_FACEBOOK_PAGE_ID`, `VITE_FACEBOOK_PAGE_ACCESS_TOKEN`, `VITE_WHATSAPP_CHANNEL_API_URL`, and `VITE_WHATSAPP_API_TOKEN`.
         * **Documentation & Renewal Manual:** Saved detailed token renewal and permanent token guide in [`FACEBOOK_TOKEN_RENEWAL.md`](file:///c:/Users/Lenovo/Desktop/My%20Website/project/FACEBOOK_TOKEN_RENEWAL.md).
+        * **Async Navigation & Live Toast Feedback Fix (COMPLETED):** Updated `AdminEditJob.tsx` and `AdminNewJob.tsx` to await `Promise.all` auto-post network requests before redirecting, preventing browser fetch cancellation during SPA navigation. Added live toast feedback to `AdminDashboard.tsx` displaying instant Facebook/WhatsApp posting results.
 
 2. **Custom Domain & SEO Optimization & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
@@ -103,4 +105,4 @@
 
 ---
 
-*Last Updated: 2026-08-16 by Antigravity AI*
+*Last Updated: 2026-08-18 by Antigravity AI*

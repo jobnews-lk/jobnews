@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link, Navigate } from 'react-router-dom';
+import { useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import {
   Plus, Pencil, Trash2, AlertTriangle, LogOut, MapPin, Building2,
   Calendar, FileText, ImageIcon, Type, Globe, Briefcase, Landmark,
@@ -37,6 +37,7 @@ const DEFAULT_SOURCES: CustomScraperSource[] = [
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
 
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -225,8 +226,11 @@ export default function AdminDashboard() {
     if (!authLoading && (!user || !isAdmin)) return;
     if (!authLoading && user && isAdmin) {
       loadJobs();
+      if (location.state && (location.state as any).infoMessage) {
+        setInfoMessage((location.state as any).infoMessage);
+      }
     }
-  }, [authLoading, user, isAdmin]);
+  }, [authLoading, user, isAdmin, location.state]);
 
   async function loadJobs() {
     setLoading(true);
