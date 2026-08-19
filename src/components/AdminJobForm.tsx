@@ -23,17 +23,18 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [requirements, setRequirements] = useState(job?.requirements || '');
   const [closingDate, setClosingDate] = useState(job?.closing_date || '');
   const [postedDate, setPostedDate] = useState(job?.posted_date || new Date().toISOString().split('T')[0]);
-  const [applyMethod, setApplyMethod] = useState<'online' | 'email' | 'in_person' | 'phone'>(job?.apply_method || 'online');
+  const [applyMethod, setApplyMethod] = useState<'online' | 'email' | 'in_person' | 'phone' | 'post'>(job?.apply_method || 'online');
   const [applyUrl, setApplyUrl] = useState(job?.apply_url || '');
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
+  const [applyAddress, setApplyAddress] = useState(job?.apply_address || (job?.apply_method === 'post' ? job?.location : '') || '');
   const [isGovernment, setIsGovernment] = useState(job?.is_government || false);
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
   const [isPrivateSector, setIsPrivateSector] = useState(job?.is_private_sector || false);
   const [categoryId, setCategoryId] = useState(job?.category_id || '');
   const [countryId, setCountryId] = useState(job?.country_id || '');
-  const [postToFacebook, setPostToFacebook] = useState(true);
-  const [postToWhatsApp, setPostToWhatsApp] = useState(true);
+  const [postToFacebook, setPostToFacebook] = useState(false);
+  const [postToWhatsApp, setPostToWhatsApp] = useState(false);
   const [countryList, setCountryList] = useState<Country[]>(countries || []);
   const [showAddCountry, setShowAddCountry] = useState(false);
   const [newCountryName, setNewCountryName] = useState('');
@@ -204,7 +205,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       title,
       company,
       salary: salary || null,
-      location,
+      location: applyMethod === 'post' && applyAddress.trim() ? applyAddress.trim() : location,
       description,
       requirements: requirements || null,
       closing_date: closingDate,
@@ -483,10 +484,10 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">Apply Method *</label>
         <div className="flex flex-wrap gap-3">
-          {(['online', 'email', 'in_person', 'phone'] as const).map((m) => (
+          {(['online', 'email', 'in_person', 'phone', 'post'] as const).map((m) => (
             <label key={m} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="applyMethod" value={m} checked={applyMethod === m} onChange={() => setApplyMethod(m)} className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500" />
-              <span className="text-sm text-slate-700">{m === 'online' ? 'Apply Online' : m === 'email' ? 'Apply by Email' : m === 'in_person' ? 'Apply In Person' : 'Phone Number'}</span>
+              <span className="text-sm text-slate-700">{m === 'online' ? 'Apply Online' : m === 'email' ? 'Apply by Email' : m === 'in_person' ? 'Apply In Person' : m === 'phone' ? 'Phone Number' : '📮 Registered Post (ලියාපදිංචි තැපෑලෙන්)'}</span>
             </label>
           ))}
         </div>
@@ -503,6 +504,20 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
         {applyMethod === 'phone' && (
           <div className="mt-3">
             <input type="tel" value={applyPhone} onChange={(e) => setApplyPhone(e.target.value)} placeholder="Phone number" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        )}
+        {applyMethod === 'post' && (
+          <div className="mt-3 space-y-1">
+            <label className="block text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wider">
+              📮 Postal Address for Registered Post (ලියාපදිංචි තැපෑලෙන් යවන ලිපිනය - optional)
+            </label>
+            <textarea
+              value={applyAddress}
+              onChange={(e) => setApplyAddress(e.target.value)}
+              rows={3}
+              placeholder="e.g. Director General, Ministry of Foreign Affairs, Republic Building, Colombo 01."
+              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm"
+            />
           </div>
         )}
       </div>

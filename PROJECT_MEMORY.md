@@ -99,6 +99,8 @@
         * **Documentation & Renewal Manual:** Saved detailed token renewal and permanent token guide in [`FACEBOOK_TOKEN_RENEWAL.md`](file:///c:/Users/Lenovo/Desktop/My%20Website/project/FACEBOOK_TOKEN_RENEWAL.md).
         * **Async Navigation & Live Toast Feedback Fix (COMPLETED):** Updated `AdminEditJob.tsx` and `AdminNewJob.tsx` to await `Promise.all` auto-post network requests before redirecting, preventing browser fetch cancellation during SPA navigation. Added live toast feedback to `AdminDashboard.tsx` displaying instant Facebook/WhatsApp posting results.
         * **Facebook Graph API `me/photos` Endpoint Fix (COMPLETED):** Updated `facebookAutoPoster.ts` to target `https://graph.facebook.com/v19.0/me/photos` instead of explicit page ID path, resolving Meta Page Access Token object permission mismatch errors.
+        * **Auto-Post Opt-in Preference (UPDATED - AUGUST 19, 2026):** Set default state of `postToFacebook` and `postToWhatsApp` checkboxes to `false` in `AdminJobForm.tsx` per user preference so social auto-posting is strictly opt-in.
+        * **Apply by Registered Post (ලියාපදිංචි තැපෑලෙන්) Feature (COMPLETED - AUGUST 19, 2026):** Added `📮 Registered Post` to `apply_method` in `supabase.ts`, `AdminJobForm.tsx`, and `JobDetail.tsx`. Includes a dedicated Postal Address textarea field in Admin Form and a 1-click `📋 Copy Address` button card on the public job details page.
 
 2. **Custom Domain & SEO Optimization & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
@@ -106,4 +108,4 @@
 
 ---
 
-*Last Updated: 2026-08-18 by Antigravity AI*
+*Last Updated: 2026-08-19 by Antigravity AI*

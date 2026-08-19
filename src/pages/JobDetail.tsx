@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check } from 'lucide-react';
 import { supabase, type Job } from '../lib/supabase';
 import SaveJobButton from '../components/SaveJobButton';
 import ShareButtons from '../components/ShareButtons';
@@ -18,6 +18,7 @@ export default function JobDetail() {
   const [imageIndex, setImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
 
@@ -656,6 +657,47 @@ export default function JobDetail() {
                 <div className="inline-flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/50 rounded-xl text-blue-700 dark:text-blue-400 font-semibold transition-colors">
                   <MapPin className="w-5 h-5" /> {job.location || job.countries?.name || 'See notice for details'}
                 </div>
+              </div>
+            )}
+            {job.apply_method === 'post' && (
+              <div className="space-y-3">
+                <p className="text-slate-700 dark:text-slate-300 font-medium text-sm">
+                  අයදුම්පත ලියාපදිංචි තැපෑලෙන් යැවිය යුතු ලිපිනය (Send application by Registered Post to):
+                </p>
+                <div className="bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-700/60 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/60 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 text-xl">
+                      📮
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block mb-1">
+                        Registered Post Address (තැපැල් ලිපිනය)
+                      </span>
+                      <p className="text-slate-900 dark:text-white font-semibold text-base whitespace-pre-wrap leading-relaxed">
+                        {job.apply_address || job.location || 'See official notice for postal address'}
+                      </p>
+                    </div>
+                  </div>
+                  {(job.apply_address || job.location) && (
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                      <button
+                        onClick={() => {
+                          const addressToCopy = job.apply_address || job.location;
+                          navigator.clipboard.writeText(addressToCopy);
+                          setCopiedAddress(true);
+                          setTimeout(() => setCopiedAddress(false), 2500);
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                      >
+                        {copiedAddress ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
+                        {copiedAddress ? 'Address Copied!' : 'Copy Address (ලිපිනය Copy කරන්න)'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                  ℹ️ කරුණාකර අවසාන දිනයට පෙර අදාළ සහතිකවල සහතික කළ පිටපත් ද සමඟ ලියාපදිංචි තැපෑලෙන් යවන්න.
+                </p>
               </div>
             )}
             {!job.apply_url && !job.apply_email && !job.apply_phone && job.apply_method === 'online' && (

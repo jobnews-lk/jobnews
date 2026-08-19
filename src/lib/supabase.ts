@@ -39,10 +39,11 @@ export type Job = {
   closing_date: string;
   posted_date: string;
   post_type: 'text' | 'image' | 'pdf';
-  apply_method: 'online' | 'email' | 'in_person' | 'phone';
+  apply_method: 'online' | 'email' | 'in_person' | 'phone' | 'post';
   apply_url: string | null;
   apply_email: string | null;
   apply_phone: string | null;
+  apply_address?: string | null;
   is_government: boolean;
   is_overseas: boolean;
   is_private_sector: boolean;
