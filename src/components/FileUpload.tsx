@@ -71,7 +71,15 @@ export default function FileUpload({
             setUploadProgress((prev) => ({ ...prev, [key]: 50 }));
           }
 
-          const filePath = `${folder}/${Date.now()}-${file.name}`;
+          const ext = file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')) : '';
+          const rawName = file.name.includes('.') ? file.name.substring(0, file.name.lastIndexOf('.')) : file.name;
+          const cleanName = rawName
+            .replace(/[^\w\s-]/g, '')
+            .trim()
+            .replace(/[\s\(\)\[\]]+/g, '-')
+            .replace(/-+/g, '-');
+          const safeName = `${cleanName || 'file'}${ext.toLowerCase()}`;
+          const filePath = `${folder}/${Date.now()}-${safeName}`;
           const { error: upError } = await supabase.storage.from(bucket).upload(filePath, uploadFile);
           if (upError) throw upError;
 
