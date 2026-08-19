@@ -12,7 +12,7 @@
 | **Meta App Name** | `JobNews Auto Poster` |
 | **Meta App ID** | `1593091269083965` |
 | **Facebook Page Name** | `JobNews LK` |
-| **Facebook Page ID** | `1054019937110087` |
+| **Facebook Page ID** | `61591690220968` |
 | **WhatsApp Business Account ID** | `2205978756639697` |
 | **WhatsApp Phone Number ID** | `1214771975059705` |
 | **WhatsApp API Endpoint** | `https://graph.facebook.com/v19.0/1214771975059705/messages` |
