@@ -120,7 +120,43 @@ export default function JobDetail() {
       const { data } = await query.maybeSingle();
       if (data) {
         setJob(data as Job);
-        document.title = `${data.title} | JobNews.lk`;
+        document.title = `${data.title} - ${data.company} | JobNews.lk`;
+
+        // Inject Google Jobs Schema.org Structured Data
+        try {
+          let schemaScript = document.getElementById('google-job-schema');
+          if (!schemaScript) {
+            schemaScript = document.createElement('script');
+            schemaScript.id = 'google-job-schema';
+            schemaScript.setAttribute('type', 'application/ld+json');
+            document.head.appendChild(schemaScript);
+          }
+          const jobSchema = {
+            "@context": "https://schema.org/",
+            "@type": "JobPosting",
+            "title": data.title,
+            "description": data.description || `${data.title} vacancy at ${data.company}. Apply on JobNews.lk`,
+            "datePosted": data.posted_date || data.created_at,
+            "validThrough": data.closing_date,
+            "employmentType": data.is_government ? "FULL_TIME" : "FULL_TIME",
+            "hiringOrganization": {
+              "@type": "Organization",
+              "name": data.company || "Government of Sri Lanka",
+              "sameAs": "https://jobnews.lk"
+            },
+            "jobLocation": {
+              "@type": "Place",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "LK",
+                "addressLocality": "Sri Lanka"
+              }
+            }
+          };
+          schemaScript.textContent = JSON.stringify(jobSchema);
+        } catch (e) {
+          console.warn('Schema injection error:', e);
+        }
       }
       setLoading(false);
     }
