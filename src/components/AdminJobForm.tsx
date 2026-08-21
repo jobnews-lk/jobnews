@@ -27,16 +27,18 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyUrl, setApplyUrl] = useState(job?.apply_url || '');
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
-  const [applyAddress, setApplyAddress] = useState(job?.apply_address || (job?.apply_method === 'post' ? job?.location : '') || '');
+  const isExternalWebUrl = (url?: string | null) => 
+    !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
+
   const [applyInstructions, setApplyInstructions] = useState(
-    job?.apply_method === 'post' && job?.apply_url && !job.apply_url.startsWith('http://') && !job.apply_url.startsWith('https://')
+    job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url)
       ? job.apply_url
       : ''
   );
   const [gazetteUrl, setGazetteUrl] = useState(
-    job?.official_pdf_url && (job.official_pdf_url.startsWith('http://') || job.official_pdf_url.startsWith('https://'))
-      ? job.official_pdf_url
-      : (job?.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '')
+    isExternalWebUrl(job?.official_pdf_url)
+      ? job!.official_pdf_url!
+      : (isExternalWebUrl(job?.apply_url) ? job!.apply_url! : '')
   );
   const [isGovernment, setIsGovernment] = useState(job?.is_government || false);
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
@@ -166,11 +168,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
       setApplyAddress(job.apply_address || (job.apply_method === 'post' ? job.location : '') || '');
-      setApplyInstructions(job.apply_method === 'post' && job.apply_url && !job.apply_url.startsWith('http://') && !job.apply_url.startsWith('https://') ? job.apply_url : '');
+      setApplyInstructions(job.apply_method === 'post' && job.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '');
       setGazetteUrl(
-        job.official_pdf_url && (job.official_pdf_url.startsWith('http://') || job.official_pdf_url.startsWith('https://'))
-          ? job.official_pdf_url
-          : (job.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '')
+        isExternalWebUrl(job.official_pdf_url)
+          ? job.official_pdf_url!
+          : (isExternalWebUrl(job.apply_url) ? job.apply_url! : '')
       );
       setIsGovernment(job.is_government);
       setIsOverseas(job.is_overseas);
@@ -231,8 +233,8 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       apply_url: applyMethod === 'post'
         ? (applyInstructions.trim() || null)
         : (applyMethod === 'online'
-            ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : (gazetteUrl.trim() || null))
-            : (gazetteUrl.trim() || null)),
+            ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null)
+            : null),
       apply_email: applyMethod === 'email' ? applyEmail || null : null,
       apply_phone: applyMethod === 'phone' ? applyPhone || null : null,
       is_government: isGovernment,
@@ -242,7 +244,9 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       country_id: isOverseas ? (countryId || null) : (sriLankaId || null),
       status,
       thumbnail_url: thumbnailUrl || null,
-      official_pdf_url: officialPdfUrl.trim() || (gazetteUrl.trim() ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim()) : null),
+      official_pdf_url: gazetteUrl.trim()
+        ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
+        : (officialPdfUrl.trim() || null),
       gallery_images: galleryImages,
       gallery_pdfs: galleryPdfs,
       replaceImages: true,
