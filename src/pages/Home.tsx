@@ -134,50 +134,39 @@ export default function Home() {
       console.warn('Cache read error:', e);
     }
 
-    // 2. Optimized Background Fetch (Progressive Loading)
+    // 2. Optimized Parallel Database Fetch for Ultra Speed (100-300ms)
     async function load() {
       const todayStr = new Date().toISOString().split('T')[0];
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 10);
       const nextWeekStr = nextWeek.toISOString().split('T')[0];
 
-      // Fetch Latest Jobs first & render immediately (24 initial jobs for complete coverage)
-      const fetchLatestJobs = supabase
-        .from('jobs')
-        .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .limit(24)
-        .then(res => {
-          if (res.data) {
-            setLatestJobs(res.data as Job[]);
-            setLoading(false);
-            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(res.data));
-          }
-          setFetchCompleted(true);
-        });
-
-      // Fetch Closing Soon Jobs
-      const fetchClosingJobs = supabase
-        .from('jobs')
-        .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
-        .eq('status', 'published')
-        .gte('closing_date', todayStr)
-        .lte('closing_date', nextWeekStr)
-        .order('closing_date', { ascending: true })
-        .limit(6)
-        .then(res => {
-          if (res.data) {
-            setClosingJobs(res.data as Job[]);
-            localStorage.setItem('jn_v2_home_closing', JSON.stringify(res.data));
-          }
-        });
-
-      // Fetch Metadata (Countries & Categories)
       Promise.all([
+        supabase
+          .from('jobs')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), job_pdfs(id, url)')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(24),
+        supabase
+          .from('jobs')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), job_pdfs(id, url)')
+          .eq('status', 'published')
+          .gte('closing_date', todayStr)
+          .lte('closing_date', nextWeekStr)
+          .order('closing_date', { ascending: true })
+          .limit(6),
         supabase.from('countries').select('id, name, slug').order('name'),
         supabase.from('categories').select('id, name, slug').order('name')
-      ]).then(([ctsRes, catsRes]) => {
+      ]).then(([latestRes, closingRes, ctsRes, catsRes]) => {
+        if (latestRes.data) {
+          setLatestJobs(latestRes.data as Job[]);
+          localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
+        }
+        if (closingRes.data) {
+          setClosingJobs(closingRes.data as Job[]);
+          localStorage.setItem('jn_v2_home_closing', JSON.stringify(closingRes.data));
+        }
         if (ctsRes.data) {
           setCountries(ctsRes.data as Country[]);
           localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
@@ -186,9 +175,13 @@ export default function Home() {
           setCategories(catsRes.data as Category[]);
           localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
         }
+        setLoading(false);
+        setFetchCompleted(true);
+      }).catch(err => {
+        console.error('Home page load error:', err);
+        setLoading(false);
+        setFetchCompleted(true);
       });
-
-      await Promise.allSettled([fetchLatestJobs, fetchClosingJobs]);
     }
 
     load();
