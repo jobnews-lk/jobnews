@@ -9,23 +9,25 @@ import AdPlaceholder from '../components/AdPlaceholder';
 export default function Home() {
   const [latestJobs, setLatestJobs] = useState<Job[]>(() => {
     try {
-      const cached = localStorage.getItem('jn_home_jobs');
-      return cached ? JSON.parse(cached) : [];
+      const cached = localStorage.getItem('jn_v2_home_jobs');
+      const parsed = cached ? JSON.parse(cached) : [];
+      return Array.isArray(parsed) ? parsed.filter((j: Job) => j.status === 'published') : [];
     } catch (e) {
       return [];
     }
   });
   const [closingJobs, setClosingJobs] = useState<Job[]>(() => {
     try {
-      const cached = localStorage.getItem('jn_home_closing');
-      return cached ? JSON.parse(cached) : [];
+      const cached = localStorage.getItem('jn_v2_home_closing');
+      const parsed = cached ? JSON.parse(cached) : [];
+      return Array.isArray(parsed) ? parsed.filter((j: Job) => j.status === 'published') : [];
     } catch (e) {
       return [];
     }
   });
   const [countries, setCountries] = useState<Country[]>(() => {
     try {
-      const cached = localStorage.getItem('jn_home_countries');
+      const cached = localStorage.getItem('jn_v2_home_countries');
       return cached ? JSON.parse(cached) : [];
     } catch (e) {
       return [];
@@ -33,7 +35,7 @@ export default function Home() {
   });
   const [categories, setCategories] = useState<Category[]>(() => {
     try {
-      const cached = localStorage.getItem('jn_home_categories');
+      const cached = localStorage.getItem('jn_v2_home_categories');
       return cached ? JSON.parse(cached) : [];
     } catch (e) {
       return [];
@@ -44,7 +46,7 @@ export default function Home() {
   const [searchCategory, setSearchCategory] = useState('');
   const [loading, setLoading] = useState<boolean>(() => {
     try {
-      return !localStorage.getItem('jn_home_jobs');
+      return !localStorage.getItem('jn_v2_home_jobs');
     } catch (e) {
       return true;
     }
@@ -96,15 +98,25 @@ export default function Home() {
   };
   
   useEffect(() => {
-    // 1. Permanent Local Storage Hydration (0ms instant render across browser restarts)
+    // 1. Instant Initial Cache Hydration from localStorage
     try {
-      const cachedJobs = localStorage.getItem('jn_home_jobs');
-      const cachedClosing = localStorage.getItem('jn_home_closing');
-      const cachedCountries = localStorage.getItem('jn_home_countries');
-      const cachedCategories = localStorage.getItem('jn_home_categories');
+      // Purge old v1 legacy caches from user browser
+      localStorage.removeItem('jn_home_jobs');
+      localStorage.removeItem('jn_home_closing');
 
-      if (cachedJobs) setLatestJobs(JSON.parse(cachedJobs));
-      if (cachedClosing) setClosingJobs(JSON.parse(cachedClosing));
+      const cachedJobs = localStorage.getItem('jn_v2_home_jobs');
+      const cachedClosing = localStorage.getItem('jn_v2_home_closing');
+      const cachedCountries = localStorage.getItem('jn_v2_home_countries');
+      const cachedCategories = localStorage.getItem('jn_v2_home_categories');
+
+      if (cachedJobs) {
+        const parsed = JSON.parse(cachedJobs);
+        if (Array.isArray(parsed)) setLatestJobs(parsed.filter((j: Job) => j.status === 'published'));
+      }
+      if (cachedClosing) {
+        const parsed = JSON.parse(cachedClosing);
+        if (Array.isArray(parsed)) setClosingJobs(parsed.filter((j: Job) => j.status === 'published'));
+      }
       if (cachedCountries) setCountries(JSON.parse(cachedCountries));
       if (cachedCategories) setCategories(JSON.parse(cachedCategories));
 
@@ -133,7 +145,7 @@ export default function Home() {
           if (res.data) {
             setLatestJobs(res.data as Job[]);
             setLoading(false);
-            localStorage.setItem('jn_home_jobs', JSON.stringify(res.data));
+            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(res.data));
           }
         });
 
@@ -149,7 +161,7 @@ export default function Home() {
         .then(res => {
           if (res.data) {
             setClosingJobs(res.data as Job[]);
-            localStorage.setItem('jn_home_closing', JSON.stringify(res.data));
+            localStorage.setItem('jn_v2_home_closing', JSON.stringify(res.data));
           }
         });
 
@@ -160,11 +172,11 @@ export default function Home() {
       ]).then(([ctsRes, catsRes]) => {
         if (ctsRes.data) {
           setCountries(ctsRes.data as Country[]);
-          localStorage.setItem('jn_home_countries', JSON.stringify(ctsRes.data));
+          localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
         }
         if (catsRes.data) {
           setCategories(catsRes.data as Category[]);
-          localStorage.setItem('jn_home_categories', JSON.stringify(catsRes.data));
+          localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
         }
       });
 

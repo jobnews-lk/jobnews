@@ -89,6 +89,15 @@ export function clearPublicJobCaches() {
       'jn_jobs_categories',
       'jn_gov_jobs',
       'jn_gov_categories',
+      'jn_v2_home_jobs',
+      'jn_v2_home_closing',
+      'jn_v2_home_countries',
+      'jn_v2_home_categories',
+      'jn_v2_all_jobs',
+      'jn_v2_jobs_countries',
+      'jn_v2_jobs_categories',
+      'jn_v2_gov_jobs',
+      'jn_v2_gov_categories',
     ];
     keys.forEach((k) => localStorage.removeItem(k));
   } catch (e) {
