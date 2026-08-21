@@ -778,10 +778,10 @@ export default function JobDetail() {
             <p className="text-xs sm:text-sm text-slate-700 dark:text-amber-200/90 leading-relaxed font-medium">
               මෙම රැකියා දැන්වීමේ අඩංගු සියලුම තොරතුරු ශ්‍රී ලංකා රජයේ නිල ගැසට් පත්‍රයෙන් උපුටා ගන්නා ලද ඒවා වේ. අපගේ වෙබ් අඩවිය (<strong className="font-semibold text-slate-900 dark:text-white">jobnews.lk</strong>) මඟින් සිදු කරන්නේ එම තොරතුරු ඔබ වෙත පහසුවෙන් ගෙන ඒම පමණි. අයදුම් කිරීමට පෙර අදාළ රජයේ ගැසට් නිවේදනය සම්පූර්ණයෙන් කියවා තොරතුරු තහවුරු කරගන්නා ලෙස අපි කාරුණිකව දන්වා සිටිමු.
             </p>
-            {job.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) && (
+            {((job.official_pdf_url && (job.official_pdf_url.startsWith('http://') || job.official_pdf_url.startsWith('https://'))) || (job.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')))) && (
               <div className="pt-2 flex flex-wrap gap-3">
                 <a
-                  href={job.apply_url}
+                  href={(job.official_pdf_url && (job.official_pdf_url.startsWith('http://') || job.official_pdf_url.startsWith('https://'))) ? job.official_pdf_url : job.apply_url!}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"

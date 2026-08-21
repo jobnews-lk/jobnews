@@ -33,7 +33,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       ? job.apply_url
       : ''
   );
-  const [gazetteUrl, setGazetteUrl] = useState(job?.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '');
+  const [gazetteUrl, setGazetteUrl] = useState(
+    job?.official_pdf_url && (job.official_pdf_url.startsWith('http://') || job.official_pdf_url.startsWith('https://'))
+      ? job.official_pdf_url
+      : (job?.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '')
+  );
   const [isGovernment, setIsGovernment] = useState(job?.is_government || false);
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
   const [isPrivateSector, setIsPrivateSector] = useState(job?.is_private_sector || false);
@@ -163,7 +167,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyPhone(job.apply_phone || '');
       setApplyAddress(job.apply_address || (job.apply_method === 'post' ? job.location : '') || '');
       setApplyInstructions(job.apply_method === 'post' && job.apply_url && !job.apply_url.startsWith('http://') && !job.apply_url.startsWith('https://') ? job.apply_url : '');
-      setGazetteUrl(job.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '');
+      setGazetteUrl(
+        job.official_pdf_url && (job.official_pdf_url.startsWith('http://') || job.official_pdf_url.startsWith('https://'))
+          ? job.official_pdf_url
+          : (job.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '')
+      );
       setIsGovernment(job.is_government);
       setIsOverseas(job.is_overseas);
       setIsPrivateSector(job.is_private_sector);
@@ -220,11 +228,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       closing_date: closingDate,
       posted_date: postedDate,
       apply_method: applyMethod,
-      apply_url: gazetteUrl.trim()
-        ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
+      apply_url: applyMethod === 'post'
+        ? (applyInstructions.trim() || null)
         : (applyMethod === 'online'
-            ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null)
-            : (applyMethod === 'post' ? applyInstructions.trim() || null : null)),
+            ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : (gazetteUrl.trim() || null))
+            : (gazetteUrl.trim() || null)),
       apply_email: applyMethod === 'email' ? applyEmail || null : null,
       apply_phone: applyMethod === 'phone' ? applyPhone || null : null,
       is_government: isGovernment,
@@ -234,7 +242,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       country_id: isOverseas ? (countryId || null) : (sriLankaId || null),
       status,
       thumbnail_url: thumbnailUrl || null,
-      official_pdf_url: officialPdfUrl || null,
+      official_pdf_url: officialPdfUrl.trim() || (gazetteUrl.trim() ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim()) : null),
       gallery_images: galleryImages,
       gallery_pdfs: galleryPdfs,
       replaceImages: true,
