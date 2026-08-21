@@ -28,7 +28,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
   const [applyAddress, setApplyAddress] = useState(job?.apply_address || (job?.apply_method === 'post' ? job?.location : '') || '');
-  const [applyInstructions, setApplyInstructions] = useState(job?.apply_method === 'post' ? job?.apply_url || '' : '');
+  const [applyInstructions, setApplyInstructions] = useState(
+    job?.apply_method === 'post' && job?.apply_url && !job.apply_url.startsWith('http://') && !job.apply_url.startsWith('https://')
+      ? job.apply_url
+      : ''
+  );
   const [gazetteUrl, setGazetteUrl] = useState(job?.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '');
   const [isGovernment, setIsGovernment] = useState(job?.is_government || false);
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
@@ -158,7 +162,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
       setApplyAddress(job.apply_address || (job.apply_method === 'post' ? job.location : '') || '');
-      setApplyInstructions(job.apply_method === 'post' ? job.apply_url || '' : '');
+      setApplyInstructions(job.apply_method === 'post' && job.apply_url && !job.apply_url.startsWith('http://') && !job.apply_url.startsWith('https://') ? job.apply_url : '');
       setGazetteUrl(job.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) ? job.apply_url : '');
       setIsGovernment(job.is_government);
       setIsOverseas(job.is_overseas);

@@ -46,7 +46,9 @@ export default function Home() {
   const [searchCategory, setSearchCategory] = useState('');
   const [loading, setLoading] = useState<boolean>(() => {
     try {
-      return !localStorage.getItem('jn_v2_home_jobs');
+      const cached = localStorage.getItem('jn_v2_home_jobs');
+      const parsed = cached ? JSON.parse(cached) : [];
+      return !Array.isArray(parsed) || parsed.length === 0;
     } catch (e) {
       return true;
     }
@@ -111,7 +113,11 @@ export default function Home() {
 
       if (cachedJobs) {
         const parsed = JSON.parse(cachedJobs);
-        if (Array.isArray(parsed)) setLatestJobs(parsed.filter((j: Job) => j.status === 'published'));
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const published = parsed.filter((j: Job) => j.status === 'published');
+          setLatestJobs(published);
+          if (published.length > 0) setLoading(false);
+        }
       }
       if (cachedClosing) {
         const parsed = JSON.parse(cachedClosing);
