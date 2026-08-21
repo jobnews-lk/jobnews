@@ -369,6 +369,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <span className="text-sm font-medium text-slate-700">Private Sector</span>
           </label>
         </div>
+
+        {isGovernment && (
+          <p className="mt-2 text-xs text-amber-800 dark:text-amber-300 font-medium bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-lg border border-amber-200 dark:border-amber-900/50 flex items-center gap-1.5">
+            <span>🛡️</span>
+            <span>Government Job ලෙස සලකුණු කර ඇති නිසා, Job Page එකෙහි <strong>"විශේෂ සටහන (Disclaimer)"</strong> Box එක ස්වයංක්‍රීයවම පෙනෙනු ඇත.</span>
+          </p>
+        )}
       </div>
 
       {/* Job Details */}

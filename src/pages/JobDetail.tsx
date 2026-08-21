@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check } from 'lucide-react';
+import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check, ShieldAlert } from 'lucide-react';
 import { supabase, type Job } from '../lib/supabase';
 import SaveJobButton from '../components/SaveJobButton';
 import ShareButtons from '../components/ShareButtons';
@@ -731,6 +731,32 @@ export default function JobDetail() {
             )}
           </div>
         </div>
+
+        {/* Automatic Government Gazette Disclaimer Box */}
+        {job.is_government && (
+          <div className="mt-6 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl p-5 shadow-sm space-y-3 text-slate-800 dark:text-amber-100 transition-colors">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-sm uppercase tracking-wider">
+              <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>විශේෂ සටහන (Disclaimer)</span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-700 dark:text-amber-200/90 leading-relaxed font-medium">
+              මෙම රැකියා දැන්වීමේ අඩංගු සියලුම තොරතුරු ශ්‍රී ලංකා රජයේ නිල ගැසට් පත්‍රයෙන් උපුටා ගන්නා ලද ඒවා වේ. අපගේ වෙබ් අඩවිය (<strong className="font-semibold text-slate-900 dark:text-white">jobnews.lk</strong>) මඟින් සිදු කරන්නේ එම තොරතුරු ඔබ වෙත පහසුවෙන් ගෙන ඒම පමණි. අයදුම් කිරීමට පෙර අදාළ රජයේ ගැසට් නිවේදනය සම්පූර්ණයෙන් කියවා තොරතුරු තහවුරු කරගන්නා ලෙස අපි කාරුණිකව දන්වා සිටිමු.
+            </p>
+            {job.apply_url && (job.apply_url.startsWith('http://') || job.apply_url.startsWith('https://')) && (
+              <div className="pt-2 flex flex-wrap gap-3">
+                <a
+                  href={job.apply_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  Visit Official Gazette Portal (නිල රාජ්‍ය ගැසට් පිටුවට පිවිසෙන්න)
+                </a>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Lightbox */}
