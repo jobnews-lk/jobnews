@@ -44,6 +44,7 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [searchCountry, setSearchCountry] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
+  const [fetchCompleted, setFetchCompleted] = useState(false);
   const [loading, setLoading] = useState<boolean>(() => {
     try {
       const cached = localStorage.getItem('jn_v2_home_jobs');
@@ -153,6 +154,7 @@ export default function Home() {
             setLoading(false);
             localStorage.setItem('jn_v2_home_jobs', JSON.stringify(res.data));
           }
+          setFetchCompleted(true);
         });
 
       // Fetch Closing Soon Jobs
@@ -454,19 +456,19 @@ export default function Home() {
           </Link>
         </div>
 
-        {loading ? (
+        {latestJobs.length > 0 ? (
+          <LatestJobFeed jobs={latestJobs} />
+        ) : loading || !fetchCompleted ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
               <VacancyCardSkeleton key={i} />
             ))}
           </div>
-        ) : latestJobs.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
-            <p className="text-lg font-medium text-slate-500">No job notices yet</p>
-            <p className="text-sm text-slate-400 mt-1">New announcements will appear here as soon as they are published.</p>
-          </div>
         ) : (
-          <LatestJobFeed jobs={latestJobs} />
+          <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+            <p className="text-lg font-medium text-slate-500 dark:text-slate-400">No job notices yet</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">New announcements will appear here as soon as they are published.</p>
+          </div>
         )}
       </section>
 
