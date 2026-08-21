@@ -27,6 +27,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyUrl, setApplyUrl] = useState(job?.apply_url || '');
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
+  const [applyAddress, setApplyAddress] = useState(job?.apply_address || (job?.apply_method === 'post' ? job?.location : '') || '');
   const isExternalWebUrl = (url?: string | null) => 
     !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
 
