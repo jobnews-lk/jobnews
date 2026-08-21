@@ -679,7 +679,7 @@ export default function JobDetail() {
                 </p>
 
                 {/* Application Instructions / Notes Banner */}
-                {job.apply_url && (
+                {job.apply_url && !job.apply_url.startsWith('http://') && !job.apply_url.startsWith('https://') && (
                   <div className="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-xl p-4 text-sm text-slate-700 dark:text-slate-300 space-y-1">
                     <span className="font-bold text-blue-800 dark:text-blue-300 text-xs uppercase tracking-wider flex items-center gap-1.5 mb-1">
                       💡 අයදුම්කිරීමේ විශේෂ උපදෙස් (Application Instructions):
