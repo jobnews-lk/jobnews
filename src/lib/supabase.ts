@@ -77,6 +77,25 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+export function clearPublicJobCaches() {
+  try {
+    const keys = [
+      'jn_home_jobs',
+      'jn_home_closing',
+      'jn_home_countries',
+      'jn_home_categories',
+      'jn_all_jobs',
+      'jn_jobs_countries',
+      'jn_jobs_categories',
+      'jn_gov_jobs',
+      'jn_gov_categories',
+    ];
+    keys.forEach((k) => localStorage.removeItem(k));
+  } catch (e) {
+    // ignore
+  }
+}
+
 export async function adminApiCall(method: string, body?: Record<string, unknown>, jobId?: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
@@ -138,6 +157,7 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
       await supabase.from('job_pdfs').insert(pdfRecords);
     }
 
+    clearPublicJobCaches();
     return { data: job };
   }
 
@@ -169,31 +189,32 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
     
     if (error) throw new Error(error.message);
 
-    if (replaceImages && finalImages && Array.isArray(finalImages)) {
+    if (replaceImages) {
       await supabase.from('job_images').delete().eq('job_id', jobId);
-      if (finalImages.length > 0) {
-        const imageRecords = finalImages.map((url: string, idx: number) => ({
-          job_id: jobId,
-          url,
-          sort_order: idx,
-        }));
-        await supabase.from('job_images').insert(imageRecords);
-      }
+    }
+    if (finalImages && Array.isArray(finalImages) && finalImages.length > 0) {
+      const imageRecords = finalImages.map((url: string, idx: number) => ({
+        job_id: jobId,
+        url,
+        sort_order: idx,
+      }));
+      await supabase.from('job_images').insert(imageRecords);
     }
 
-    if (replacePdfs && finalPdfs && Array.isArray(finalPdfs)) {
+    if (replacePdfs) {
       await supabase.from('job_pdfs').delete().eq('job_id', jobId);
-      if (finalPdfs.length > 0) {
-        const pdfRecords = finalPdfs.map((pdf: any) => ({
-          job_id: jobId,
-          url: typeof pdf === 'string' ? pdf : pdf.url,
-          filename: typeof pdf === 'string' ? (pdf.split('/').pop() || null) : (pdf.filename || null),
-          page_count: typeof pdf === 'string' ? null : (pdf.page_count || null),
-        }));
-        await supabase.from('job_pdfs').insert(pdfRecords);
-      }
+    }
+    if (finalPdfs && Array.isArray(finalPdfs) && finalPdfs.length > 0) {
+      const pdfRecords = finalPdfs.map((pdf: any) => ({
+        job_id: jobId,
+        url: typeof pdf === 'string' ? pdf : pdf.url,
+        filename: typeof pdf === 'string' ? (pdf.split('/').pop() || null) : (pdf.filename || null),
+        page_count: typeof pdf === 'string' ? null : (pdf.page_count || null),
+      }));
+      await supabase.from('job_pdfs').insert(pdfRecords);
     }
 
+    clearPublicJobCaches();
     return { data: job };
   }
 
@@ -202,6 +223,7 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
     await supabase.from('job_pdfs').delete().eq('job_id', jobId);
     const { error } = await supabase.from('jobs').delete().eq('id', jobId);
     if (error) throw new Error(error.message);
+    clearPublicJobCaches();
     return { success: true };
   }
 
