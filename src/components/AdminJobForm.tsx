@@ -28,6 +28,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
   const [applyAddress, setApplyAddress] = useState(job?.apply_address || (job?.apply_method === 'post' ? job?.location : '') || '');
+  const [applyInstructions, setApplyInstructions] = useState(job?.apply_method === 'post' ? job?.apply_url || '' : '');
   const [isGovernment, setIsGovernment] = useState(job?.is_government || false);
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
   const [isPrivateSector, setIsPrivateSector] = useState(job?.is_private_sector || false);
@@ -155,6 +156,8 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyUrl(job.apply_url || '');
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
+      setApplyAddress(job.apply_address || (job.apply_method === 'post' ? job.location : '') || '');
+      setApplyInstructions(job.apply_method === 'post' ? job.apply_url || '' : '');
       setIsGovernment(job.is_government);
       setIsOverseas(job.is_overseas);
       setIsPrivateSector(job.is_private_sector);
@@ -211,7 +214,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       closing_date: closingDate,
       posted_date: postedDate,
       apply_method: applyMethod,
-      apply_url: applyMethod === 'online' ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null) : null,
+      apply_url: applyMethod === 'online' ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null) : (applyMethod === 'post' ? applyInstructions.trim() || null : null),
       apply_email: applyMethod === 'email' ? applyEmail || null : null,
       apply_phone: applyMethod === 'phone' ? applyPhone || null : null,
       is_government: isGovernment,
@@ -507,17 +510,38 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
           </div>
         )}
         {applyMethod === 'post' && (
-          <div className="mt-3 space-y-1">
-            <label className="block text-xs font-semibold text-blue-800 dark:text-blue-300 uppercase tracking-wider">
-              📮 Postal Address for Registered Post (ලියාපදිංචි තැපෑලෙන් යවන ලිපිනය - optional)
-            </label>
-            <textarea
-              value={applyAddress}
-              onChange={(e) => setApplyAddress(e.target.value)}
-              rows={3}
-              placeholder="e.g. Director General, Ministry of Foreign Affairs, Republic Building, Colombo 01."
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm"
-            />
+          <div className="mt-3 space-y-4 bg-blue-50/60 dark:bg-slate-800/40 p-4 rounded-xl border border-blue-200 dark:border-slate-800">
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider">
+                💡 1. Application Instructions / Notes (අයදුම්කිරීමේ විශේෂ උපදෙස්/සටහන් - optional)
+              </label>
+              <textarea
+                value={applyInstructions}
+                onChange={(e) => setApplyInstructions(e.target.value)}
+                rows={2}
+                placeholder="e.g. ලේකම්ගේ සදහන් වන ආකාරයට, ඔබගේ අයදුම්පත ලියාපදිංචි තැපෑලෙන් පමණක් යැවිය යුතුය. අයදුම්පත A4 ප්‍රමාණයේ කඩදාසියක සකස් කර..."
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm"
+              />
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                ℹ️ මෙම උපදෙස් Job Page එකෙහි උඩින් වෙනම ලස්සන Blue Notice Banner එකක පෙනෙනු ඇත (Copy Address එකට එකතු නොවේ).
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider">
+                📮 2. Exact Postal Address Only (තැපැල් ලිපිනය පමණක් - optional)
+              </label>
+              <textarea
+                value={applyAddress}
+                onChange={(e) => setApplyAddress(e.target.value)}
+                rows={3}
+                placeholder="e.g. ලේකම්, විදේශ කටයුතු අමාත්‍යාංශය, ජනරජ ගොඩනැගිල්ල, කොළඹ 01."
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm font-medium"
+              />
+              <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
+                ✅ පරිශීලකයා "Copy Address" Button එක ක්ලික් කළ විට Copy වන්නේ මෙහි ඇති ලිපිනය පමණි!
+              </p>
+            </div>
           </div>
         )}
       </div>

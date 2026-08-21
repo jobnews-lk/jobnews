@@ -673,10 +673,22 @@ export default function JobDetail() {
               </div>
             )}
             {job.apply_method === 'post' && (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <p className="text-slate-700 dark:text-slate-300 font-medium text-sm">
-                  අයදුම්පත ලියාපදිංචි තැපෑලෙන් යැවිය යුතු ලිපිනය (Send application by Registered Post to):
+                  අයදුම්පත ලියාපදිංචි තැපෑලෙන් යැවිය යුතු ආකාරය (Send application by Registered Post):
                 </p>
+
+                {/* Application Instructions / Notes Banner */}
+                {job.apply_url && (
+                  <div className="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-xl p-4 text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                    <span className="font-bold text-blue-800 dark:text-blue-300 text-xs uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                      💡 අයදුම්කිරීමේ විශේෂ උපදෙස් (Application Instructions):
+                    </span>
+                    <p className="whitespace-pre-line leading-relaxed font-medium">{job.apply_url}</p>
+                  </div>
+                )}
+
+                {/* Exact Postal Address Card */}
                 <div className="bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-700/60 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/60 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 text-xl">
@@ -684,7 +696,7 @@ export default function JobDetail() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block mb-1">
-                        Registered Post Address (තැපැල් ලිපිනය)
+                        Registered Post Address (තැපැල් ලිපිනය පමණයි)
                       </span>
                       <p className="text-slate-900 dark:text-white font-semibold text-base whitespace-pre-wrap leading-relaxed">
                         {job.apply_address || job.location || 'See official notice for postal address'}
@@ -708,6 +720,7 @@ export default function JobDetail() {
                     </div>
                   )}
                 </div>
+
                 <p className="text-xs text-slate-500 dark:text-slate-400 italic">
                   ℹ️ කරුණාකර අවසාන දිනයට පෙර අදාළ සහතිකවල සහතික කළ පිටපත් ද සමඟ ලියාපදිංචි තැපෑලෙන් යවන්න.
                 </p>
