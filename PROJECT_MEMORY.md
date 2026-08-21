@@ -102,6 +102,7 @@
         * **Auto-Post Opt-in Preference (UPDATED - AUGUST 19, 2026):** Set default state of `postToFacebook` and `postToWhatsApp` checkboxes to `false` in `AdminJobForm.tsx` per user preference so social auto-posting is strictly opt-in.
         * **Apply by Registered Post (ලියාපදිංචි තැපෑලෙන්) Feature (COMPLETED - AUGUST 19, 2026):** Added `📮 Registered Post` to `apply_method` in `supabase.ts`, `AdminJobForm.tsx`, and `JobDetail.tsx`. Includes a dedicated Postal Address textarea field in Admin Form (optional) and a 1-click `📋 Copy Address` button card on the public job details page. Saved postal address directly to `location` column in Supabase DB to maintain 100% schema compatibility.
         * **Sinhala Unicode File Upload Sanitization (COMPLETED - AUGUST 19, 2026):** Updated `FileUpload.tsx` to automatically sanitize storage key file paths into clean ASCII alphanumeric slugs, eliminating Supabase Storage `Invalid key` errors when uploading PDF documents or images containing Sinhala characters, spaces, or brackets.
+        * **Header Card Job Description Overview Layout (COMPLETED - AUGUST 21, 2026):** Added a dedicated `Job Overview (තනතුර පිළිබඳ විස්තරය)` box inside the top Header Card on `JobDetail.tsx` right below Job Title & Company. Formatted top metadata row to display clean location tags (`Sri Lanka`) while preserving multi-line postal addresses inside the dedicated `How to Apply` card at the bottom of the page.
 
 2. **Custom Domain & SEO Optimization & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
@@ -109,4 +110,4 @@
 
 ---
 
-*Last Updated: 2026-08-19 by Antigravity AI*
+*Last Updated: 2026-08-21 by Antigravity AI*

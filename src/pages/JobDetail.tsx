@@ -303,8 +303,8 @@ export default function JobDetail() {
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
               <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{job.location || job.countries?.name || 'N/A'}</span>
+                <MapPin className="w-4 h-4 text-blue-500" />
+                <span>{(job.location && job.location.length < 40 && !job.location.includes('\n')) ? job.location : (job.countries?.name || 'Sri Lanka')}</span>
               </div>
               {job.salary && (
                 <div className="flex items-center gap-1">
@@ -312,16 +312,29 @@ export default function JobDetail() {
                 </div>
               )}
               <div className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 text-slate-400" />
                 <span>Posted {new Date(job.posted_date).toLocaleDateString()}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4 text-slate-400" />
                 <span className={isExpired ? 'text-red-500 dark:text-red-400 font-medium' : ''}>
                   {isExpired ? 'Application Closed' : `Closes ${closing.toLocaleDateString()} (${daysLeft} day${daysLeft !== 1 ? 's' : ''} left)`}
                 </span>
               </div>
             </div>
+
+            {/* Job Description Overview Box inside Header Card */}
+            {job.description && (
+              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  Job Overview (තනතුර පිළිබඳ විස්තරය)
+                </h3>
+                <div className="text-slate-700 dark:text-slate-300 text-sm md:text-base leading-relaxed whitespace-pre-line bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                  {job.description}
+                </div>
+              </div>
+            )}
 
             {/* Share Vacancy Action Bar */}
             <div className="mt-4">
