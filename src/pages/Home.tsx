@@ -144,13 +144,13 @@ export default function Home() {
       Promise.all([
         supabase
           .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), job_pdfs(id, url)')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url')
           .eq('status', 'published')
           .order('created_at', { ascending: false })
-          .limit(24),
+          .limit(12),
         supabase
           .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), job_pdfs(id, url)')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url')
           .eq('status', 'published')
           .gte('closing_date', todayStr)
           .lte('closing_date', nextWeekStr)
