@@ -508,7 +508,7 @@ export default function JobDetail() {
               </div>
 
               {/* Official PDF & Attachments */}
-              {(job.official_pdf_url || (pdfs && pdfs.length > 0)) && (
+              {((job.official_pdf_url && (job.official_pdf_url.toLowerCase().endsWith('.pdf') || job.official_pdf_url.includes('supabase.co/storage/') || job.official_pdf_url.includes('/job-pdfs/'))) || (pdfs && pdfs.length > 0)) && (
                 <div className="mb-6 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
                     <FileText className="w-5 h-5 text-red-500" /> Official Documents & Attachments
@@ -516,7 +516,7 @@ export default function JobDetail() {
 
                   <div className="space-y-3">
                     {/* Primary PDF */}
-                    {job.official_pdf_url && (
+                    {job.official_pdf_url && (job.official_pdf_url.toLowerCase().endsWith('.pdf') || job.official_pdf_url.includes('supabase.co/storage/') || job.official_pdf_url.includes('/job-pdfs/')) && (
                       <div className="bg-red-50/70 dark:bg-red-950/40 rounded-xl border border-red-200/90 dark:border-red-900/60 p-4 space-y-3 transition-colors">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-12 bg-red-100 dark:bg-red-900/60 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
