@@ -220,6 +220,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    const finalGalleryPdfs = [...galleryPdfs];
+    if (officialPdfUrl.trim() && !finalGalleryPdfs.some((p) => p.url === officialPdfUrl.trim())) {
+      finalGalleryPdfs.unshift({ url: officialPdfUrl.trim(), filename: 'Official Notice PDF' });
+    }
+
     const data: Record<string, unknown> = {
       post_type: postType,
       title,
@@ -245,11 +250,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       country_id: isOverseas ? (countryId || null) : (sriLankaId || null),
       status,
       thumbnail_url: thumbnailUrl || null,
-      official_pdf_url: officialPdfUrl.trim()
-        ? officialPdfUrl.trim()
-        : (gazetteUrl.trim() ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim()) : null),
+      official_pdf_url: gazetteUrl.trim()
+        ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
+        : (officialPdfUrl.trim() || null),
       gallery_images: galleryImages,
-      gallery_pdfs: galleryPdfs,
+      gallery_pdfs: finalGalleryPdfs,
       replaceImages: true,
       replacePdfs: true,
       post_to_facebook: status === 'published' ? postToFacebook : false,

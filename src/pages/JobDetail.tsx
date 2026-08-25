@@ -824,21 +824,42 @@ export default function JobDetail() {
 
       {/* PDF Viewer */}
       {pdfViewerOpen && selectedPdf && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
-              <h3 className="font-semibold text-slate-900">PDF Viewer</h3>
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-4xl h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
+                <FileText className="w-5 h-5 text-red-500" /> PDF Document Viewer
+              </h3>
               <div className="flex items-center gap-2">
-                <a href={selectedPdf} download target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
-                  <Download className="w-4 h-4" /> Download
+                <a
+                  href={selectedPdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" /> Full Screen
                 </a>
-                <button onClick={() => setPdfViewerOpen(false)} className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors">
+                <button
+                  onClick={() => handleDownloadPdf(selectedPdf, 'Notice_Document.pdf')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" /> Download
+                </button>
+                <button
+                  onClick={() => setPdfViewerOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors ml-1"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <iframe src={selectedPdf} className="w-full h-full border-0" title="PDF Viewer" />
+            <div className="flex-1 overflow-hidden bg-slate-100 dark:bg-slate-950 relative">
+              <iframe
+                src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedPdf)}&embedded=true`}
+                className="w-full h-full border-0"
+                title="PDF Viewer"
+                onError={() => {}}
+              />
             </div>
           </div>
         </div>
