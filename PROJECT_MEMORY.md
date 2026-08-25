@@ -108,6 +108,14 @@
         * **Automatic Government Gazette Disclaimer Box & Source Link (COMPLETED - AUGUST 21, 2026):** Implemented an automatic Gold/Amber Legal Disclaimer Box on `JobDetail.tsx` for all Government Jobs (`is_government === true`), providing legal liability protection and embedding a 1-click `🌐 Visit Official Gazette Portal` button linking directly to official Gazette URLs (`documents.gov.lk`).
         * **Admin Form Field Decoupling & Gazette URL Protection (COMPLETED - AUGUST 21, 2026):** Implemented `isExternalWebUrl` filtering in `AdminJobForm.tsx` to strictly prevent uploaded Supabase Storage PDF links (`supabase.co/storage/...`) from auto-populating into the `Official Gazette / Source Web Link` input box. Guaranteed independent preservation of `applyInstructions` text and `gazetteUrl` without cross-field overwrites or erasing on edit.
         * **Home Page Ultra-Speed Optimization & Skeleton Placeholders (COMPLETED - AUGUST 21, 2026):** Merged sequential Supabase queries into a single parallel `Promise.all()` stream, reducing home page database load payload size by 80% (2.5s down to 200-300ms lightning speed ⚡). Added `fetchCompleted` state flag to prevent empty state ("No job notices yet") from flashing during network fetch, rendering smooth animated `<VacancyCardSkeleton />` placeholders instead.
+        * **Full Database Sweep & Multi-PDF Handling (COMPLETED - AUGUST 25, 2026):**
+           * **PDF Notice vs Gazette Web Link Unification (`AdminJobForm.tsx` & `JobDetail.tsx`):** Decoupled `officialPdfUrl` (uploaded PDF files saved in Supabase Storage or `job_pdfs`) and `gazetteUrl` (`https://documents.gov.lk/...`). Saved Gazette web links permanently in `official_pdf_url` while storing uploaded notice PDFs in `job_pdfs`, ensuring the `OFFICIAL GAZETTE / SOURCE WEB LINK` input box never erases or disappears on edit.
+           * **Mobile PDF Viewer & Google Docs Cloud Engine Integration (`JobDetail.tsx`):** Embedded Google Docs Viewer (`https://docs.google.com/gview?url=...&embedded=true`) inside the in-app PDF Viewer modal. Updated the **Full Screen** action button to route directly through Google Docs Cloud Engine (`https://docs.google.com/gview?url=...`), completely bypassing Android OS's internal `/Downloads/` folder disk cache.
+           * **Live Timestamp Cache-Busting (`JobDetail.tsx`):** Added `cache: 'no-cache'` headers and live timestamp query params (`?v=timestamp`) to `handleDownloadPdf` fetch requests, guaranteeing that mobile phone browsers (Chrome & Safari) always download fresh, newly uploaded PDF files directly from Supabase Cloud.
+           * **Distinct PDF Attachment Badges & Deduplication (`JobDetail.tsx`):** Deduplicated PDF rendering by URL and added distinct visual styling:
+             * **📄 නිල රජයේ ගැසට් නිවේදනය (Primary Notice PDF):** Styled in red with a prominent `📄 Primary Notice PDF` badge.
+             * **📋 ආදර්ශ ඉල්ලුම් පත්‍රය / අතිරේක ලේඛනය (Application Form & Attachments):** Styled in blue with a distinct `📋 Application Document / Form` badge.
+           * **Full Database Sweep Across All 102 Jobs:** Executed batched scanner scripts (`deep_sweep_all_gov_jobs.cjs` & `execute_full_database_cleanup.cjs`) across all 102 jobs in the database (both published government jobs and draft jobs). Repaired and cleaned up duplicate PDF attachments and link misplacements for Psychologist Grade II, Navy Sailors, Stenographer/ලඝු ලේඛක, and Front Office Manager.
 
 2. **Custom Domain & SEO Power Upgrades & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
@@ -119,4 +127,4 @@
 
 ---
 
-*Last Updated: 2026-08-21 by Antigravity AI*
+*Last Updated: 2026-08-25 by Antigravity AI*
