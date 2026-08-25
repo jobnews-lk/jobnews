@@ -511,87 +511,89 @@ export default function JobDetail() {
               </div>
 
               {/* Official PDF & Attachments */}
-              {((job.official_pdf_url && (job.official_pdf_url.toLowerCase().endsWith('.pdf') || job.official_pdf_url.includes('supabase.co/storage/') || job.official_pdf_url.includes('/job-pdfs/'))) || (pdfs && pdfs.length > 0)) && (
-                <div className="mb-6 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-red-500" /> Official Documents & Attachments
-                  </h2>
+              {(() => {
+                const isPdf = (url?: string | null) =>
+                  !!url && (url.toLowerCase().endsWith('.pdf') || url.includes('supabase.co/storage/') || url.includes('/job-pdfs/'));
 
-                  <div className="space-y-3">
-                    {/* Primary PDF */}
-                    {job.official_pdf_url && (job.official_pdf_url.toLowerCase().endsWith('.pdf') || job.official_pdf_url.includes('supabase.co/storage/') || job.official_pdf_url.includes('/job-pdfs/')) && (
-                      <div className="bg-red-50/70 dark:bg-red-950/40 rounded-xl border border-red-200/90 dark:border-red-900/60 p-4 space-y-3 transition-colors">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-12 bg-red-100 dark:bg-red-900/60 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                            <FileText className="w-6 h-6 text-red-600 dark:text-red-400" />
+                const allPdfs: { url: string; filename: string; isNotice: boolean }[] = [];
+
+                if (isPdf(job.official_pdf_url)) {
+                  allPdfs.push({ url: job.official_pdf_url!, filename: 'නිල රජයේ ගැසට් නිවේදනය (Official Gazette Notice PDF)', isNotice: true });
+                }
+
+                if (pdfs && pdfs.length > 0) {
+                  pdfs.forEach(p => {
+                    if (!allPdfs.some(existing => existing.url === p.url)) {
+                      const isNoticeItem = p.filename === 'Official Notice PDF' || p.url.includes('/notices/');
+                      allPdfs.push({
+                        url: p.url,
+                        filename: isNoticeItem ? 'නිල රජයේ ගැසට් නිවේදනය (Official Gazette Notice PDF)' : (p.filename || 'ආදර්ශ ඉල්ලුම් පත්‍රය / අතිරේක ලේඛනය'),
+                        isNotice: isNoticeItem
+                      });
+                    }
+                  });
+                }
+
+                if (allPdfs.length === 0) return null;
+
+                return (
+                  <div className="mb-6 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-4">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-red-500" /> Official Documents & Attachments
+                    </h2>
+
+                    <div className="space-y-3">
+                      {allPdfs.map((pdfItem, idx) => (
+                        <div
+                          key={idx}
+                          className={`rounded-xl border p-4 space-y-3 transition-colors ${
+                            pdfItem.isNotice
+                              ? 'bg-red-50/70 dark:bg-red-950/40 border-red-200/90 dark:border-red-900/60'
+                              : 'bg-blue-50/60 dark:bg-slate-800/60 border-blue-200/80 dark:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-10 h-12 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                              pdfItem.isNotice ? 'bg-red-100 dark:bg-red-900/60' : 'bg-blue-100 dark:bg-blue-900/60'
+                            }`}>
+                              <FileText className={`w-6 h-6 ${pdfItem.isNotice ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-snug break-words">
+                                {pdfItem.filename}
+                              </h4>
+                              <span className={`text-xs mt-1 inline-block px-2 py-0.5 rounded font-medium ${
+                                pdfItem.isNotice
+                                  ? 'bg-red-100 dark:bg-red-900/80 text-red-700 dark:text-red-300'
+                                  : 'bg-blue-100 dark:bg-blue-900/80 text-blue-700 dark:text-blue-300'
+                              }`}>
+                                {pdfItem.isNotice ? '📄 Primary Notice PDF' : '📋 Application Document / Form'}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base leading-snug break-words">
-                              Official PDF Notice
-                            </h4>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block font-medium">
-                              Primary PDF Document
-                            </span>
+
+                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                            <button
+                              onClick={() => { setSelectedPdf(pdfItem.url); setPdfViewerOpen(true); }}
+                              className="flex-1 sm:flex-initial px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                            >
+                              <Eye className="w-4 h-4" /> View PDF
+                            </button>
+                            <button
+                              onClick={() => handleDownloadPdf(pdfItem.url, pdfItem.filename.replace(/[^\w\s-]/gi, '_') + '.pdf')}
+                              disabled={downloading === pdfItem.url}
+                              className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50"
+                              title="Download PDF"
+                            >
+                              <Download className="w-4 h-4" /> <span className="text-xs">Download</span>
+                            </button>
                           </div>
                         </div>
-
-                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-red-200/60 dark:border-red-900/40">
-                          <button
-                            onClick={() => { setSelectedPdf(job.official_pdf_url!); setPdfViewerOpen(true); }}
-                            className="flex-1 sm:flex-initial px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                          >
-                            <Eye className="w-4 h-4" /> View PDF
-                          </button>
-                          <button
-                            onClick={() => handleDownloadPdf(job.official_pdf_url!, 'Official_Notice.pdf')}
-                            disabled={downloading === job.official_pdf_url}
-                            className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50"
-                            title="Download PDF"
-                          >
-                            <Download className="w-4 h-4" /> <span className="sm:hidden text-xs">Download</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Additional PDF Attachments with Custom Hints */}
-                    {pdfs.map((pdfItem, idx) => (
-                      <div key={pdfItem.id || idx} className="bg-red-50/50 dark:bg-red-950/30 rounded-xl border border-red-200/80 dark:border-red-900/40 p-4 space-y-3 transition-colors">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-12 bg-red-100 dark:bg-red-900/60 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                            <FileText className="w-6 h-6 text-red-600 dark:text-red-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base leading-snug break-words">
-                              {pdfItem.filename || `Document ${idx + 1}`}
-                            </h4>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block font-medium">
-                              Application Document
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-red-200/60 dark:border-red-900/40">
-                          <button
-                            onClick={() => { setSelectedPdf(pdfItem.url); setPdfViewerOpen(true); }}
-                            className="flex-1 sm:flex-initial px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-                          >
-                            <Eye className="w-4 h-4" /> View PDF
-                          </button>
-                          <button
-                            onClick={() => handleDownloadPdf(pdfItem.url, pdfItem.filename || `Document_${idx + 1}.pdf`)}
-                            disabled={downloading === pdfItem.url}
-                            className="px-3.5 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold disabled:opacity-50"
-                            title="Download PDF"
-                          >
-                            <Download className="w-4 h-4" /> <span className="sm:hidden text-xs">Download</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {job.description && (
                 <div className="mb-4">
