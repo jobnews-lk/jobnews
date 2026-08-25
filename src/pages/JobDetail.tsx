@@ -25,7 +25,9 @@ export default function JobDetail() {
   const handleDownloadPdf = async (url: string, filename: string) => {
     try {
       setDownloading(url);
-      const res = await fetch(url);
+      const sep = url.includes('?') ? '&' : '?';
+      const freshUrl = `${url}${sep}v=${Date.now()}`;
+      const res = await fetch(freshUrl, { cache: 'no-cache' });
       if (!res.ok) throw new Error('Network response was not ok');
       const blob = await res.blob();
       const blobUrl = window.URL.createObjectURL(blob);
@@ -38,7 +40,8 @@ export default function JobDetail() {
       window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
       console.error('Download error:', err);
-      window.open(url, '_blank');
+      const sep = url.includes('?') ? '&' : '?';
+      window.open(`${url}${sep}v=${Date.now()}`, '_blank');
     } finally {
       setDownloading(null);
     }
