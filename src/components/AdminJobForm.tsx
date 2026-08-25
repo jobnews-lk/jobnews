@@ -147,7 +147,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [status, setStatus] = useState<'draft' | 'published'>(job?.status || 'draft');
 
   const [thumbnailUrl, setThumbnailUrl] = useState(job?.thumbnail_url || '');
-  const [officialPdfUrl, setOfficialPdfUrl] = useState(job?.official_pdf_url || '');
+  const [officialPdfUrl, setOfficialPdfUrl] = useState(job?.official_pdf_url && !isExternalWebUrl(job.official_pdf_url) ? job.official_pdf_url : '');
   const [galleryImages, setGalleryImages] = useState<string[]>(job?.job_images?.map((i) => i.url) || []);
   const [galleryPdfs, setGalleryPdfs] = useState<{ url: string; filename: string }[]>(job?.job_pdfs?.map((p) => ({ url: p.url, filename: p.filename || '' })) || []);
 
@@ -182,7 +182,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setCountryId(job.country_id || (job.is_overseas ? '' : sriLankaId));
       setStatus(job.status);
       setThumbnailUrl(job.thumbnail_url || '');
-      setOfficialPdfUrl(job.official_pdf_url || '');
+      setOfficialPdfUrl(job.official_pdf_url && !isExternalWebUrl(job.official_pdf_url) ? job.official_pdf_url : '');
       setGalleryImages(job.job_images?.map((i) => i.url) || []);
       setGalleryPdfs(job.job_pdfs?.map((p) => ({ url: p.url, filename: p.filename || '' })) || []);
     }
