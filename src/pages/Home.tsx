@@ -45,6 +45,8 @@ export default function Home() {
   const [searchCountry, setSearchCountry] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
   const [fetchCompleted, setFetchCompleted] = useState(false);
+  const [newJobsCount, setNewJobsCount] = useState<number>(0);
+  const [pendingNewJobs, setPendingNewJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState<boolean>(() => {
     try {
       const cached = localStorage.getItem('jn_v2_home_jobs');
@@ -221,6 +223,42 @@ export default function Home() {
     load();
   }, []);
 
+  // 3. Smart Background Revalidation (Every 90s, active tab only)
+  useEffect(() => {
+    let timer: any;
+    async function checkNewJobs() {
+      if (document.visibilityState !== 'visible' || latestJobs.length === 0) return;
+      const latestCreatedAt = latestJobs[0]?.created_at;
+      if (!latestCreatedAt) return;
+
+      try {
+        const { data } = await supabase
+          .from('jobs')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
+          .eq('status', 'published')
+          .gt('created_at', latestCreatedAt)
+          .order('created_at', { ascending: false });
+
+        if (data && data.length > 0) {
+          // Filter out duplicates
+          const existingIds = new Set(latestJobs.map(j => j.id));
+          const freshItems = (data as Job[]).filter(j => !existingIds.has(j.id));
+
+          if (freshItems.length > 0) {
+            setPendingNewJobs(freshItems);
+            setNewJobsCount(freshItems.length);
+          }
+        }
+      } catch (err) {
+        console.warn('Background job check error:', err);
+      }
+    }
+
+    timer = setInterval(checkNewJobs, 90000); // 90 Seconds Smart Polling
+
+    return () => clearInterval(timer);
+  }, [latestJobs]);
+
   // Auto-scroll logic for mobile carousel
   useEffect(() => {
     if (!carouselRef.current || closingJobs.length <= 1 || isHovered) return;
@@ -257,7 +295,34 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div className="relative">
+      {/* 🔔 Floating New Jobs Notification Pill (X / Twitter style - Zero layout shift!) */}
+      {newJobsCount > 0 && (
+        <div className="fixed top-16 md:top-20 left-1/2 -translate-x-1/2 z-50 animate-bounce transition-all duration-300">
+          <button
+            onClick={() => {
+              setLatestJobs(prev => {
+                const updated = [...pendingNewJobs, ...prev];
+                try {
+                  localStorage.setItem('jn_v2_home_jobs', JSON.stringify(updated));
+                } catch (e) {}
+                return updated;
+              });
+              setNewJobsCount(0);
+              setPendingNewJobs([]);
+              window.scrollTo({ top: 450, behavior: 'smooth' });
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold px-4 py-2.5 rounded-full shadow-2xl border border-blue-300 dark:border-blue-400 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer backdrop-blur-md"
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+            </span>
+            <span>🔔 {newJobsCount} New {newJobsCount === 1 ? 'Job Notice' : 'Job Notices'} Published — Tap to View</span>
+          </button>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-blue-900 text-white py-14 md:py-20 px-4">
         {/* Vibrant Blended Gradient Background */}
