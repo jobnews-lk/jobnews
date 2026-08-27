@@ -4,53 +4,64 @@ import { AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function TopTicker() {
-  const [closingJobs, setClosingJobs] = useState<Job[]>([]);
+  const [closingJobs, setClosingJobs] = useState<Job[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_v2_home_closing') || localStorage.getItem('jn_v2_home_jobs');
+      const parsed = cached ? JSON.parse(cached) : [];
+      return Array.isArray(parsed) ? parsed.filter((j: Job) => j.status === 'published') : [];
+    } catch (e) {
+      return [];
+    }
+  });
 
   useEffect(() => {
-    async function fetchJobs() {
-      const today = new Date().toISOString().split('T')[0];
-      const futureWeek = new Date();
-      futureWeek.setDate(futureWeek.getDate() + 21); // Extend window to 21 days
-      const futureWeekStr = futureWeek.toISOString().split('T')[0];
+    // Delay network fetch slightly to allow main Home page jobs query top priority
+    const timer = setTimeout(async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const futureWeek = new Date();
+        futureWeek.setDate(futureWeek.getDate() + 21);
+        const futureWeekStr = futureWeek.toISOString().split('T')[0];
 
-      // Primary query: closing within 21 days
-      let { data } = await supabase
-        .from('jobs')
-        .select('id, title, company, closing_date')
-        .eq('status', 'published')
-        .gte('closing_date', today)
-        .lte('closing_date', futureWeekStr)
-        .order('closing_date', { ascending: true })
-        .limit(8);
-
-      // Fallback query: if 21-day window is empty, fetch any published closing jobs
-      if (!data || data.length === 0) {
-        const fallbackRes = await supabase
+        let { data } = await supabase
           .from('jobs')
           .select('id, title, company, closing_date')
           .eq('status', 'published')
           .gte('closing_date', today)
+          .lte('closing_date', futureWeekStr)
           .order('closing_date', { ascending: true })
           .limit(8);
-        data = fallbackRes.data;
-      }
 
-      // Second fallback: fetch latest published jobs if no closing dates match
-      if (!data || data.length === 0) {
-        const fallbackRes2 = await supabase
-          .from('jobs')
-          .select('id, title, company, closing_date')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false })
-          .limit(8);
-        data = fallbackRes2.data;
-      }
+        if (!data || data.length === 0) {
+          const fallbackRes = await supabase
+            .from('jobs')
+            .select('id, title, company, closing_date')
+            .eq('status', 'published')
+            .gte('closing_date', today)
+            .order('closing_date', { ascending: true })
+            .limit(8);
+          data = fallbackRes.data;
+        }
 
-      if (data) {
-        setClosingJobs(data as Job[]);
+        if (!data || data.length === 0) {
+          const fallbackRes2 = await supabase
+            .from('jobs')
+            .select('id, title, company, closing_date')
+            .eq('status', 'published')
+            .order('created_at', { ascending: false })
+            .limit(8);
+          data = fallbackRes2.data;
+        }
+
+        if (data && data.length > 0) {
+          setClosingJobs(data as Job[]);
+        }
+      } catch (err) {
+        console.warn('TopTicker fetch error:', err);
       }
-    }
-    fetchJobs();
+    }, 400);
+
+    return () => clearTimeout(timer);
   }, []);
 
   if (closingJobs.length === 0) return null;

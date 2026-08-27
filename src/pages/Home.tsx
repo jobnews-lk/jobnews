@@ -143,14 +143,30 @@ export default function Home() {
 
       async function fetchWithRetry(retries = 2) {
         try {
-          // Parallel fetch with fallback for closing jobs
-          const [latestRes, closingRes, ctsRes, catsRes] = await Promise.all([
-            supabase
-              .from('jobs')
-              .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
-              .eq('status', 'published')
-              .order('created_at', { ascending: false })
-              .limit(24),
+          // 1. TOP PRIORITY FETCH: Latest published jobs
+          const latestRes = await supabase
+            .from('jobs')
+            .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
+            .eq('status', 'published')
+            .order('created_at', { ascending: false })
+            .limit(24);
+
+          if (latestRes.data && latestRes.data.length > 0) {
+            setLatestJobs(latestRes.data as Job[]);
+            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
+            setLoading(false);
+            setFetchCompleted(true);
+          } else if (retries > 0) {
+            // Retry if empty response received
+            setTimeout(() => fetchWithRetry(retries - 1), 800);
+            return;
+          } else {
+            setLoading(false);
+            setFetchCompleted(true);
+          }
+
+          // 2. SECONDARY ASYNC FETCH: Closing jobs, countries, categories (does not block latestJobs!)
+          Promise.all([
             supabase
               .from('jobs')
               .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
@@ -161,42 +177,33 @@ export default function Home() {
               .limit(6),
             supabase.from('countries').select('id, name, slug').order('name'),
             supabase.from('categories').select('id, name, slug').order('name')
-          ]);
+          ]).then(async ([closingRes, ctsRes, catsRes]) => {
+            let finalClosing = closingRes.data || [];
+            if (finalClosing.length === 0) {
+              const fallbackClosing = await supabase
+                .from('jobs')
+                .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
+                .eq('status', 'published')
+                .gte('closing_date', todayStr)
+                .order('closing_date', { ascending: true })
+                .limit(6);
+              if (fallbackClosing.data) finalClosing = fallbackClosing.data;
+            }
 
-          if (latestRes.data && latestRes.data.length > 0) {
-            setLatestJobs(latestRes.data as Job[]);
-            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
-          }
+            if (finalClosing.length > 0) {
+              setClosingJobs(finalClosing as Job[]);
+              localStorage.setItem('jn_v2_home_closing', JSON.stringify(finalClosing));
+            }
+            if (ctsRes.data) {
+              setCountries(ctsRes.data as Country[]);
+              localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
+            }
+            if (catsRes.data) {
+              setCategories(catsRes.data as Category[]);
+              localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
+            }
+          }).catch(e => console.warn('Secondary fetch error:', e));
 
-          let finalClosing = closingRes.data || [];
-          if (finalClosing.length === 0) {
-            // Fallback for closing jobs if 21-day window is empty
-            const fallbackClosing = await supabase
-              .from('jobs')
-              .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
-              .eq('status', 'published')
-              .gte('closing_date', todayStr)
-              .order('closing_date', { ascending: true })
-              .limit(6);
-            if (fallbackClosing.data) finalClosing = fallbackClosing.data;
-          }
-
-          if (finalClosing.length > 0) {
-            setClosingJobs(finalClosing as Job[]);
-            localStorage.setItem('jn_v2_home_closing', JSON.stringify(finalClosing));
-          }
-
-          if (ctsRes.data) {
-            setCountries(ctsRes.data as Country[]);
-            localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
-          }
-          if (catsRes.data) {
-            setCategories(catsRes.data as Category[]);
-            localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
-          }
-
-          setLoading(false);
-          setFetchCompleted(true);
         } catch (err) {
           console.error('Home page load error (retrying...):', err);
           if (retries > 0) {
