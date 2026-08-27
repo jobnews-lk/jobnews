@@ -4,6 +4,7 @@ import { AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function TopTicker() {
+  const [isPaused, setIsPaused] = useState(false);
   const [closingJobs, setClosingJobs] = useState<Job[]>(() => {
     try {
       const cached = localStorage.getItem('jn_v2_home_closing') || localStorage.getItem('jn_v2_home_jobs');
@@ -73,7 +74,17 @@ export default function TopTicker() {
         <span className="whitespace-nowrap font-bold tracking-wide">CLOSING SOON:</span>
       </div>
       <div className="flex-1 overflow-hidden flex items-center">
-        <div className="animate-[marquee_95s_linear_infinite] md:animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] active:[animation-play-state:paused] focus:[animation-play-state:paused] whitespace-nowrap inline-block select-none">
+        <div
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
+          onTouchCancel={() => setIsPaused(false)}
+          className={`animate-[marquee_95s_linear_infinite] md:animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused] whitespace-nowrap inline-block select-none ${
+            isPaused ? '[animation-play-state:paused]' : '[animation-play-state:running]'
+          }`}
+          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
+        >
           {closingJobs.map((job, idx) => {
             const daysLeft = job.closing_date ? Math.ceil((new Date(job.closing_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 7;
             return (
