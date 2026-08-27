@@ -253,9 +253,16 @@ export async function triggerJobHunterBot(customUrl?: string): Promise<{ success
     }
 
     let addedCount = 0;
+    const todayStr = new Date().toISOString().split('T')[0];
 
     for (const item of discoveredJobs) {
-      // Prevent duplicates
+      // 1. STRICT EXPIRATION CHECK: Skip jobs whose closing date has already passed!
+      if (item.closing_date && item.closing_date < todayStr) {
+        console.log(`[SKIP EXPIRED JOB] ${item.title} closed on ${item.closing_date}`);
+        continue;
+      }
+
+      // 2. Prevent duplicates
       const { data: existing } = await supabase
         .from('jobs')
         .select('id')
