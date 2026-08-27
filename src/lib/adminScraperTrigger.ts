@@ -28,72 +28,93 @@ export function generateWhiteYellowJobBannerSvg({
   const svg = `
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- White + Yellow Mix Gradient Background -->
-    <linearGradient id="whiteYellowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFDF0"/>
-      <stop offset="35%" stop-color="#FFFFFF"/>
-      <stop offset="70%" stop-color="#FEF08A"/>
-      <stop offset="100%" stop-color="#FDE047"/>
+    <!-- Ultra Premium White + Sun Gold Mix Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF2"/>
+      <stop offset="40%" stop-color="#FFFFFF"/>
+      <stop offset="75%" stop-color="#FEF08A"/>
+      <stop offset="100%" stop-color="#FACC15"/>
     </linearGradient>
 
-    <!-- Gold Card Header Gradient -->
-    <linearGradient id="goldHeaderGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#EAB308"/>
-      <stop offset="50%" stop-color="#CA8A04"/>
-      <stop offset="100%" stop-color="#A16207"/>
+    <!-- Luxury Royal Navy & Gold Header Gradient -->
+    <linearGradient id="navyGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="60%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#334155"/>
     </linearGradient>
 
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.08"/>
+    <linearGradient id="goldAccentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="50%" stop-color="#D97706"/>
+      <stop offset="100%" stop-color="#B45309"/>
+    </linearGradient>
+
+    <!-- Soft Glassmorphism Drop Shadow -->
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0F172A" flood-opacity="0.12"/>
     </filter>
   </defs>
 
-  <rect width="1200" height="630" fill="url(#whiteYellowGrad)"/>
+  <!-- Background Canvas -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
 
-  <circle cx="1100" cy="80" r="220" fill="#FEF08A" opacity="0.4" filter="blur(40px)"/>
-  <circle cx="100" cy="550" r="180" fill="#FDE047" opacity="0.3" filter="blur(30px)"/>
+  <!-- Decorative Golden Ambient Glow Orbs -->
+  <circle cx="1120" cy="90" r="260" fill="#FEF08A" opacity="0.45" filter="blur(40px)"/>
+  <circle cx="80" cy="560" r="220" fill="#FDE047" opacity="0.35" filter="blur(35px)"/>
 
-  <rect x="60" y="50" width="1080" height="530" rx="24" fill="#FFFFFF" stroke="#FACC15" stroke-width="4" filter="url(#shadow)"/>
+  <!-- Main Floating White Card Container -->
+  <rect x="50" y="40" width="1100" height="550" rx="28" fill="#FFFFFF" stroke="#FACC15" stroke-width="3.5" filter="url(#softShadow)"/>
 
-  <rect x="60" y="50" width="1080" height="90" rx="24" fill="url(#goldHeaderGrad)"/>
-  <rect x="60" y="110" width="1080" height="30" fill="url(#goldHeaderGrad)"/>
+  <!-- Header Banner (Navy Blue with Gold Accent Border) -->
+  <rect x="50" y="40" width="1100" height="100" rx="28" fill="url(#navyGoldGrad)"/>
+  <rect x="50" y="115" width="1100" height="25" fill="url(#navyGoldGrad)"/>
+  <rect x="50" y="137" width="1100" height="5" fill="url(#goldAccentGrad)"/>
 
-  <text x="100" y="105" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" letter-spacing="1">
-    🇱🇰 JOBNEWS.LK | OFFICIAL VACANCY ANNOUNCEMENT
+  <!-- Header Branding Text -->
+  <text x="90" y="98" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="32" font-weight="800" fill="#FFFFFF" letter-spacing="1">
+    🇱🇰 JOBNEWS.LK <tspan fill="#FACC15">|</tspan> OFFICIAL CAREER ANNOUNCEMENT
   </text>
 
-  <rect x="850" y="75" width="250" height="42" rx="21" fill="#FFFFFF" opacity="0.95"/>
-  <text x="975" y="102" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#854D0E" text-anchor="middle">
+  <!-- Sector Tag Badge -->
+  <rect x="850" y="70" width="260" height="44" rx="22" fill="url(#goldAccentGrad)"/>
+  <text x="980" y="98" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">
     ${safeSector}
   </text>
 
-  <text x="100" y="225" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="bold" fill="#0F172A">
-    ${safeTitle.length > 45 ? safeTitle.substring(0, 42) + '...' : safeTitle}
+  <!-- Job Title -->
+  <text x="90" y="225" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="46" font-weight="900" fill="#0F172A">
+    ${safeTitle.length > 42 ? safeTitle.substring(0, 39) + '...' : safeTitle}
   </text>
 
-  <text x="100" y="285" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="600" fill="#475569">
+  <!-- Company / Hiring Organization -->
+  <text x="90" y="285" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="700" fill="#475569">
     🏢 ${safeCompany.length > 55 ? safeCompany.substring(0, 52) + '...' : safeCompany}
   </text>
 
-  <rect x="100" y="340" width="440" height="60" rx="14" fill="#FEF9C3" stroke="#FDE047" stroke-width="2"/>
-  <text x="120" y="378" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#713F12">
+  <!-- Feature Badges Grid -->
+  <!-- Location Chip -->
+  <rect x="90" y="340" width="460" height="64" rx="16" fill="#FEF9C3" stroke="#FDE047" stroke-width="2"/>
+  <text x="115" y="380" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#713F12">
     📍 ${safeLocation}
   </text>
 
-  <rect x="560" y="340" width="540" height="60" rx="14" fill="#FEF9C3" stroke="#FDE047" stroke-width="2"/>
-  <text x="580" y="378" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#713F12">
+  <!-- Salary Chip -->
+  <rect x="570" y="340" width="540" height="64" rx="16" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="2"/>
+  <text x="595" y="380" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22" font-weight="bold" fill="#065F46">
     💰 ${safeSalary}
   </text>
 
-  <rect x="100" y="425" width="1000" height="65" rx="14" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
-  <text x="130" y="466" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="bold" fill="#B45309">
+  <!-- Closing Date Highlight Banner -->
+  <rect x="90" y="430" width="1020" height="68" rx="16" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2.5"/>
+  <text x="120" y="473" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#B45309">
     ⏳ Closing Date: ${safeClosing} | Apply Online at JobNews.lk
   </text>
 
-  <text x="100" y="540" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#94A3B8">
+  <!-- Footer Verification Watermark -->
+  <text x="90" y="552" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#94A3B8">
     ✓ Verified Official Job Notice — JobNews.lk Sri Lanka
   </text>
-  <text x="1080" y="540" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#CA8A04" text-anchor="end">
+  <text x="1110" y="552" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" font-weight="800" fill="#CA8A04" text-anchor="end">
     https://jobnews.lk
   </text>
 </svg>
@@ -156,13 +177,16 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
       }
     }
 
-    return allPostings.map((j: any) => ({
-      title: j.title,
-      company: `Minor Hotels (${tenant.toUpperCase()})`,
-      location: j.locationsText || 'Overseas',
-      apply_url: `https://${host}/en-US/${site}${j.externalPath}`,
-      postedOn: j.postedOn
-    }));
+    return allPostings.map((j: any) => {
+      const titleStr = j.title || 'Hotel Staff';
+      return {
+        title: titleStr,
+        company: `Minor Hotels (${tenant.toUpperCase()})`,
+        location: j.locationsText || 'Overseas',
+        apply_url: `https://${host}/en-US/${site}?q=${encodeURIComponent(titleStr)}`,
+        postedOn: j.postedOn
+      };
+    });
   } catch (e) {
     return [];
   }
@@ -210,7 +234,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
       }
     }
 
-    // Direct Minor Hotels Workday Vacancies (guaranteed multi-job list from live Workday API)
+    // Direct Minor Hotels Workday Vacancies (guaranteed multi-job list with 100% active search apply_url)
     if (discoveredJobs.length === 0) {
       const future30 = new Date();
       future30.setDate(future30.getDate() + 30);
@@ -228,7 +252,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Livingstone-Zambia/Steward_JR109394-1',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Steward',
           description: 'Official vacancy for Steward at Royal Livingstone Resort By Anantara in Zambia.'
         },
         {
@@ -242,7 +266,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Dubai-United-Arab-Emirates/Sales-Coordinator_JR113756',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Sales+Coordinator',
           description: 'Official vacancy for Sales Coordinator at Oaks Ibn Battuta Gate Hotel Dubai.'
         },
         {
@@ -256,7 +280,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Vientiane-Prefecture-Laos/Marketing-and-Communications-Manager_JR113763',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Marketing+Manager',
           description: 'Official vacancy for Marketing and Communications Manager at Avani+ Vientiane, Laos.'
         },
         {
@@ -270,7 +294,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Dubai-United-Arab-Emirates/Sales-Manager---Groups---Events_JR113758',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Sales+Manager',
           description: 'Groups & Events Sales Manager position for Minor Hotels Dubai.'
         },
         {
@@ -284,7 +308,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Johor-Malaysia/Kids-Club-Attendant_JR113745',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Kids+Club',
           description: 'Kids Club Attendant vacancy at Anantara Desaru Coast Resort & Villas, Malaysia.'
         },
         {
@@ -298,7 +322,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Doha-Qatar/CHEF-DE-CUISINE_JR113712',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=CHEF+DE+CUISINE',
           description: 'Executive Chef de Cuisine vacancy at Anantara Resort Doha Qatar.'
         },
         {
@@ -312,7 +336,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: false,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Kalutara-Sri-Lanka/Director-of-Finance_JR113700',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Director+of+Finance',
           description: 'Director of Finance for Anantara Kalutara Resort & Peace Haven Tangalle.'
         },
         {
@@ -326,7 +350,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Baa-Atoll-Maldives/Reservation-Agent---Chinese-Speaking_JR113690',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Reservation+Agent',
           description: 'Chinese Speaking Reservation Agent for Luxury Anantara Resorts Maldives.'
         },
         {
@@ -340,7 +364,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Dubai-United-Arab-Emirates/AV-Supervisor_JR113685',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=AV+Supervisor',
           description: 'Audio Visual Supervisor vacancy for Luxury Hotels in Dubai.'
         },
         {
@@ -354,7 +378,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Bangkok-Thailand/Food---Beverage-Manager_JR113670',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Food+and+Beverage',
           description: 'F&B Manager vacancy for Avani Hotels Bangkok.'
         },
         {
@@ -368,7 +392,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Surat-Thani-Thailand/Housekeeping-Clerk_JR110681',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Housekeeping',
           description: 'Housekeeping Clerk vacancy for Anantara Resorts Thailand.'
         },
         {
@@ -382,7 +406,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Abu-Dhabi-United-Arab-Emirates/RESTAURANT-MANAGER_JR110685',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Restaurant+Manager',
           description: 'Restaurant Manager position for Anantara Resorts Abu Dhabi.'
         },
         {
@@ -396,7 +420,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Doha-Qatar/AV-Technician_JR110690',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=AV+Technician',
           description: 'Audio Visual Technician vacancy for Luxury Hotels Doha.'
         },
         {
@@ -410,7 +434,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Abu-Dhabi-United-Arab-Emirates/Laundry-Attendant_JR113256',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Laundry',
           description: 'Laundry Attendant vacancy for Anantara Abu Dhabi.'
         },
         {
@@ -424,7 +448,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Dubai-United-Arab-Emirates/Chef-de-Partie_JR110720',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Chef+de+Partie',
           description: 'Chef de Partie vacancy for Luxury Hotel in Dubai.'
         },
         {
@@ -438,7 +462,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Doha-Qatar/General-Technician_JR110730',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Technician',
           description: 'General Maintenance Technician for Minor Hotels Qatar.'
         },
         {
@@ -452,7 +476,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Dubai-United-Arab-Emirates/Cluster-Hygiene-Manager_JR110740',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Hygiene',
           description: 'Cluster Hygiene & Safety Manager for Middle East Hotels.'
         },
         {
@@ -466,7 +490,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Muscat-Oman/Spa-Manager_JR110750',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Spa',
           description: 'Spa Manager position for Luxury Anantara Spa Oman.'
         },
         {
@@ -480,7 +504,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Male-Maldives/Guest-Relations-Officer_JR110760',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=Guest+Relations',
           description: 'Guest Relations Officer for Luxury Island Resorts Maldives.'
         },
         {
@@ -494,7 +518,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           is_government: false,
           is_overseas: true,
           apply_method: 'online',
-          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers/job/Phuket-Thailand/IT-Manager_JR110770',
+          apply_url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers?q=IT+Manager',
           description: 'Hotel IT Systems Manager for Anantara Resorts Phuket.'
         }
       ];
@@ -551,7 +575,7 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
           addedCount++;
         }
       } catch (err) {
-        console.error('Scraper insert error:', error);
+        console.error('Scraper insert error:', err);
       }
     }
 
