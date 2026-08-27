@@ -111,7 +111,18 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
     const host = parsedUrl.hostname; // e.g. minor.wd102.myworkdayjobs.com
     const tenant = host.split('.')[0]; // e.g. minor
     const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
-    const site = pathParts[pathParts.length - 1] || 'Careers';
+    const site = pathParts.includes('Careers') ? 'Careers' : (pathParts[1] || 'Careers');
+
+    // Extract search text if a specific single job URL was pasted
+    let searchText = "";
+    if (workdayUrl.includes('/details/') || workdayUrl.includes('/job/')) {
+      const lastPart = pathParts[pathParts.length - 1] || '';
+      if (lastPart.includes('_')) {
+        searchText = lastPart.split('_')[0].replace(/-/g, ' ');
+      } else {
+        searchText = lastPart.replace(/-/g, ' ');
+      }
+    }
 
     const apiUrl = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
     let allPostings: any[] = [];
@@ -122,7 +133,7 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
         appliedFacets: {},
         limit: 20,
         offset: offset,
-        searchText: ""
+        searchText: searchText
       });
 
       let res: Response | null = null;
