@@ -114,34 +114,22 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
     const site = pathParts[pathParts.length - 1] || 'Careers';
 
     const apiUrl = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
-    const payload = JSON.stringify({
-      appliedFacets: {},
-      limit: 50,
-      offset: 0,
-      searchText: ""
-    });
+    let allPostings: any[] = [];
 
-    let res: Response | null = null;
-
-    // 1. Direct fetch attempt
-    try {
-      res = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json, text/plain, */*'
-        },
-        body: payload
+    // Fetch up to 2 pages (40 vacancies) with Workday limit: 20 constraint
+    for (const offset of [0, 20]) {
+      const payload = JSON.stringify({
+        appliedFacets: {},
+        limit: 20,
+        offset: offset,
+        searchText: ""
       });
-    } catch (corsErr) {
-      console.warn('Direct Workday fetch CORS restricted, using proxy fallback...', corsErr);
-    }
 
-    // 2. CORS Proxy Fallback if direct fetch fails
-    if (!res || !res.ok) {
+      let res: Response | null = null;
+
+      // 1. Direct fetch attempt
       try {
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
-        res = await fetch(proxyUrl, {
+        res = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -149,11 +137,15 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
           },
           body: payload
         });
-      } catch (proxyErr) {
-        console.warn('CORS Proxy 1 failed, trying allorigins proxy...', proxyErr);
+      } catch (corsErr) {
+        console.warn('Direct Workday fetch CORS restricted, using proxy fallback...', corsErr);
+      }
+
+      // 2. CORS Proxy Fallback if direct fetch fails
+      if (!res || !res.ok) {
         try {
-          const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
-          res = await fetch(proxyUrl2, {
+          const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+          res = await fetch(proxyUrl, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -161,18 +153,30 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
             },
             body: payload
           });
-        } catch (proxyErr2) {
-          console.error('All CORS proxies failed:', proxyErr2);
+        } catch (proxyErr) {
+          try {
+            const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+            res = await fetch(proxyUrl2, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json, text/plain, */*'
+              },
+              body: payload
+            });
+          } catch (proxyErr2) {}
+        }
+      }
+
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.jobPostings && Array.isArray(data.jobPostings)) {
+          allPostings.push(...data.jobPostings);
         }
       }
     }
 
-    if (!res || !res.ok) return [];
-
-    const data = await res.json();
-    if (!data.jobPostings) return [];
-
-    return data.jobPostings.map((j: any) => ({
+    return allPostings.map((j: any) => ({
       title: j.title,
       company: `Minor Hotels (${tenant.toUpperCase()})`,
       location: j.locationsText || 'Overseas',
