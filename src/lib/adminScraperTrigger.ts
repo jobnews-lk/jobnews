@@ -103,10 +103,55 @@ export function generateWhiteYellowJobBannerSvg({
 }
 
 /**
- * Triggers automated job discovery across overseas and Sri Lanka portals.
- * Inserts discovered jobs as DRAFTS with generated White + Yellow Image Banners.
+ * Dedicated Workday API Scraper Engine for MyWorkdayJobs URLs (e.g. Minor Hotels, Hilton, etc.)
  */
-export async function triggerJobHunterBot(): Promise<{ success: boolean; addedCount: number; message: string }> {
+export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
+  try {
+    const parsedUrl = new URL(workdayUrl);
+    const host = parsedUrl.hostname; // e.g. minor.wd102.myworkdayjobs.com
+    const tenant = host.split('.')[0]; // e.g. minor
+    const pathParts = parsedUrl.pathname.split('/').filter(Boolean); // ['en-US', 'Careers']
+    const site = pathParts[pathParts.length - 1] || 'Careers';
+
+    const apiUrl = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
+
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/plain, */*'
+      },
+      body: JSON.stringify({
+        appliedFacets: {},
+        limit: 25,
+        offset: 0,
+        searchText: ""
+      })
+    });
+
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    if (!data.jobPostings) return [];
+
+    return data.jobPostings.map((j: any) => ({
+      title: j.title,
+      company: `Minor Hotels (${tenant.toUpperCase()})`,
+      location: j.locationsText || 'Overseas',
+      apply_url: `https://${host}/en-US/${site}${j.externalPath}`,
+      postedOn: j.postedOn
+    }));
+  } catch (e) {
+    console.error('Workday scraper error:', e);
+    return [];
+  }
+}
+
+/**
+ * Triggers automated job discovery across overseas and Sri Lanka portals.
+ * Support Workday API parsing for myworkdayjobs URLs.
+ */
+export async function triggerJobHunterBot(customUrl?: string): Promise<{ success: boolean; addedCount: number; message: string }> {
   try {
     const { data: countries } = await supabase.from('countries').select('id, name');
 
@@ -115,65 +160,97 @@ export async function triggerJobHunterBot(): Promise<{ success: boolean; addedCo
       countries.forEach(c => { countryMap[c.name.toLowerCase()] = c.id; });
     }
 
-    const discoveredJobs = [
-      {
-        title: 'Senior Hotel Front Office Executive',
-        company: 'Grand Hyatt Hotel & Resorts (Dubai)',
-        country_name: 'United Arab Emirates',
-        location: 'Dubai, UAE',
-        salary: 'AED 4,500 - 6,000 / Month + Accommodation',
-        closing_date: '2026-09-28',
-        post_type: 'image',
-        is_government: false,
-        is_overseas: true,
-        apply_method: 'email',
-        apply_url: 'https://careers.hyatt.com',
-        apply_email: 'careers.dubai@hyatt.com',
-        description: 'Grand Hyatt Dubai is hiring experienced Front Office Executives. Free accommodation, medical insurance, and flight tickets provided.'
-      },
-      {
-        title: 'Heavy Equipment Maintenance Engineer',
-        company: 'Qatar Petroleum Contractors',
-        country_name: 'Qatar',
-        location: 'Doha, Qatar',
-        salary: 'QAR 8,000 - 11,000 / Month',
-        closing_date: '2026-09-30',
-        post_type: 'image',
-        is_government: false,
-        is_overseas: true,
-        apply_method: 'online',
-        apply_url: 'https://qatarpetroleum.careers.com',
-        description: 'Immediate opening for Heavy Equipment Engineers in Doha. Minimum 3 years experience required. SLBFE registered vacancy.'
-      },
-      {
-        title: 'Automotive Technician / Mechanic (Japan Specialized)',
-        company: 'Tokyo Auto Services Agency',
-        country_name: 'Japan',
-        location: 'Tokyo, Japan',
-        salary: 'JPY 280,000 / Month',
-        closing_date: '2026-10-05',
-        post_type: 'image',
-        is_government: false,
-        is_overseas: true,
-        apply_method: 'email',
-        apply_email: 'japanjobs@slbfe.lk',
-        description: 'Japanese TITP Technical Intern Training Program for Automotive Technicians. JLPT N4 or NAT-TEST Level 4 required.'
-      },
-      {
-        title: 'Registered Staff Nurse (Ministry of Health Romania)',
-        company: 'Bucharest Healthcare System',
-        country_name: 'Romania',
-        location: 'Bucharest, Romania',
-        salary: 'EUR 1,400 - 1,800 / Month',
-        closing_date: '2026-09-25',
-        post_type: 'image',
-        is_government: false,
-        is_overseas: true,
-        apply_method: 'email',
-        apply_email: 'nursing@romaniajobs.lk',
-        description: 'European work permit for Sri Lankan Nurses. Free food, accommodation, and medical insurance provided by hospital.'
-      }
-    ];
+    let discoveredJobs: any[] = [];
+
+    // If custom Workday URL or generic URL provided
+    if (customUrl && customUrl.includes('myworkdayjobs.com')) {
+      const workdayJobs = await scrapeWorkdayJobsApi(customUrl);
+      discoveredJobs = workdayJobs.map(j => {
+        const isLanka = j.location.toLowerCase().includes('sri lanka') || j.location.toLowerCase().includes('kalutara') || j.location.toLowerCase().includes('colombo');
+        const countryName = isLanka ? 'Sri Lanka' : (j.location.split(',').pop()?.trim() || 'Overseas');
+        
+        // Default closing date 30 days from now
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        const closingStr = futureDate.toISOString().split('T')[0];
+
+        return {
+          title: j.title,
+          company: j.company,
+          country_name: countryName,
+          location: j.location,
+          salary: 'Attractive Salary & Benefits',
+          closing_date: closingStr,
+          post_type: 'image',
+          is_government: false,
+          is_overseas: !isLanka,
+          apply_method: 'online',
+          apply_url: j.apply_url,
+          description: `Official job vacancy for ${j.title} at ${j.company}. Located in ${j.location}. Apply online directly via official portal.`
+        };
+      });
+    } else {
+      // Default curated list
+      discoveredJobs = [
+        {
+          title: 'Senior Hotel Front Office Executive',
+          company: 'Grand Hyatt Hotel & Resorts (Dubai)',
+          country_name: 'United Arab Emirates',
+          location: 'Dubai, UAE',
+          salary: 'AED 4,500 - 6,000 / Month + Accommodation',
+          closing_date: '2026-09-28',
+          post_type: 'image',
+          is_government: false,
+          is_overseas: true,
+          apply_method: 'email',
+          apply_url: 'https://careers.hyatt.com',
+          apply_email: 'careers.dubai@hyatt.com',
+          description: 'Grand Hyatt Dubai is hiring experienced Front Office Executives. Free accommodation, medical insurance, and flight tickets provided.'
+        },
+        {
+          title: 'Heavy Equipment Maintenance Engineer',
+          company: 'Qatar Petroleum Contractors',
+          country_name: 'Qatar',
+          location: 'Doha, Qatar',
+          salary: 'QAR 8,000 - 11,000 / Month',
+          closing_date: '2026-09-30',
+          post_type: 'image',
+          is_government: false,
+          is_overseas: true,
+          apply_method: 'online',
+          apply_url: 'https://qatarpetroleum.careers.com',
+          description: 'Immediate opening for Heavy Equipment Engineers in Doha. Minimum 3 years experience required. SLBFE registered vacancy.'
+        },
+        {
+          title: 'Automotive Technician / Mechanic (Japan Specialized)',
+          company: 'Tokyo Auto Services Agency',
+          country_name: 'Japan',
+          location: 'Tokyo, Japan',
+          salary: 'JPY 280,000 / Month',
+          closing_date: '2026-10-05',
+          post_type: 'image',
+          is_government: false,
+          is_overseas: true,
+          apply_method: 'email',
+          apply_email: 'japanjobs@slbfe.lk',
+          description: 'Japanese TITP Technical Intern Training Program for Automotive Technicians. JLPT N4 or NAT-TEST Level 4 required.'
+        },
+        {
+          title: 'Registered Staff Nurse (Ministry of Health Romania)',
+          company: 'Bucharest Healthcare System',
+          country_name: 'Romania',
+          location: 'Bucharest, Romania',
+          salary: 'EUR 1,400 - 1,800 / Month',
+          closing_date: '2026-09-25',
+          post_type: 'image',
+          is_government: false,
+          is_overseas: true,
+          apply_method: 'email',
+          apply_email: 'nursing@romaniajobs.lk',
+          description: 'European work permit for Sri Lankan Nurses. Free food, accommodation, and medical insurance provided by hospital.'
+        }
+      ];
+    }
 
     let addedCount = 0;
 
@@ -196,7 +273,7 @@ export async function triggerJobHunterBot(): Promise<{ success: boolean; addedCo
         location: item.location,
         closingDate: item.closing_date,
         salary: item.salary,
-        sectorTag: `OVERSEAS: ${item.country_name.toUpperCase()}`
+        sectorTag: item.is_overseas ? `OVERSEAS: ${item.country_name.toUpperCase()}` : 'LOCAL JOB'
       });
 
       const { data: inserted, error } = await supabase.from('jobs').insert([{
@@ -233,8 +310,8 @@ export async function triggerJobHunterBot(): Promise<{ success: boolean; addedCo
       success: true,
       addedCount,
       message: addedCount > 0 
-        ? `Successfully discovered and queued ${addedCount} new overseas vacancies with White+Yellow Image Posts!`
-        : 'All latest overseas job postings are already discovered and up to date.'
+        ? `Successfully discovered and queued ${addedCount} new Workday / Overseas vacancies with White+Yellow Image Posts!`
+        : 'All latest Workday / Overseas job postings from this source are already discovered and up to date.'
     };
   } catch (err) {
     return {
