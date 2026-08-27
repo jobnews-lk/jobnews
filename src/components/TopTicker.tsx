@@ -9,18 +9,42 @@ export default function TopTicker() {
   useEffect(() => {
     async function fetchJobs() {
       const today = new Date().toISOString().split('T')[0];
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      const nextWeekStr = nextWeek.toISOString().split('T')[0];
+      const futureWeek = new Date();
+      futureWeek.setDate(futureWeek.getDate() + 21); // Extend window to 21 days
+      const futureWeekStr = futureWeek.toISOString().split('T')[0];
 
-      const { data } = await supabase
+      // Primary query: closing within 21 days
+      let { data } = await supabase
         .from('jobs')
         .select('id, title, company, closing_date')
         .eq('status', 'published')
         .gte('closing_date', today)
-        .lte('closing_date', nextWeekStr)
+        .lte('closing_date', futureWeekStr)
         .order('closing_date', { ascending: true })
-        .limit(5);
+        .limit(8);
+
+      // Fallback query: if 21-day window is empty, fetch any published closing jobs
+      if (!data || data.length === 0) {
+        const fallbackRes = await supabase
+          .from('jobs')
+          .select('id, title, company, closing_date')
+          .eq('status', 'published')
+          .gte('closing_date', today)
+          .order('closing_date', { ascending: true })
+          .limit(8);
+        data = fallbackRes.data;
+      }
+
+      // Second fallback: fetch latest published jobs if no closing dates match
+      if (!data || data.length === 0) {
+        const fallbackRes2 = await supabase
+          .from('jobs')
+          .select('id, title, company, closing_date')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(8);
+        data = fallbackRes2.data;
+      }
 
       if (data) {
         setClosingJobs(data as Job[]);
@@ -32,16 +56,16 @@ export default function TopTicker() {
   if (closingJobs.length === 0) return null;
 
   return (
-    <div className="bg-red-600 text-white text-xs md:text-sm font-medium py-2 relative flex items-center w-full z-50">
+    <div className="bg-red-600 text-white text-xs md:text-sm font-medium py-2 relative flex items-center w-full z-50 group">
       <div className="px-3 flex items-center gap-1.5 z-10 bg-red-600 shadow-[10px_0_10px_#dc2626]">
         <AlertCircle className="w-4 h-4 animate-pulse" />
         <span className="whitespace-nowrap font-bold tracking-wide">CLOSING SOON:</span>
       </div>
       <div className="flex-1 overflow-hidden flex items-center">
-        <div className="animate-[marquee_25s_linear_infinite] whitespace-nowrap inline-block">
+        <div className="animate-[marquee_45s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] active:[animation-play-state:paused] whitespace-nowrap inline-block">
           {closingJobs.map((job, idx) => {
-             const daysLeft = Math.ceil((new Date(job.closing_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-             return (
+            const daysLeft = job.closing_date ? Math.ceil((new Date(job.closing_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 7;
+            return (
               <span key={job.id} className="mx-6">
                 <Link to={`/jobs/${job.id}`} className="hover:underline hover:text-red-100 transition-colors">
                   {job.title} {job.company ? `(${job.company})` : ''} 
@@ -55,8 +79,8 @@ export default function TopTicker() {
           })}
           {/* Duplicate for seamless scrolling loop */}
           {closingJobs.map((job, idx) => {
-             const daysLeft = Math.ceil((new Date(job.closing_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-             return (
+            const daysLeft = job.closing_date ? Math.ceil((new Date(job.closing_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 7;
+            return (
               <span key={job.id + 'dup'} className="mx-6">
                 <Link to={`/jobs/${job.id}`} className="hover:underline hover:text-red-100 transition-colors">
                   {job.title} {job.company ? `(${job.company})` : ''} 

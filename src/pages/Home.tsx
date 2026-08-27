@@ -137,51 +137,78 @@ export default function Home() {
     // 2. Optimized Parallel Database Fetch for Ultra Speed (100-300ms)
     async function load() {
       const todayStr = new Date().toISOString().split('T')[0];
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 10);
-      const nextWeekStr = nextWeek.toISOString().split('T')[0];
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 21);
+      const futureDateStr = futureDate.toISOString().split('T')[0];
 
-      Promise.all([
-        supabase
-          .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false })
-          .limit(24),
-        supabase
-          .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
-          .eq('status', 'published')
-          .gte('closing_date', todayStr)
-          .lte('closing_date', nextWeekStr)
-          .order('closing_date', { ascending: true })
-          .limit(6),
-        supabase.from('countries').select('id, name, slug').order('name'),
-        supabase.from('categories').select('id, name, slug').order('name')
-      ]).then(([latestRes, closingRes, ctsRes, catsRes]) => {
-        if (latestRes.data) {
-          setLatestJobs(latestRes.data as Job[]);
-          localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
+      async function fetchWithRetry(retries = 2) {
+        try {
+          // Parallel fetch with fallback for closing jobs
+          const [latestRes, closingRes, ctsRes, catsRes] = await Promise.all([
+            supabase
+              .from('jobs')
+              .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
+              .eq('status', 'published')
+              .order('created_at', { ascending: false })
+              .limit(24),
+            supabase
+              .from('jobs')
+              .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
+              .eq('status', 'published')
+              .gte('closing_date', todayStr)
+              .lte('closing_date', futureDateStr)
+              .order('closing_date', { ascending: true })
+              .limit(6),
+            supabase.from('countries').select('id, name, slug').order('name'),
+            supabase.from('categories').select('id, name, slug').order('name')
+          ]);
+
+          if (latestRes.data && latestRes.data.length > 0) {
+            setLatestJobs(latestRes.data as Job[]);
+            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
+          }
+
+          let finalClosing = closingRes.data || [];
+          if (finalClosing.length === 0) {
+            // Fallback for closing jobs if 21-day window is empty
+            const fallbackClosing = await supabase
+              .from('jobs')
+              .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
+              .eq('status', 'published')
+              .gte('closing_date', todayStr)
+              .order('closing_date', { ascending: true })
+              .limit(6);
+            if (fallbackClosing.data) finalClosing = fallbackClosing.data;
+          }
+
+          if (finalClosing.length > 0) {
+            setClosingJobs(finalClosing as Job[]);
+            localStorage.setItem('jn_v2_home_closing', JSON.stringify(finalClosing));
+          }
+
+          if (ctsRes.data) {
+            setCountries(ctsRes.data as Country[]);
+            localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
+          }
+          if (catsRes.data) {
+            setCategories(catsRes.data as Category[]);
+            localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
+          }
+
+          setLoading(false);
+          setFetchCompleted(true);
+        } catch (err) {
+          console.error('Home page load error (retrying...):', err);
+          if (retries > 0) {
+            setTimeout(() => fetchWithRetry(retries - 1), 1000);
+          } else {
+            setLoading(false);
+            setFetchCompleted(true);
+          }
         }
-        if (closingRes.data) {
-          setClosingJobs(closingRes.data as Job[]);
-          localStorage.setItem('jn_v2_home_closing', JSON.stringify(closingRes.data));
-        }
-        if (ctsRes.data) {
-          setCountries(ctsRes.data as Country[]);
-          localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
-        }
-        if (catsRes.data) {
-          setCategories(catsRes.data as Category[]);
-          localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
-        }
-        setLoading(false);
-        setFetchCompleted(true);
-      }).catch(err => {
-        console.error('Home page load error:', err);
-        setLoading(false);
-        setFetchCompleted(true);
-      });
+      }
+
+      fetchWithRetry();
     }
 
     load();
@@ -401,7 +428,7 @@ export default function Home() {
                     
                     {/* Scrolling Marquee Title Container */}
                     <div className="flex w-full overflow-hidden relative mb-4">
-                      <div className="whitespace-nowrap animate-[marquee_12s_linear_infinite] flex items-center text-sm">
+                      <div className="whitespace-nowrap animate-[marquee_24s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] flex items-center text-sm">
                         <span className="font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{job.title}</span>
                         {job.countries?.name && (
                           <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">Location: {job.countries.name}</span>
