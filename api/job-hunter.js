@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = 'https://njrkhpsbbpszvyzosxwf.supabase.co';
 const supabaseKey = 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
@@ -87,8 +87,7 @@ function generateWhiteYellowJobBannerSvg({ title, company, location, closingDate
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-export default async function handler(req, res) {
-  // Set CORS headers
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -203,9 +202,9 @@ export default async function handler(req, res) {
         : 'All latest Workday / Minor Hotels jobs are up to date in Database.'
     });
   } catch (err) {
-    return res.status(500).json({
+    return res.status(200).json({
       success: false,
-      error: err.message
+      error: err.message || String(err)
     });
   }
-}
+};
