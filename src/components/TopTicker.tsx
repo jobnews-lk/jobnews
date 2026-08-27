@@ -73,7 +73,7 @@ export default function TopTicker() {
         <span className="whitespace-nowrap font-bold tracking-wide">CLOSING SOON:</span>
       </div>
       <div className="flex-1 overflow-hidden flex items-center">
-        <div className="animate-[marquee_55s_linear_infinite] md:animate-[marquee_65s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] active:[animation-play-state:paused] focus:[animation-play-state:paused] whitespace-nowrap inline-block select-none">
+        <div className="animate-[marquee_95s_linear_infinite] md:animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] active:[animation-play-state:paused] focus:[animation-play-state:paused] whitespace-nowrap inline-block select-none">
           {closingJobs.map((job, idx) => {
             const daysLeft = job.closing_date ? Math.ceil((new Date(job.closing_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 7;
             return (
