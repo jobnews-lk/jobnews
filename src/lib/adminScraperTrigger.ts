@@ -123,7 +123,7 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
       },
       body: JSON.stringify({
         appliedFacets: {},
-        limit: 25,
+        limit: 50,
         offset: 0,
         searchText: ""
       })
