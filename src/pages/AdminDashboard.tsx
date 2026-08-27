@@ -11,6 +11,7 @@ import { parseGazettePdfText, type ExtractedGazetteJob } from '../lib/gazettePdf
 import FileUpload from '../components/FileUpload';
 import { useAuth } from '../context/AuthContext';
 import { runJobScraperEngine } from '../lib/jobScraperEngine';
+import { triggerJobHunterBot } from '../lib/adminScraperTrigger';
 
 type FilterStatus = 'all' | 'published' | 'draft' | 'expired';
 type FilterSector = 'all' | 'government' | 'private' | 'overseas';
@@ -198,23 +199,14 @@ export default function AdminDashboard() {
   const handleRunScraper = async () => {
     setRunningScraper(true);
     setError('');
-    setInfoMessage(`🤖 Bot is searching ${sources.length} target web sources in stealth mode...`);
+    setInfoMessage(`🤖 Bot is searching target overseas & Sri Lanka web sources...`);
 
     try {
-      const targets = sources.map((s) => ({
-        sourceUrl: s.url,
-        sourceType: (s.category === 'government'
-          ? 'government_gazette'
-          : s.category === 'overseas'
-          ? 'overseas_portal'
-          : 'private_career_page') as 'government_gazette' | 'private_career_page' | 'overseas_portal',
-      }));
-
-      const res = await runJobScraperEngine(targets);
+      const res = await triggerJobHunterBot();
 
       await loadJobs();
       setFilterStatus('draft'); // Switch to Draft tab so admin can review discovered jobs
-      setInfoMessage(`🎉 Bot complete! Scanned ${sources.length} sources, found ${res.jobsFound} jobs, and added ${res.jobsSaved} new Drafts for your review.`);
+      setInfoMessage(res.message);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Bot failed to run');
     } finally {

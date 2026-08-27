@@ -1,0 +1,88 @@
+
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- White + Yellow Mix Gradient Background -->
+    <linearGradient id="whiteYellowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF0"/>
+      <stop offset="35%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#FEF08A"/>
+      <stop offset="100%" stop-color="#FDE047"/>
+    </linearGradient>
+
+    <!-- Gold Card Header Gradient -->
+    <linearGradient id="goldHeaderGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#EAB308"/>
+      <stop offset="50%" stop-color="#CA8A04"/>
+      <stop offset="100%" stop-color="#A16207"/>
+    </linearGradient>
+
+    <!-- Soft Drop Shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background Canvas -->
+  <rect width="1200" height="630" fill="url(#whiteYellowGrad)"/>
+
+  <!-- Decorative Yellow Glow Orbs -->
+  <circle cx="1100" cy="80" r="220" fill="#FEF08A" opacity="0.4" filter="blur(40px)"/>
+  <circle cx="100" cy="550" r="180" fill="#FDE047" opacity="0.3" filter="blur(30px)"/>
+
+  <!-- Main Content Box (White Card with Yellow/Gold Border) -->
+  <rect x="60" y="50" width="1080" height="530" rx="24" fill="#FFFFFF" stroke="#FACC15" stroke-width="4" filter="url(#shadow)"/>
+
+  <!-- Top Header Banner (Gold Gradient) -->
+  <rect x="60" y="50" width="1080" height="90" rx="24" fill="url(#goldHeaderGrad)"/>
+  <!-- Top Banner Bottom Square Mask Fix -->
+  <rect x="60" y="110" width="1080" height="30" fill="url(#goldHeaderGrad)"/>
+
+  <!-- Header Title & Branding -->
+  <text x="100" y="105" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="bold" fill="#FFFFFF" letter-spacing="1">
+    🇱🇰 JOBNEWS.LK | OFFICIAL VACANCY ANNOUNCEMENT
+  </text>
+
+  <!-- Sector Tag Badge -->
+  <rect x="880" y="75" width="220" height="42" rx="21" fill="#FFFFFF" opacity="0.95"/>
+  <text x="990" y="102" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" fill="#854D0E" text-anchor="middle">
+    OVERSEAS JOB
+  </text>
+
+  <!-- Job Title -->
+  <text x="100" y="225" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="bold" fill="#0F172A">
+    Senior Hotel Operations Manager
+  </text>
+
+  <!-- Company / Organization Name -->
+  <text x="100" y="285" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="600" fill="#475569">
+    🏢 Anantara Resorts &amp; Hotels (Dubai / Qatar)
+  </text>
+
+  <!-- Metadata Badges Container -->
+  <!-- Location Badge -->
+  <rect x="100" y="340" width="440" height="60" rx="14" fill="#FEF9C3" stroke="#FDE047" stroke-width="2"/>
+  <text x="120" y="378" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#713F12">
+    📍 Dubai, UAE (Overseas)
+  </text>
+
+  <!-- Salary Badge -->
+  <rect x="560" y="340" width="540" height="60" rx="14" fill="#FEF9C3" stroke="#FDE047" stroke-width="2"/>
+  <text x="580" y="378" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="bold" fill="#713F12">
+    💰 Salary: $2,500 - $3,500 / Month
+  </text>
+
+  <!-- Closing Date Badge -->
+  <rect x="100" y="425" width="1000" height="65" rx="14" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="130" y="466" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="bold" fill="#B45309">
+    ⏳ Closing Date: 2026-09-25 | Apply Online at JobNews.lk
+  </text>
+
+  <!-- Footer Watermark & Verification Badge -->
+  <text x="100" y="540" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="bold" fill="#94A3B8">
+    ✓ Verified Official Job Notice — JobNews.lk Sri Lanka
+  </text>
+  <text x="1080" y="540" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="bold" fill="#CA8A04" text-anchor="end">
+    https://jobnews.lk
+  </text>
+</svg>
+  
