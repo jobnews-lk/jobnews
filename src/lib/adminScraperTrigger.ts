@@ -1,4 +1,4 @@
-import { supabase, type Job } from './supabase';
+import { supabase, adminApiCall, type Job } from './supabase';
 
 /**
  * Generates an SVG Image Job Post with a White + Yellow Mix Gradient Background.
@@ -339,33 +339,32 @@ export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: b
         sectorTag: item.is_overseas ? `OVERSEAS: ${item.country_name.toUpperCase()}` : 'LOCAL JOB'
       });
 
-      const { data: inserted, error } = await supabase.from('jobs').insert([{
-        title: item.title,
-        company: item.company,
-        location: item.location,
-        salary: item.salary,
-        closing_date: item.closing_date,
-        post_type: item.post_type,
-        is_government: item.is_government,
-        is_overseas: item.is_overseas,
-        status: 'draft', // DRAFT status for mandatory Admin approval
-        thumbnail_url: bannerDataUri,
-        country_id: countryId,
-        description: item.description,
-        apply_method: item.apply_method,
-        apply_url: item.apply_url || null,
-        apply_email: item.apply_email || null
-      }]).select();
+      try {
+        const res = await adminApiCall('POST', {
+          title: item.title,
+          company: item.company,
+          location: item.location,
+          salary: item.salary,
+          closing_date: item.closing_date,
+          post_type: item.post_type,
+          is_government: item.is_government,
+          is_overseas: item.is_overseas,
+          is_private_sector: false,
+          status: 'draft', // DRAFT status for mandatory Admin approval
+          thumbnail_url: bannerDataUri,
+          country_id: countryId,
+          description: item.description,
+          apply_method: item.apply_method,
+          apply_url: item.apply_url || null,
+          apply_email: item.apply_email || null,
+          images: [bannerDataUri]
+        });
 
-      if (inserted && inserted.length > 0) {
-        const jobId = inserted[0].id;
-        await supabase.from('job_images').insert([{
-          job_id: jobId,
-          url: bannerDataUri
-        }]);
-        addedCount++;
-      } else if (error) {
-        console.error('Scraper insert error:', error);
+        if (res && res.data) {
+          addedCount++;
+        }
+      } catch (err) {
+        console.error('Scraper adminApiCall insert error:', err);
       }
     }
 
