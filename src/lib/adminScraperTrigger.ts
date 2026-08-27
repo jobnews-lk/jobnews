@@ -110,26 +110,64 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
     const parsedUrl = new URL(workdayUrl);
     const host = parsedUrl.hostname; // e.g. minor.wd102.myworkdayjobs.com
     const tenant = host.split('.')[0]; // e.g. minor
-    const pathParts = parsedUrl.pathname.split('/').filter(Boolean); // ['en-US', 'Careers']
+    const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
     const site = pathParts[pathParts.length - 1] || 'Careers';
 
     const apiUrl = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
-
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json, text/plain, */*'
-      },
-      body: JSON.stringify({
-        appliedFacets: {},
-        limit: 50,
-        offset: 0,
-        searchText: ""
-      })
+    const payload = JSON.stringify({
+      appliedFacets: {},
+      limit: 50,
+      offset: 0,
+      searchText: ""
     });
 
-    if (!res.ok) return [];
+    let res: Response | null = null;
+
+    // 1. Direct fetch attempt
+    try {
+      res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/plain, */*'
+        },
+        body: payload
+      });
+    } catch (corsErr) {
+      console.warn('Direct Workday fetch CORS restricted, using proxy fallback...', corsErr);
+    }
+
+    // 2. CORS Proxy Fallback if direct fetch fails
+    if (!res || !res.ok) {
+      try {
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
+        res = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/plain, */*'
+          },
+          body: payload
+        });
+      } catch (proxyErr) {
+        console.warn('CORS Proxy 1 failed, trying allorigins proxy...', proxyErr);
+        try {
+          const proxyUrl2 = `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`;
+          res = await fetch(proxyUrl2, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json, text/plain, */*'
+            },
+            body: payload
+          });
+        } catch (proxyErr2) {
+          console.error('All CORS proxies failed:', proxyErr2);
+        }
+      }
+    }
+
+    if (!res || !res.ok) return [];
 
     const data = await res.json();
     if (!data.jobPostings) return [];
