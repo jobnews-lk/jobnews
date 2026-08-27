@@ -377,10 +377,10 @@ export default function Home() {
         <AdPlaceholder className="h-28 md:h-32 w-full" />
       </section> */}
 
-      {/* ── CLOSING SOON SECTION (Option 2) ── */}
+      {/* ── CLOSING SOON SHOWCASE SECTION (Position 02: Below Hero Search & Sector Buttons) ── */}
       {closingJobs.length > 0 && !loading && (
         <section className="max-w-7xl mx-auto px-4 pt-10 pb-4">
-          <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-2xl p-5 md:p-6 relative overflow-hidden transition-colors">
+          <div className="bg-red-50 dark:bg-red-950/60 border border-red-200/90 dark:border-red-900/60 rounded-2xl p-5 md:p-6 relative overflow-hidden transition-colors shadow-sm">
             <div className="absolute top-0 right-0 p-16 bg-red-100/50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
             <div className="flex items-center justify-between mb-5 relative z-10">
               <div className="flex items-center gap-2">
@@ -388,8 +388,11 @@ export default function Home() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                 </span>
-                <h2 className="text-xl md:text-2xl font-bold text-red-700 tracking-tight">Expiring Soon!</h2>
-                <span className="hidden sm:inline-block ml-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full">Urgent</span>
+                <h2 className="text-lg md:text-2xl font-bold text-red-700 dark:text-red-400 tracking-tight flex items-center gap-2">
+                  <span>Closing Soon Vacancies</span>
+                  <span className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-400 font-normal hidden sm:inline">(ළඟදීම අවසන් වන රැකියා)</span>
+                </h2>
+                <span className="ml-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">Urgent</span>
               </div>
               
               {/* Swipe/Next Button (Mobile only) */}
@@ -404,9 +407,9 @@ export default function Home() {
                     }
                   }
                 }}
-                className="flex md:hidden items-center gap-1 text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 px-2.5 py-1 rounded-full transition-colors active:scale-95"
+                className="flex md:hidden items-center gap-1 text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 px-3 py-1 rounded-full transition-colors active:scale-95 text-xs font-semibold"
               >
-                <span className="text-[10px] font-bold uppercase tracking-wider">Next</span>
+                <span>Next</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -424,18 +427,18 @@ export default function Home() {
               className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 xl:grid-cols-4 scrollbar-hide relative z-10 cursor-grab"
             >
               {closingJobs.map(job => {
-                const daysLeft = Math.ceil((new Date(job.closing_date!).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                const daysLeft = job.closing_date ? Math.ceil((new Date(job.closing_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 7;
                 return (
                   <Link 
                     key={job.id} 
                     to={`/jobs/${job.id}`} 
                     onClick={(e) => { if (hasDragged) e.preventDefault(); }}
-                    className="shrink-0 w-[85vw] md:w-auto snap-center block bg-white dark:bg-slate-900 rounded-xl p-4 border border-red-100 dark:border-red-900 shadow-sm hover:shadow-md hover:border-red-300 dark:hover:border-red-500 transition-all group overflow-hidden select-none"
+                    className="shrink-0 w-[85vw] md:w-auto snap-center block bg-white dark:bg-slate-900 rounded-xl p-4 border border-red-100 dark:border-red-900/80 shadow-sm hover:shadow-md hover:border-red-300 dark:hover:border-red-500 transition-all group overflow-hidden select-none"
                   >
                     
-                    {/* Scrolling Marquee Title Container */}
+                    {/* Scrolling Marquee Title Container with Hover Pause & 38s Smooth Speed */}
                     <div className="flex w-full overflow-hidden relative mb-4">
-                      <div className="whitespace-nowrap animate-[marquee_24s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] flex items-center text-sm">
+                      <div className="whitespace-nowrap animate-[marquee_38s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] active:[animation-play-state:paused] flex items-center text-sm">
                         <span className="font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{job.title}</span>
                         {job.countries?.name && (
                           <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">Location: {job.countries.name}</span>
