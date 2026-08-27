@@ -206,6 +206,27 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
  */
 export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: boolean; addedCount: number; message: string }> {
   try {
+    // 1. Try Vercel Serverless API Function first (Node.js cloud backend execution, 0 CORS issues)
+    try {
+      const apiRes = await fetch('/api/job-hunter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customUrl })
+      });
+      if (apiRes.ok) {
+        const apiData = await apiRes.json();
+        if (apiData.success) {
+          return {
+            success: true,
+            addedCount: apiData.addedCount,
+            message: apiData.message
+          };
+        }
+      }
+    } catch (apiErr) {
+      console.warn('/api/job-hunter serverless function unavailable, using client-side fallback...', apiErr);
+    }
+
     const { data: countries } = await supabase.from('countries').select('id, name');
 
     const countryMap: Record<string, string> = {};
