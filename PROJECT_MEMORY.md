@@ -116,6 +116,10 @@
              * **📄 නිල රජයේ ගැසට් නිවේදනය (Primary Notice PDF):** Styled in red with a prominent `📄 Primary Notice PDF` badge.
              * **📋 ආදර්ශ ඉල්ලුම් පත්‍රය / අතිරේක ලේඛනය (Application Form & Attachments):** Styled in blue with a distinct `📋 Application Document / Form` badge.
            * **Full Database Sweep Across All 102 Jobs:** Executed batched scanner scripts (`deep_sweep_all_gov_jobs.cjs` & `execute_full_database_cleanup.cjs`) across all 102 jobs in the database (both published government jobs and draft jobs). Repaired and cleaned up duplicate PDF attachments and link misplacements for Psychologist Grade II, Navy Sailors, Stenographer/ලඝු ලේඛක, and Front Office Manager.
+        * **CLOSING SOON TopTicker & Home Page Query Decoupling (COMPLETED - AUGUST 27, 2026):**
+           * **Query Decoupling & Storage Hydration (`TopTicker.tsx` & `Home.tsx`):** Decoupled `TopTicker` database fetch from `Home.tsx` main jobs query to prevent mobile network query contention and eliminate empty job flashes ("No job notices yet"). `TopTicker` hydrates instantly from `localStorage` (`jn_v2_home_closing` / `jn_v2_home_jobs`) and defers network fetch by 400ms. `Home.tsx` prioritizes `latestJobs` fetch independently before loading secondary items.
+           * **Mobile Smooth Marquee Speed & Touch Freeze (`TopTicker.tsx`):** Configured responsive marquee animation speeds (95s on mobile vs 60s on desktop) to ensure text glides smoothly across narrow phone screens. Integrated React `onTouchStart`, `onTouchEnd`, `onMouseEnter`, and `onMouseLeave` state handlers so touching the ticker freezes it instantly on mobile, and lifting the finger resumes scrolling immediately without sticky focus states.
+           * **Twitter/X Style Background Silent Revalidation & Floating Notification Pill (`Home.tsx`):** Implemented a 90-second background job checker that runs silently only when the browser tab is active (`document.visibilityState === 'visible'`). If new jobs are published by admin while a user is reading, a sleek floating notification pill (**`"🔔 N New Job Notices Published — Tap to View"`**) appears at the top center with zero layout shift. Tapping the pill prepends the new jobs smoothly into the feed and scrolls to top gracefully.
 
 2. **Custom Domain & SEO Power Upgrades & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
@@ -127,4 +131,4 @@
 
 ---
 
-*Last Updated: 2026-08-25 by Antigravity AI*
+*Last Updated: 2026-08-27 by Antigravity AI*
