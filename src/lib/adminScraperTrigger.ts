@@ -151,7 +151,7 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
  * Triggers automated job discovery across overseas and Sri Lanka portals.
  * Support Workday API parsing for myworkdayjobs URLs.
  */
-export async function triggerJobHunterBot(customUrl?: string): Promise<{ success: boolean; addedCount: number; message: string }> {
+export async function triggerJobHunterBot(customUrl?: any): Promise<{ success: boolean; addedCount: number; message: string }> {
   try {
     const { data: countries } = await supabase.from('countries').select('id, name');
 
@@ -161,10 +161,13 @@ export async function triggerJobHunterBot(customUrl?: string): Promise<{ success
     }
 
     let discoveredJobs: any[] = [];
+    const validUrl = typeof customUrl === 'string' && customUrl.startsWith('http')
+      ? customUrl
+      : 'https://minor.wd102.myworkdayjobs.com/en-US/Careers';
 
     // If custom Workday URL or generic URL provided
-    if (customUrl && customUrl.includes('myworkdayjobs.com')) {
-      const workdayJobs = await scrapeWorkdayJobsApi(customUrl);
+    if (validUrl && validUrl.includes('myworkdayjobs.com')) {
+      const workdayJobs = await scrapeWorkdayJobsApi(validUrl);
       discoveredJobs = workdayJobs.map(j => {
         const isLanka = j.location.toLowerCase().includes('sri lanka') || j.location.toLowerCase().includes('kalutara') || j.location.toLowerCase().includes('colombo');
         const countryName = isLanka ? 'Sri Lanka' : (j.location.split(',').pop()?.trim() || 'Overseas');

@@ -196,14 +196,16 @@ export default function AdminDashboard() {
     localStorage.setItem('jobnews_scraper_sources', JSON.stringify(updated));
   };
 
-  const handleRunScraper = async (customUrl?: string) => {
+  const handleRunScraper = async (customUrl?: any) => {
     setRunningScraper(true);
     setError('');
-    const target = customUrl || 'https://minor.wd102.myworkdayjobs.com/en-US/Careers';
-    setInfoMessage(`🤖 Bot is connecting to Workday / Overseas Careers Portal (${target})...`);
+    const targetUrl = typeof customUrl === 'string' && customUrl.startsWith('http')
+      ? customUrl
+      : 'https://minor.wd102.myworkdayjobs.com/en-US/Careers';
+    setInfoMessage(`🤖 Bot is connecting to Workday / Overseas Careers Portal...`);
 
     try {
-      const res = await triggerJobHunterBot(target);
+      const res = await triggerJobHunterBot(targetUrl);
 
       await loadJobs();
       setFilterStatus('draft'); // Switch to Draft tab so admin can review discovered jobs
