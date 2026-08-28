@@ -6,6 +6,26 @@ import LatestJobFeed from '../components/LatestJobFeed';
 import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
 import AdPlaceholder from '../components/AdPlaceholder';
 
+function getDaysRemaining(closingDateStr?: string): number {
+  if (!closingDateStr) return 7;
+  try {
+    const cleanStr = closingDateStr.split('T')[0];
+    const parts = cleanStr.split('-');
+    if (parts.length === 3) {
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const target = new Date(year, month, day);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      const diffTime = target.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return isNaN(diffDays) ? 7 : diffDays;
+    }
+  } catch (e) {}
+  return 7;
+}
+
 export default function Home() {
   const [latestJobs, setLatestJobs] = useState<Job[]>(() => {
     try {
@@ -72,7 +92,7 @@ export default function Home() {
     if (carouselRef.current) {
       startX.current = e.pageX - carouselRef.current.offsetLeft;
       scrollLeftPos.current = carouselRef.current.scrollLeft;
-      carouselRef.current.style.scrollSnapType = 'none'; // Disable snap during drag
+      carouselRef.current.style.scrollSnapType = 'none';
       carouselRef.current.style.cursor = 'grabbing';
     }
   };
@@ -98,13 +118,12 @@ export default function Home() {
     if (!isDragging.current || !carouselRef.current) return;
     e.preventDefault();
     const x = e.pageX - carouselRef.current.offsetLeft;
-    const walk = (x - startX.current) * 2; // scroll-fast speed
+    const walk = (x - startX.current) * 2;
     if (Math.abs(walk) > 10) setHasDragged(true);
     carouselRef.current.scrollLeft = scrollLeftPos.current - walk;
   };
   
   useEffect(() => {
-    // 1. Instant Initial Cache Hydration from localStorage
     try {
       localStorage.removeItem('jn_home_jobs');
       localStorage.removeItem('jn_home_closing');
@@ -124,7 +143,27 @@ export default function Home() {
       console.warn('Cache read error:', e);
     }
 
-        // Secondary async fetch: closing jobs, countries, categories
+    async function loadFreshJobs() {
+      try {
+        const latestRes = await supabase
+          .from('jobs')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(24);
+
+        if (latestRes.data && latestRes.data.length > 0) {
+          setLatestJobs(latestRes.data as Job[]);
+          try {
+            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
+          } catch (e) {}
+          setLoading(false);
+          setFetchCompleted(true);
+        } else {
+          setLoading(false);
+          setFetchCompleted(true);
+        }
+
         Promise.all([
           supabase
             .from('jobs')
@@ -151,7 +190,6 @@ export default function Home() {
 
     loadFreshJobs();
 
-    // 3. Mobile Chrome BFCache / Tab Focus Restoration Engine
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         loadFreshJobs();
@@ -166,10 +204,9 @@ export default function Home() {
     window.addEventListener('pageshow', handlePageShow);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    // Fallback timer to ensure mobile skeletons never freeze indefinitely
     const fallbackTimer = setTimeout(() => {
       setLoading(false);
-    }, 2500);
+    }, 2000);
 
     return () => {
       window.removeEventListener('pageshow', handlePageShow);
@@ -178,15 +215,16 @@ export default function Home() {
     };
   }, []);
 
-  // 3. Smart Background Revalidation (Every 90s, active tab only)
+  // Smart Background Revalidation (Every 90s, active tab only)
   useEffect(() => {
     let timer: any;
-    async function checkNewJobs() {
-      if (document.visibilityState !== 'visible' || latestJobs.length === 0) return;
-      const latestCreatedAt = latestJobs[0]?.created_at;
-      if (!latestCreatedAt) return;
 
+    async function checkNewJobs() {
+      if (document.hidden || latestJobs.length === 0) return;
       try {
+        const latestCreatedAt = latestJobs[0]?.created_at;
+        if (!latestCreatedAt) return;
+
         const { data } = await supabase
           .from('jobs')
           .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
@@ -195,7 +233,6 @@ export default function Home() {
           .order('created_at', { ascending: false });
 
         if (data && data.length > 0) {
-          // Filter out duplicates
           const existingIds = new Set(latestJobs.map(j => j.id));
           const freshItems = (data as Job[]).filter(j => !existingIds.has(j.id));
 
@@ -209,8 +246,7 @@ export default function Home() {
       }
     }
 
-    timer = setInterval(checkNewJobs, 90000); // 90 Seconds Smart Polling
-
+    timer = setInterval(checkNewJobs, 90000);
     return () => clearInterval(timer);
   }, [latestJobs]);
 
@@ -222,18 +258,15 @@ export default function Home() {
       const container = carouselRef.current;
       if (!container) return;
       
-      // We only want this on mobile where scrollWidth > clientWidth
       if (container.scrollWidth <= container.clientWidth) return;
       
       const maxScroll = container.scrollWidth - container.clientWidth;
-      // If we are at the end, jump back to the start instantly (no rewind animation)
       if (container.scrollLeft >= maxScroll - 10) {
         container.scrollTo({ left: 0, behavior: 'auto' });
       } else {
-        // Scroll one card width (85vw + gap roughly)
         container.scrollBy({ left: container.clientWidth * 0.85, behavior: 'smooth' });
       }
-    }, 4000); // 4 seconds interval
+    }, 4000);
 
     return () => clearInterval(interval);
   }, [closingJobs, isHovered]);
@@ -251,7 +284,6 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* 🔔 Floating New Jobs Notification Pill (X / Twitter style - Zero layout shift!) */}
       {newJobsCount > 0 && (
         <div className="fixed top-16 md:top-20 left-1/2 -translate-x-1/2 z-50 animate-bounce transition-all duration-300">
           <button
@@ -265,38 +297,30 @@ export default function Home() {
               });
               setNewJobsCount(0);
               setPendingNewJobs([]);
-              window.scrollTo({ top: 450, behavior: 'smooth' });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs md:text-sm font-bold px-4 py-2.5 rounded-full shadow-2xl border border-blue-300 dark:border-blue-400 flex items-center gap-2.5 transition-all active:scale-95 cursor-pointer backdrop-blur-md"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg text-xs md:text-sm font-bold flex items-center gap-2 border-2 border-white cursor-pointer active:scale-95"
           >
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
-            </span>
-            <span>🔔 {newJobsCount} New {newJobsCount === 1 ? 'Job Notice' : 'Job Notices'} Published — Tap to View</span>
+            <span>✨ {newJobsCount} New Jobs Available</span>
+            <span className="bg-white text-blue-600 text-[10px] px-1.5 py-0.5 rounded-full font-black uppercase">Refresh</span>
           </button>
         </div>
       )}
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-blue-900 text-white py-14 md:py-20 px-4">
-        {/* Vibrant Blended Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900"></div>
-        <div className="absolute top-[-50%] left-[-20%] w-[100%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-400/30 via-blue-600/10 to-transparent blur-3xl opacity-70"></div>
-        <div className="absolute bottom-[-50%] right-[-20%] w-[100%] h-[150%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-300/20 via-transparent to-transparent blur-3xl opacity-60"></div>
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-300/10 rounded-full blur-[100px]"></div>
-        
-        <div className="relative max-w-5xl mx-auto text-center z-10">
-          <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Newspaper className="w-4 h-4" />
-            <span>Official Job Vacancy Announcements</span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2 leading-tight">
+      <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white py-12 md:py-20 px-4 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:24px_24px]" />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-100 text-xs font-semibold mb-4 backdrop-blur-sm border border-white/10">
+            <FileText className="w-3.5 h-3.5 text-yellow-300" />
+            Official Job Vacancy Announcements
+          </span>
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-3">
             Latest Job Vacancies
+            <span className="block text-xl md:text-3xl font-semibold text-blue-200 mt-1 font-sans">
+              නවතම රැකියා පුරප්පාඩු
+            </span>
           </h1>
-          <h2 className="text-xl md:text-2xl font-semibold text-blue-200/90 mb-5 leading-tight tracking-wide" style={{ fontFamily: "'Noto Sans Sinhala', sans-serif" }}>
-            නවතම රැකියා පුරප්පාඩු
-          </h2>
           <p className="text-base md:text-lg text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">
             Browse official job notices from government, private sector, and overseas employers. Stay updated with the latest career opportunities.
           </p>
@@ -392,12 +416,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── TOP AD BANNER (Hidden for now until real ads are ready) ── */}
-      {/* <section className="max-w-7xl mx-auto px-4 pt-10">
-        <AdPlaceholder className="h-28 md:h-32 w-full" />
-      </section> */}
-
-      {/* ── CLOSING SOON SHOWCASE SECTION (Position 02: Below Hero Search & Sector Buttons) ── */}
+      {/* ── CLOSING SOON SHOWCASE SECTION ── */}
       {closingJobs.length > 0 && !loading && (
         <section className="max-w-7xl mx-auto px-4 pt-10 pb-4">
           <div className="bg-red-50 dark:bg-red-950/60 border border-red-200/90 dark:border-red-900/60 rounded-2xl p-5 md:p-6 relative overflow-hidden transition-colors shadow-sm">
@@ -415,7 +434,6 @@ export default function Home() {
                 <span className="ml-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">Urgent</span>
               </div>
               
-              {/* Swipe/Next Button (Mobile only) */}
               <button 
                 onClick={() => {
                   if (carouselRef.current) {
@@ -434,7 +452,6 @@ export default function Home() {
               </button>
             </div>
             
-            {/* Horizontal Scroll on Mobile, Grid on Desktop */}
             <div 
               ref={carouselRef} 
               onMouseEnter={() => setIsHovered(true)}
@@ -447,46 +464,50 @@ export default function Home() {
               className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 xl:grid-cols-4 scrollbar-hide relative z-10 cursor-grab"
             >
               {closingJobs.map(job => {
-                const daysLeft = job.closing_date ? Math.ceil((new Date(job.closing_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 7;
-                return (
-                  <Link 
-                    key={job.id} 
-                    to={`/jobs/${job.id}`} 
-                    onClick={(e) => { if (hasDragged) e.preventDefault(); }}
-                    className="shrink-0 w-[85vw] md:w-auto snap-center block bg-white dark:bg-slate-900 rounded-xl p-4 border border-red-100 dark:border-red-900/80 shadow-sm hover:shadow-md hover:border-red-300 dark:hover:border-red-500 transition-all group overflow-hidden select-none"
-                  >
-                    
-                    {/* Scrolling Marquee Title Container with Hover Pause & 38s Smooth Speed */}
-                    <div className="flex w-full overflow-hidden relative mb-4">
-                      <div className="whitespace-nowrap animate-[marquee_38s_linear_infinite] group-hover:[animation-play-state:paused] hover:[animation-play-state:paused] active:[animation-play-state:paused] flex items-center text-sm">
-                        <span className="font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{job.title}</span>
-                        {job.countries?.name && (
-                          <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">Location: {job.countries.name}</span>
-                        )}
-                        {job.company && (
-                          <span className="text-slate-500 dark:text-slate-400 font-medium ml-2 border-l border-slate-300 dark:border-slate-700 pl-2">{job.company}</span>
-                        )}
-                        
-                        {/* Duplicate for seamless loop */}
-                        <span className="font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors ml-8">{job.title}</span>
-                        {job.countries?.name && (
-                          <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">Location: {job.countries.name}</span>
-                        )}
-                        {job.company && (
-                          <span className="text-slate-500 font-medium ml-2 border-l border-slate-300 pl-2">{job.company}</span>
-                        )}
-                        <span className="ml-8"></span>
-                      </div>
-                    </div>
+                const daysLeft = getDaysRemaining(job.closing_date);
+                const thumb = job.thumbnail_url || (job.job_images && job.job_images[0]?.url) || '';
 
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center gap-1.5 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md">
-                        <Clock className="w-3.5 h-3.5" />
-                        {daysLeft <= 0 ? 'Closes Today' : `${daysLeft} Days Left`}
+                return (
+                  <div key={job.id} className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-start flex-shrink-0">
+                    <Link
+                      to={`/jobs/${job.id}`}
+                      className="block bg-white dark:bg-slate-900 rounded-xl p-4 border border-red-200 dark:border-red-900/60 hover:shadow-md transition-all group h-full flex flex-col justify-between"
+                    >
+                      <div>
+                        {thumb ? (
+                          <div className="aspect-[16/9] rounded-lg overflow-hidden mb-3 bg-slate-100 relative">
+                            <img src={thumb} alt={job.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                              {daysLeft <= 0 ? 'Closes Today!' : `Closing in ${daysLeft}d`}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                              {daysLeft <= 0 ? 'Closes Today!' : `Closing in ${daysLeft} Days`}
+                            </span>
+                            <span className="text-[11px] text-slate-400">Urgent</span>
+                          </div>
+                        )}
+                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors line-clamp-2 text-sm md:text-base">
+                          {job.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium line-clamp-1">
+                          🏢 {job.company || 'Official Vacancy'}
+                        </p>
                       </div>
-                      <span className="text-[10px] font-medium text-slate-400 uppercase">{job.post_type}</span>
-                    </div>
-                  </Link>
+
+                      <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                        <span className="text-slate-500 font-medium truncate max-w-[150px]">
+                          📍 {job.location || 'Sri Lanka'}
+                        </span>
+                        <span className="text-red-600 dark:text-red-400 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                          <span>View</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </span>
+                      </div>
+                    </Link>
+                  </div>
                 );
               })}
             </div>
@@ -494,53 +515,35 @@ export default function Home() {
         </section>
       )}
 
-      {/* ── LATEST JOB NOTICES ── single mixed timeline ── */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="flex items-end justify-between mb-6">
+      {/* Main Jobs Section */}
+      <section className="max-w-7xl mx-auto px-4 py-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">Latest Job Notices</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">All official job announcements in chronological order</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+              Latest Job Notices
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
+              All official job announcements in chronological order
+            </p>
           </div>
-          <Link to="/jobs" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-            View All <ArrowRight className="w-4 h-4" />
+          <Link
+            to="/jobs"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 group"
+          >
+            <span>View All Job Notices ({latestJobs.length})</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        {latestJobs.length > 0 ? (
-          <LatestJobFeed jobs={latestJobs} />
-        ) : loading || !fetchCompleted ? (
+        {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <VacancyCardSkeleton key={i} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-            <p className="text-lg font-medium text-slate-500 dark:text-slate-400">No job notices yet</p>
-            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">New announcements will appear here as soon as they are published.</p>
-          </div>
+          <LatestJobFeed jobs={latestJobs} />
         )}
-      </section>
-
-      {/* Popular Categories */}
-      <section className="max-w-7xl mx-auto px-4 py-12 border-t border-slate-200 dark:border-slate-800 transition-colors">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white">Popular Categories</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Browse vacancies by job category</p>
-          </div>
-          <Link to="/jobs" className="hidden sm:flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-            View All <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {categories.map(cat => (
-            <Link key={cat.id} to={`/jobs?category=${cat.slug}`} className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-500 rounded-xl p-4 text-center transition-all hover:shadow-md">
-              <FolderOpen className="w-6 h-6 text-slate-400 dark:text-slate-500 group-hover:text-blue-500 mx-auto mb-2 transition-colors" />
-              <span className="text-sm font-medium text-slate-700 dark:text-slate-300 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">{cat.name}</span>
-            </Link>
-          ))}
-        </div>
       </section>
     </div>
   );
