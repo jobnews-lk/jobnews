@@ -127,7 +127,7 @@ export default function LatestJobFeed({ jobs, initialCount = 6, batchSize = 6 }:
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {visibleJobs.map((job) => {
-          if (job.post_type === 'image') {
+          if (job.post_type === 'image' || (job.job_images && job.job_images.length > 0) || Boolean(job.thumbnail_url)) {
             return <ImageNoticeCard key={job.id} job={job} />;
           } else if (job.post_type === 'pdf') {
             return <PdfNoticeCard key={job.id} job={job} />;

@@ -10,7 +10,12 @@ interface ImageNoticeCardProps {
 }
 
 export default function ImageNoticeCard({ job }: ImageNoticeCardProps) {
-  const images = job.job_images?.sort((a, b) => a.sort_order - b.sort_order) || [];
+  const sortedImages = job.job_images?.sort((a, b) => a.sort_order - b.sort_order) || [];
+  const images = sortedImages.length > 0 
+    ? sortedImages 
+    : job.thumbnail_url 
+      ? [{ id: 'thumb', url: job.thumbnail_url, sort_order: 0 }] 
+      : [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [zoomed, setZoomed] = useState(false);
