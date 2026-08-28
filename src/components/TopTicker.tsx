@@ -16,53 +16,27 @@ export default function TopTicker() {
   });
 
   useEffect(() => {
-    // Delay network fetch slightly to allow main Home page jobs query top priority
-    const timer = setTimeout(async () => {
+    async function loadTickerJobs() {
       try {
-        const today = new Date().toISOString().split('T')[0];
-        const futureWeek = new Date();
-        futureWeek.setDate(futureWeek.getDate() + 21);
-        const futureWeekStr = futureWeek.toISOString().split('T')[0];
-
         let { data } = await supabase
           .from('jobs')
           .select('id, title, company, closing_date')
           .eq('status', 'published')
-          .gte('closing_date', today)
-          .lte('closing_date', futureWeekStr)
-          .order('closing_date', { ascending: true })
-          .limit(8);
-
-        if (!data || data.length === 0) {
-          const fallbackRes = await supabase
-            .from('jobs')
-            .select('id, title, company, closing_date')
-            .eq('status', 'published')
-            .gte('closing_date', today)
-            .order('closing_date', { ascending: true })
-            .limit(8);
-          data = fallbackRes.data;
-        }
-
-        if (!data || data.length === 0) {
-          const fallbackRes2 = await supabase
-            .from('jobs')
-            .select('id, title, company, closing_date')
-            .eq('status', 'published')
-            .order('created_at', { ascending: false })
-            .limit(8);
-          data = fallbackRes2.data;
-        }
+          .order('created_at', { ascending: false })
+          .limit(10);
 
         if (data && data.length > 0) {
           setClosingJobs(data as Job[]);
+          try {
+            localStorage.setItem('jn_v2_home_closing', JSON.stringify(data));
+          } catch (e) {}
         }
       } catch (err) {
         console.warn('TopTicker fetch error:', err);
       }
-    }, 400);
+    }
 
-    return () => clearTimeout(timer);
+    loadTickerJobs();
   }, []);
 
   if (closingJobs.length === 0) return null;

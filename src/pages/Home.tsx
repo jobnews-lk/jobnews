@@ -173,36 +173,30 @@ export default function Home() {
               .from('jobs')
               .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
               .eq('status', 'published')
-              .gte('closing_date', todayStr)
-              .lte('closing_date', futureDateStr)
-              .order('closing_date', { ascending: true })
+              .order('created_at', { ascending: false })
               .limit(6),
             supabase.from('countries').select('id, name, slug').order('name'),
             supabase.from('categories').select('id, name, slug').order('name')
           ]).then(async ([closingRes, ctsRes, catsRes]) => {
             let finalClosing = closingRes.data || [];
-            if (finalClosing.length === 0) {
-              const fallbackClosing = await supabase
-                .from('jobs')
-                .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
-                .eq('status', 'published')
-                .gte('closing_date', todayStr)
-                .order('closing_date', { ascending: true })
-                .limit(6);
-              if (fallbackClosing.data) finalClosing = fallbackClosing.data;
-            }
-
             if (finalClosing.length > 0) {
               setClosingJobs(finalClosing as Job[]);
-              localStorage.setItem('jn_v2_home_closing', JSON.stringify(finalClosing));
+              try {
+                localStorage.setItem('jn_v2_home_closing', JSON.stringify(finalClosing));
+              } catch (e) {}
             }
+
             if (ctsRes.data) {
               setCountries(ctsRes.data as Country[]);
-              localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
+              try {
+                localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
+              } catch (e) {}
             }
             if (catsRes.data) {
               setCategories(catsRes.data as Category[]);
-              localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
+              try {
+                localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
+              } catch (e) {}
             }
           }).catch(e => console.warn('Secondary fetch error:', e));
 
