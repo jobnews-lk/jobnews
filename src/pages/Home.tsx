@@ -51,7 +51,8 @@ export default function Home() {
     try {
       const cached = localStorage.getItem('jn_v2_home_jobs');
       const parsed = cached ? JSON.parse(cached) : [];
-      return !Array.isArray(parsed) || parsed.length === 0;
+      const published = Array.isArray(parsed) ? parsed.filter((j: Job) => j.status === 'published') : [];
+      return published.length === 0;
     } catch (e) {
       return true;
     }

@@ -63,7 +63,7 @@ export default function TopTicker() {
 
   return (
     <div className="bg-red-600 text-white text-xs md:text-sm font-medium py-2 relative flex items-center w-full z-50 group shadow-sm overflow-hidden select-none">
-      <!-- Fixed Left Header Badge -->
+      {/* Fixed Left Header Badge */}
       <div className="px-3 flex items-center gap-1.5 z-10 bg-red-600 shadow-[12px_0_12px_#dc2626]">
         <AlertCircle className="w-4 h-4 animate-pulse text-yellow-300" />
         <span className="whitespace-nowrap font-extrabold tracking-wider uppercase text-yellow-300">
@@ -71,7 +71,7 @@ export default function TopTicker() {
         </span>
       </div>
 
-      <!-- Smooth Marquee Container -->
+      {/* Smooth Marquee Container */}
       <div className="flex-1 overflow-hidden flex items-center relative">
         <div
           onMouseEnter={() => setIsPaused(true)}
@@ -79,7 +79,7 @@ export default function TopTicker() {
           onTouchStart={() => setIsPaused(true)}
           onTouchEnd={() => setIsPaused(false)}
           onTouchCancel={() => setIsPaused(false)}
-          className={`animate-[marquee_130s_linear_infinite] md:animate-[marquee_90s_linear_infinite] group-hover:[animation-play-state:paused] whitespace-nowrap inline-block ${
+          className={`animate-marquee group-hover:[animation-play-state:paused] whitespace-nowrap inline-block ${
             isPaused ? '[animation-play-state:paused]' : '[animation-play-state:running]'
           }`}
           style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
