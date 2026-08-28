@@ -1,195 +1,66 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, FolderOpen, ArrowRight, Building2, Calendar, FileText, ImageIcon, Type, Globe, Landmark, Plane, Briefcase, TrendingUp, Clock, Newspaper, ChevronRight } from 'lucide-react';
+import { Search, MapPin, FolderOpen, ArrowRight, FileText, Landmark, Plane, Briefcase, TrendingUp } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
 import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
-import AdPlaceholder from '../components/AdPlaceholder';
-
-function getDaysRemaining(closingDateStr?: string): number {
-  if (!closingDateStr) return 7;
-  try {
-    const cleanStr = closingDateStr.split('T')[0];
-    const parts = cleanStr.split('-');
-    if (parts.length === 3) {
-      const year = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
-      const day = parseInt(parts[2], 10);
-      const target = new Date(year, month, day);
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const diffTime = target.getTime() - now.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return isNaN(diffDays) ? 7 : diffDays;
-    }
-  } catch (e) {}
-  return 7;
-}
 
 export default function Home() {
-  const [latestJobs, setLatestJobs] = useState<Job[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_v2_home_jobs');
-      const parsed = cached ? JSON.parse(cached) : [];
-      return Array.isArray(parsed) ? parsed.filter((j: Job) => j.status === 'published') : [];
-    } catch (e) {
-      return [];
-    }
-  });
-  const [closingJobs, setClosingJobs] = useState<Job[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_v2_home_closing');
-      const parsed = cached ? JSON.parse(cached) : [];
-      return Array.isArray(parsed) ? parsed.filter((j: Job) => j.status === 'published') : [];
-    } catch (e) {
-      return [];
-    }
-  });
-  const [countries, setCountries] = useState<Country[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_v2_home_countries');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_v2_home_categories');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [latestJobs, setLatestJobs] = useState<Job[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
   const [searchCountry, setSearchCountry] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
-  const [fetchCompleted, setFetchCompleted] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [newJobsCount, setNewJobsCount] = useState<number>(0);
   const [pendingNewJobs, setPendingNewJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState<boolean>(() => {
-    try {
-      const cached = localStorage.getItem('jn_v2_home_jobs');
-      const parsed = cached ? JSON.parse(cached) : [];
-      const published = Array.isArray(parsed) ? parsed.filter((j: Job) => j.status === 'published') : [];
-      return published.length === 0;
-    } catch (e) {
-      return true;
-    }
-  });
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  
-  // Drag to scroll logic
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeftPos = useRef(0);
-  const [hasDragged, setHasDragged] = useState(false);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isDragging.current = true;
-    setHasDragged(false);
-    if (carouselRef.current) {
-      startX.current = e.pageX - carouselRef.current.offsetLeft;
-      scrollLeftPos.current = carouselRef.current.scrollLeft;
-      carouselRef.current.style.scrollSnapType = 'none';
-      carouselRef.current.style.cursor = 'grabbing';
-    }
-  };
-
-  const handleMouseLeave = () => {
-    isDragging.current = false;
-    setIsHovered(false);
-    if (carouselRef.current) {
-      carouselRef.current.style.scrollSnapType = 'x mandatory';
-      carouselRef.current.style.cursor = 'grab';
-    }
-  };
-
-  const handleMouseUp = () => {
-    isDragging.current = false;
-    if (carouselRef.current) {
-      carouselRef.current.style.scrollSnapType = 'x mandatory';
-      carouselRef.current.style.cursor = 'grab';
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current || !carouselRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - carouselRef.current.offsetLeft;
-    const walk = (x - startX.current) * 2;
-    if (Math.abs(walk) > 10) setHasDragged(true);
-    carouselRef.current.scrollLeft = scrollLeftPos.current - walk;
-  };
-  
   useEffect(() => {
+    // Clear legacy localStorage cache keys to prevent mobile tab freezes
     try {
       localStorage.removeItem('jn_home_jobs');
       localStorage.removeItem('jn_home_closing');
-
-      const cachedJobs = localStorage.getItem('jn_v2_home_jobs');
-      if (cachedJobs) {
-        const parsed = JSON.parse(cachedJobs);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const published = parsed.filter((j: Job) => j.status === 'published');
-          if (published.length > 0) {
-            setLatestJobs(published);
-            setLoading(false);
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Cache read error:', e);
-    }
+      localStorage.removeItem('jn_v2_home_jobs');
+      localStorage.removeItem('jn_v2_home_closing');
+    } catch (e) {}
 
     async function loadFreshJobs() {
       try {
-        const latestRes = await supabase
+        setLoading(true);
+        const { data: jobsData, error: jobsErr } = await supabase
           .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url')
           .eq('status', 'published')
           .order('created_at', { ascending: false })
-          .limit(24);
+          .limit(30);
 
-        if (latestRes.data && latestRes.data.length > 0) {
-          setLatestJobs(latestRes.data as Job[]);
-          try {
-            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
-          } catch (e) {}
-          setLoading(false);
-          setFetchCompleted(true);
-        } else {
-          setLoading(false);
-          setFetchCompleted(true);
+        if (jobsErr) {
+          console.error('Home page jobs query error:', jobsErr);
+        }
+
+        if (jobsData && jobsData.length > 0) {
+          setLatestJobs(jobsData as Job[]);
         }
 
         Promise.all([
-          supabase
-            .from('jobs')
-            .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
-            .eq('status', 'published')
-            .order('created_at', { ascending: false })
-            .limit(6),
           supabase.from('countries').select('id, name, slug').order('name'),
           supabase.from('categories').select('id, name, slug').order('name')
-        ]).then(([closingRes, ctsRes, catsRes]) => {
-          if (closingRes.data && closingRes.data.length > 0) {
-            setClosingJobs(closingRes.data as Job[]);
-          }
+        ]).then(([ctsRes, catsRes]) => {
           if (ctsRes.data) setCountries(ctsRes.data as Country[]);
           if (catsRes.data) setCategories(catsRes.data as Category[]);
-        }).catch(e => console.warn('Secondary fetch error:', e));
+        }).catch(e => console.warn('Secondary options fetch error:', e));
 
       } catch (err) {
         console.error('Home page load error:', err);
+      } finally {
         setLoading(false);
-        setFetchCompleted(true);
       }
     }
 
     loadFreshJobs();
 
+    // Mobile Chrome BFCache / Tab Focus Restoration Engine
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         loadFreshJobs();
@@ -227,7 +98,7 @@ export default function Home() {
 
         const { data } = await supabase
           .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
+          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url')
           .eq('status', 'published')
           .gt('created_at', latestCreatedAt)
           .order('created_at', { ascending: false });
@@ -250,27 +121,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [latestJobs]);
 
-  // Auto-scroll logic for mobile carousel
-  useEffect(() => {
-    if (!carouselRef.current || closingJobs.length <= 1 || isHovered) return;
-    
-    const interval = setInterval(() => {
-      const container = carouselRef.current;
-      if (!container) return;
-      
-      if (container.scrollWidth <= container.clientWidth) return;
-      
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      if (container.scrollLeft >= maxScroll - 10) {
-        container.scrollTo({ left: 0, behavior: 'auto' });
-      } else {
-        container.scrollBy({ left: container.clientWidth * 0.85, behavior: 'smooth' });
-      }
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [closingJobs, isHovered]);
-
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -284,17 +134,12 @@ export default function Home() {
 
   return (
     <div className="relative">
+      {/* 🔔 Floating New Jobs Notification Pill */}
       {newJobsCount > 0 && (
         <div className="fixed top-16 md:top-20 left-1/2 -translate-x-1/2 z-50 animate-bounce transition-all duration-300">
           <button
             onClick={() => {
-              setLatestJobs(prev => {
-                const updated = [...pendingNewJobs, ...prev];
-                try {
-                  localStorage.setItem('jn_v2_home_jobs', JSON.stringify(updated));
-                } catch (e) {}
-                return updated;
-              });
+              setLatestJobs(prev => [...pendingNewJobs, ...prev]);
               setNewJobsCount(0);
               setPendingNewJobs([]);
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -415,105 +260,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-
-      {/* ── CLOSING SOON SHOWCASE SECTION ── */}
-      {closingJobs.length > 0 && !loading && (
-        <section className="max-w-7xl mx-auto px-4 pt-10 pb-4">
-          <div className="bg-red-50 dark:bg-red-950/60 border border-red-200/90 dark:border-red-900/60 rounded-2xl p-5 md:p-6 relative overflow-hidden transition-colors shadow-sm">
-            <div className="absolute top-0 right-0 p-16 bg-red-100/50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-            <div className="flex items-center justify-between mb-5 relative z-10">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                </span>
-                <h2 className="text-lg md:text-2xl font-bold text-red-700 dark:text-red-400 tracking-tight flex items-center gap-2">
-                  <span>Closing Soon Vacancies</span>
-                  <span className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-400 font-normal hidden sm:inline">(ළඟදීම අවසන් වන රැකියා)</span>
-                </h2>
-                <span className="ml-2 bg-red-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full">Urgent</span>
-              </div>
-              
-              <button 
-                onClick={() => {
-                  if (carouselRef.current) {
-                    const maxScroll = carouselRef.current.scrollWidth - carouselRef.current.clientWidth;
-                    if (carouselRef.current.scrollLeft >= maxScroll - 10) {
-                      carouselRef.current.scrollTo({ left: 0, behavior: 'auto' });
-                    } else {
-                      carouselRef.current.scrollBy({ left: carouselRef.current.clientWidth * 0.85, behavior: 'smooth' });
-                    }
-                  }
-                }}
-                className="flex md:hidden items-center gap-1 text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 px-3 py-1 rounded-full transition-colors active:scale-95 text-xs font-semibold"
-              >
-                <span>Next</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            
-            <div 
-              ref={carouselRef} 
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={handleMouseLeave}
-              onMouseDown={handleMouseDown}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
-              onTouchStart={() => setIsHovered(true)}
-              onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
-              className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 xl:grid-cols-4 scrollbar-hide relative z-10 cursor-grab"
-            >
-              {closingJobs.map(job => {
-                const daysLeft = getDaysRemaining(job.closing_date);
-                const thumb = job.thumbnail_url || (job.job_images && job.job_images[0]?.url) || '';
-
-                return (
-                  <div key={job.id} className="min-w-[85vw] sm:min-w-[320px] md:min-w-0 snap-start flex-shrink-0">
-                    <Link
-                      to={`/jobs/${job.id}`}
-                      className="block bg-white dark:bg-slate-900 rounded-xl p-4 border border-red-200 dark:border-red-900/60 hover:shadow-md transition-all group h-full flex flex-col justify-between"
-                    >
-                      <div>
-                        {thumb ? (
-                          <div className="aspect-[16/9] rounded-lg overflow-hidden mb-3 bg-slate-100 relative">
-                            <img src={thumb} alt={job.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                            <span className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                              {daysLeft <= 0 ? 'Closes Today!' : `Closing in ${daysLeft}d`}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                              {daysLeft <= 0 ? 'Closes Today!' : `Closing in ${daysLeft} Days`}
-                            </span>
-                            <span className="text-[11px] text-slate-400">Urgent</span>
-                          </div>
-                        )}
-                        <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors line-clamp-2 text-sm md:text-base">
-                          {job.title}
-                        </h3>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium line-clamp-1">
-                          🏢 {job.company || 'Official Vacancy'}
-                        </p>
-                      </div>
-
-                      <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                        <span className="text-slate-500 font-medium truncate max-w-[150px]">
-                          📍 {job.location || 'Sri Lanka'}
-                        </span>
-                        <span className="text-red-600 dark:text-red-400 font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                          <span>View</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* Main Jobs Section */}
       <section className="max-w-7xl mx-auto px-4 py-10">
