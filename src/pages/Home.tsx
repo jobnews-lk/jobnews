@@ -5,6 +5,9 @@ import { supabase, type Job, type Country, type Category } from '../lib/supabase
 import LatestJobFeed from '../components/LatestJobFeed';
 import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
 
+const SUPABASE_URL = 'https://njrkhpsbbpszvyzosxwf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
+
 export default function Home() {
   const [latestJobs, setLatestJobs] = useState<Job[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
@@ -25,9 +28,13 @@ export default function Home() {
       localStorage.removeItem('jn_v2_home_closing');
     } catch (e) {}
 
-    async function loadFreshJobs() {
+    let isMounted = true;
+
+    async function loadFreshJobsWithRetry(attempt = 1) {
+      if (!isMounted) return;
+      
       try {
-        setLoading(true);
+        // Tier 1: Primary Supabase JS SDK fetch
         const { data: jobsData, error: jobsErr } = await supabase
           .from('jobs')
           .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url')
@@ -35,54 +42,85 @@ export default function Home() {
           .order('created_at', { ascending: false })
           .limit(30);
 
-        if (jobsErr) {
-          console.error('Home page jobs query error:', jobsErr);
-        }
-
-        if (jobsData && jobsData.length > 0) {
+        if (jobsData && jobsData.length > 0 && isMounted) {
           setLatestJobs(jobsData as Job[]);
+          setLoading(false);
+          return;
         }
 
-        Promise.all([
-          supabase.from('countries').select('id, name, slug').order('name'),
-          supabase.from('categories').select('id, name, slug').order('name')
-        ]).then(([ctsRes, catsRes]) => {
-          if (ctsRes.data) setCountries(ctsRes.data as Country[]);
-          if (catsRes.data) setCategories(catsRes.data as Category[]);
-        }).catch(e => console.warn('Secondary options fetch error:', e));
+        // Tier 2: Direct HTTP Fetch fallback if SDK returns empty or error
+        if (attempt <= 3 && isMounted) {
+          console.warn(`Jobs query returned 0 rows or error on attempt ${attempt}. Retrying via direct HTTP...`, jobsErr);
+          
+          const rawEndpoint = `${SUPABASE_URL}/rest/v1/jobs?select=id,title,company,post_type,is_government,is_overseas,closing_date,created_at,location,salary,thumbnail_url&status=eq.published&order=created_at.desc&limit=30`;
+          
+          const res = await fetch(rawEndpoint, {
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          });
 
+          if (res.ok) {
+            const rawData = await res.json();
+            if (Array.isArray(rawData) && rawData.length > 0 && isMounted) {
+              setLatestJobs(rawData as Job[]);
+              setLoading(false);
+              return;
+            }
+          }
+
+          // Retry after delay if still empty
+          setTimeout(() => {
+            if (isMounted) loadFreshJobsWithRetry(attempt + 1);
+          }, 800 * attempt);
+          return;
+        }
+
+        if (isMounted) setLoading(false);
       } catch (err) {
-        console.error('Home page load error:', err);
-      } finally {
-        setLoading(false);
+        console.error(`Home page load exception on attempt ${attempt}:`, err);
+        if (attempt <= 3 && isMounted) {
+          setTimeout(() => {
+            if (isMounted) loadFreshJobsWithRetry(attempt + 1);
+          }, 1000 * attempt);
+        } else if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
-    loadFreshJobs();
+    // Load filter options asynchronously
+    Promise.all([
+      supabase.from('countries').select('id, name, slug').order('name'),
+      supabase.from('categories').select('id, name, slug').order('name')
+    ]).then(([ctsRes, catsRes]) => {
+      if (ctsRes.data && isMounted) setCountries(ctsRes.data as Country[]);
+      if (catsRes.data && isMounted) setCategories(catsRes.data as Category[]);
+    }).catch(e => console.warn('Secondary options fetch error:', e));
+
+    loadFreshJobsWithRetry();
 
     // Mobile Chrome BFCache / Tab Focus Restoration Engine
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
-        loadFreshJobs();
+        loadFreshJobsWithRetry();
       }
     };
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        loadFreshJobs();
+        loadFreshJobsWithRetry();
       }
     };
 
     window.addEventListener('pageshow', handlePageShow);
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
-    const fallbackTimer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-
     return () => {
+      isMounted = false;
       window.removeEventListener('pageshow', handlePageShow);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      clearTimeout(fallbackTimer);
     };
   }, []);
 
@@ -281,7 +319,7 @@ export default function Home() {
           </Link>
         </div>
 
-        {loading ? (
+        {loading && latestJobs.length === 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <VacancyCardSkeleton key={i} />
