@@ -106,116 +106,76 @@ export default function Home() {
   useEffect(() => {
     // 1. Instant Initial Cache Hydration from localStorage
     try {
-      // Purge old v1 legacy caches from user browser
       localStorage.removeItem('jn_home_jobs');
       localStorage.removeItem('jn_home_closing');
 
       const cachedJobs = localStorage.getItem('jn_v2_home_jobs');
-      const cachedClosing = localStorage.getItem('jn_v2_home_closing');
-      const cachedCountries = localStorage.getItem('jn_v2_home_countries');
-      const cachedCategories = localStorage.getItem('jn_v2_home_categories');
-
       if (cachedJobs) {
         const parsed = JSON.parse(cachedJobs);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const published = parsed.filter((j: Job) => j.status === 'published');
-          setLatestJobs(published);
-          if (published.length > 0) setLoading(false);
+          if (published.length > 0) {
+            setLatestJobs(published);
+            setLoading(false);
+          }
         }
-      }
-      if (cachedClosing) {
-        const parsed = JSON.parse(cachedClosing);
-        if (Array.isArray(parsed)) setClosingJobs(parsed.filter((j: Job) => j.status === 'published'));
-      }
-      if (cachedCountries) setCountries(JSON.parse(cachedCountries));
-      if (cachedCategories) setCategories(JSON.parse(cachedCategories));
-
-      if (cachedJobs) {
-        setLoading(false);
       }
     } catch (e) {
       console.warn('Cache read error:', e);
     }
 
-    // 2. Optimized Parallel Database Fetch for Ultra Speed (100-300ms)
-    async function load() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const futureDate = new Date();
-      futureDate.setDate(futureDate.getDate() + 21);
-      const futureDateStr = futureDate.toISOString().split('T')[0];
-
-      async function fetchWithRetry(retries = 2) {
-        try {
-          // 1. TOP PRIORITY FETCH: Latest published jobs
-          const latestRes = await supabase
+        // Secondary async fetch: closing jobs, countries, categories
+        Promise.all([
+          supabase
             .from('jobs')
-            .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url)')
+            .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
             .eq('status', 'published')
             .order('created_at', { ascending: false })
-            .limit(24);
-
-          if (latestRes.data && latestRes.data.length > 0) {
-            setLatestJobs(latestRes.data as Job[]);
-            localStorage.setItem('jn_v2_home_jobs', JSON.stringify(latestRes.data));
-            setLoading(false);
-            setFetchCompleted(true);
-          } else if (retries > 0) {
-            // Retry if empty response received
-            setTimeout(() => fetchWithRetry(retries - 1), 800);
-            return;
-          } else {
-            setLoading(false);
-            setFetchCompleted(true);
+            .limit(6),
+          supabase.from('countries').select('id, name, slug').order('name'),
+          supabase.from('categories').select('id, name, slug').order('name')
+        ]).then(([closingRes, ctsRes, catsRes]) => {
+          if (closingRes.data && closingRes.data.length > 0) {
+            setClosingJobs(closingRes.data as Job[]);
           }
+          if (ctsRes.data) setCountries(ctsRes.data as Country[]);
+          if (catsRes.data) setCategories(catsRes.data as Category[]);
+        }).catch(e => console.warn('Secondary fetch error:', e));
 
-          // 2. SECONDARY ASYNC FETCH: Closing jobs, countries, categories (does not block latestJobs!)
-          Promise.all([
-            supabase
-              .from('jobs')
-              .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url), countries(name)')
-              .eq('status', 'published')
-              .order('created_at', { ascending: false })
-              .limit(6),
-            supabase.from('countries').select('id, name, slug').order('name'),
-            supabase.from('categories').select('id, name, slug').order('name')
-          ]).then(async ([closingRes, ctsRes, catsRes]) => {
-            let finalClosing = closingRes.data || [];
-            if (finalClosing.length > 0) {
-              setClosingJobs(finalClosing as Job[]);
-              try {
-                localStorage.setItem('jn_v2_home_closing', JSON.stringify(finalClosing));
-              } catch (e) {}
-            }
-
-            if (ctsRes.data) {
-              setCountries(ctsRes.data as Country[]);
-              try {
-                localStorage.setItem('jn_v2_home_countries', JSON.stringify(ctsRes.data));
-              } catch (e) {}
-            }
-            if (catsRes.data) {
-              setCategories(catsRes.data as Category[]);
-              try {
-                localStorage.setItem('jn_v2_home_categories', JSON.stringify(catsRes.data));
-              } catch (e) {}
-            }
-          }).catch(e => console.warn('Secondary fetch error:', e));
-
-        } catch (err) {
-          console.error('Home page load error (retrying...):', err);
-          if (retries > 0) {
-            setTimeout(() => fetchWithRetry(retries - 1), 1000);
-          } else {
-            setLoading(false);
-            setFetchCompleted(true);
-          }
-        }
+      } catch (err) {
+        console.error('Home page load error:', err);
+        setLoading(false);
+        setFetchCompleted(true);
       }
-
-      fetchWithRetry();
     }
 
-    load();
+    loadFreshJobs();
+
+    // 3. Mobile Chrome BFCache / Tab Focus Restoration Engine
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        loadFreshJobs();
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadFreshJobs();
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Fallback timer to ensure mobile skeletons never freeze indefinitely
+    const fallbackTimer = setTimeout(() => {
+      setLoading(false);
+    }, 2500);
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   // 3. Smart Background Revalidation (Every 90s, active tab only)
