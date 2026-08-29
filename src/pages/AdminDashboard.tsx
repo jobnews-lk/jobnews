@@ -603,12 +603,12 @@ export default function AdminDashboard() {
                                 <Building2 className="w-3 h-3" /> Private Sector
                               </span>
                             )}
-                            {!job.is_government && !job.official_pdf_url && Boolean(job.apply_url) && (
+                            {Boolean(job.apply_url) && (
                               <a
-                                href={job.apply_url || '#'}
+                                href={job.apply_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                title={`🤖 Bot Discovered Source: ${job.apply_url}`}
+                                title={`🤖 Discovered Source Portal: ${job.apply_url}`}
                                 className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors shadow-xs"
                               >
                                 <Globe className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
@@ -991,7 +991,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Discovered Source Portal / Link Info */}
-            {!previewJob.is_government && !previewJob.official_pdf_url && Boolean(previewJob.apply_url) && (
+            {Boolean(previewJob.apply_url) && (
               <div className="mb-6 p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold shrink-0">
