@@ -199,13 +199,15 @@ export default function AdminDashboard() {
   const handleRunScraper = async (customUrl?: any) => {
     setRunningScraper(true);
     setError('');
-    const targetUrl = typeof customUrl === 'string' && customUrl.startsWith('http')
+    const targetInput = typeof customUrl === 'string' && customUrl.startsWith('http')
       ? customUrl
-      : 'https://minor.wd102.myworkdayjobs.com/en-US/Careers';
-    setInfoMessage(`🤖 Bot is connecting to Workday / Overseas Careers Portal...`);
+      : sources;
+      
+    const countLabel = Array.isArray(targetInput) ? `${targetInput.length} links in active sources list` : targetInput;
+    setInfoMessage(`🤖 Bot is connecting to target source portals (${countLabel})...`);
 
     try {
-      const res = await triggerJobHunterBot(targetUrl);
+      const res = await triggerJobHunterBot(targetInput);
 
       await loadJobs();
       setFilterStatus('draft'); // Switch to Draft tab so admin can review discovered jobs
