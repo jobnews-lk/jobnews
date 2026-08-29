@@ -238,3 +238,14 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
 
   throw new Error('Invalid operation');
 }
+
+/**
+ * Timezone-safe local calendar date helper (YYYY-MM-DD)
+ * Prevents UTC offset bugs (where 12am-5:30am falls into previous UTC day).
+ */
+export function getLocalDateString(dateInput: Date = new Date()): string {
+  const year = dateInput.getFullYear();
+  const month = String(dateInput.getMonth() + 1).padStart(2, '0');
+  const day = String(dateInput.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}

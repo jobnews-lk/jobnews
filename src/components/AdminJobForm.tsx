@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2 } from 'lucide-react';
 import FileUpload from './FileUpload';
-import { supabase, type Country, type Category, type Job } from '../lib/supabase';
+import { supabase, getLocalDateString, type Country, type Category, type Job } from '../lib/supabase';
 
 interface AdminJobFormProps {
   job?: Job | null;
@@ -22,7 +22,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [description, setDescription] = useState(job?.description || '');
   const [requirements, setRequirements] = useState(job?.requirements || '');
   const [closingDate, setClosingDate] = useState(job?.closing_date || '');
-  const [postedDate, setPostedDate] = useState(job?.posted_date || new Date().toISOString().split('T')[0]);
+  const [postedDate, setPostedDate] = useState(job?.posted_date || getLocalDateString());
   const [applyMethod, setApplyMethod] = useState<'online' | 'email' | 'in_person' | 'phone' | 'post'>(job?.apply_method || 'online');
   const [applyUrl, setApplyUrl] = useState(job?.apply_url || '');
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');

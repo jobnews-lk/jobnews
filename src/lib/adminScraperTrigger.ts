@@ -1,4 +1,4 @@
-import { supabase, adminApiCall, type Job } from './supabase';
+import { supabase, adminApiCall, getLocalDateString, type Job } from './supabase';
 
 /**
  * Generates an SVG Image Job Post with a White + Yellow Mix Gradient Background.
@@ -230,7 +230,7 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
 
     const future30 = new Date();
     future30.setDate(future30.getDate() + 30);
-    const closeDateStr = future30.toISOString().split('T')[0];
+    const closeDateStr = getLocalDateString(future30);
 
     let candidateJobs: any[] = [];
 
@@ -403,7 +403,7 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
         location: job.location,
         salary: job.salary,
         closing_date: job.closing_date,
-        posted_date: new Date().toISOString().split('T')[0],
+        posted_date: getLocalDateString(),
         post_type: 'image',
         apply_method: job.apply_method,
         apply_url: job.apply_url,
