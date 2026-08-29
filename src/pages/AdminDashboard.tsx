@@ -6,7 +6,7 @@ import {
   Loader2, LayoutDashboard, Layers, CheckCircle2, Clock, AlertCircle, X,
   Search, SlidersHorizontal, Bot, Eye, ExternalLink, Mail, Phone
 } from 'lucide-react';
-import { supabase, adminApiCall, type Job } from '../lib/supabase';
+import { supabase, adminApiCall, isBotDiscoveredJob, type Job } from '../lib/supabase';
 import { parseGazettePdfText, type ExtractedGazetteJob } from '../lib/gazettePdfParser';
 import FileUpload from '../components/FileUpload';
 import { useAuth } from '../context/AuthContext';
@@ -603,9 +603,9 @@ export default function AdminDashboard() {
                                 <Building2 className="w-3 h-3" /> Private Sector
                               </span>
                             )}
-                            {Boolean(job.apply_url) && (
+                            {isBotDiscoveredJob(job) && (
                               <a
-                                href={job.apply_url}
+                                href={job.apply_url!}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 title={`🤖 Discovered Source Portal: ${job.apply_url}`}
@@ -991,7 +991,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Discovered Source Portal / Link Info */}
-            {Boolean(previewJob.apply_url) && (
+            {isBotDiscoveredJob(previewJob) && (
               <div className="mb-6 p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold shrink-0">

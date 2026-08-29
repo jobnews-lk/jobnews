@@ -249,3 +249,39 @@ export function getLocalDateString(dateInput: Date = new Date()): string {
   const day = String(dateInput.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Determines whether a job was discovered automatically by the Bot vs manually entered by Admin.
+ */
+export function isBotDiscoveredJob(job?: Partial<Job> | null): boolean {
+  if (!job || !job.apply_url) return false;
+  
+  const desc = (job.description || '').toLowerCase();
+  const url = (job.apply_url || '').toLowerCase();
+  
+  // Explicit bot markers in description or title
+  if (
+    desc.includes('official job vacancy') ||
+    desc.includes('discovered from') ||
+    desc.includes('bot ingested') ||
+    desc.includes('official career opportunity') ||
+    desc.includes('ශ්‍රී ලංකා පාලන සේවයේ') ||
+    desc.includes('රාජ්‍ය සේවා කොමිෂන් සභාව සඳහා ict')
+  ) {
+    return true;
+  }
+
+  // Known target bot scraper domains
+  const botDomains = [
+    'myworkdayjobs.com',
+    'documents.gov.lk/gazette',
+    'careers.combank.lk',
+    'careers.dialog.lk',
+    'careers.hilton.com',
+    'careers.sampath.lk',
+    'careers.keells.com',
+    'slbfe.lk'
+  ];
+
+  return botDomains.some(d => url.includes(d));
+}
