@@ -150,8 +150,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
 
   const [thumbnailUrl, setThumbnailUrl] = useState(job?.thumbnail_url || '');
   const [officialPdfUrl, setOfficialPdfUrl] = useState(job?.official_pdf_url && !isExternalWebUrl(job.official_pdf_url) ? job.official_pdf_url : '');
+  const normOfficial = (job?.official_pdf_url || '').trim();
+  const initialGalleryPdfs = (job?.job_pdfs || [])
+    .filter((p) => p.url && p.url.trim() !== normOfficial)
+    .map((p) => ({ url: p.url, filename: p.filename || '' }));
+
   const [galleryImages, setGalleryImages] = useState<string[]>(job?.job_images?.map((i) => i.url) || []);
-  const [galleryPdfs, setGalleryPdfs] = useState<{ url: string; filename: string }[]>(job?.job_pdfs?.map((p) => ({ url: p.url, filename: p.filename || '' })) || []);
+  const [galleryPdfs, setGalleryPdfs] = useState<{ url: string; filename: string }[]>(initialGalleryPdfs);
 
   const [validationError, setValidationError] = useState('');
 
@@ -189,7 +194,12 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setThumbnailUrl(job.thumbnail_url || '');
       setOfficialPdfUrl(job.official_pdf_url && !isExternalWebUrl(job.official_pdf_url) ? job.official_pdf_url : '');
       setGalleryImages(job.job_images?.map((i) => i.url) || []);
-      setGalleryPdfs(job.job_pdfs?.map((p) => ({ url: p.url, filename: p.filename || '' })) || []);
+
+      const curNormOff = (job.official_pdf_url || '').trim();
+      const filteredPdfs = (job.job_pdfs || [])
+        .filter((p) => p.url && p.url.trim() !== curNormOff)
+        .map((p) => ({ url: p.url, filename: p.filename || '' }));
+      setGalleryPdfs(filteredPdfs);
     }
   }, [job]);
 
@@ -225,10 +235,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
     e.preventDefault();
     if (!validate()) return;
     
-    const finalGalleryPdfs = galleryPdfs.filter((p) => p.url);
-    if (officialPdfUrl.trim() && !finalGalleryPdfs.some((p) => p.url === officialPdfUrl.trim())) {
-      finalGalleryPdfs.unshift({ url: officialPdfUrl.trim(), filename: 'Official Notice PDF' });
-    }
+    const finalGalleryPdfs = galleryPdfs.filter((p) => p.url && p.url.trim() !== officialPdfUrl.trim());
 
     const data: Record<string, unknown> = {
       post_type: postType,
