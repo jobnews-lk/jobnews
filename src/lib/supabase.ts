@@ -285,3 +285,34 @@ export function isBotDiscoveredJob(job?: Partial<Job> | null): boolean {
 
   return botDomains.some(d => url.includes(d));
 }
+
+/**
+ * Formats and cleans long organization / ministry address strings for card displays.
+ */
+export function formatCleanCompany(company?: string | null): string {
+  if (!company) return 'Official Hiring Organization';
+  const trimmed = company.trim();
+  
+  // If company string contains long postal address with commas or street numbers
+  if (trimmed.length > 45 || trimmed.includes('අංක') || trimmed.includes('මාවත') || trimmed.includes('පාර') || trimmed.includes('තැ.පෙ.')) {
+    const parts = trimmed.split(',').map(p => p.trim()).filter(Boolean);
+    const orgPart = parts.find(p => 
+      p.includes('අමාත්‍යාංශය') || 
+      p.includes('දෙපාර්තමේන්තුව') || 
+      p.includes('සභාව') || 
+      p.includes('මණ්ඩලය') || 
+      p.includes('හමුදාව') || 
+      p.includes('දෙපාර්තමේන්තු') ||
+      p.includes('PLC') || 
+      p.includes('Ltd') || 
+      p.includes('Bank') || 
+      p.includes('Hotel') || 
+      p.includes('Resort')
+    );
+    if (orgPart) return orgPart;
+    if (parts.length > 1) return parts.slice(0, 2).join(' - ');
+    return trimmed.substring(0, 42) + '...';
+  }
+  
+  return trimmed;
+}
