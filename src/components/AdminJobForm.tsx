@@ -12,6 +12,9 @@ interface AdminJobFormProps {
   submitting: boolean;
 }
 
+const isExternalWebUrl = (url?: string | null) => 
+  !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
+
 export default function AdminJobForm({ job, countries, categories, onSubmit, onCancel, submitting }: AdminJobFormProps) {
   const [postType, setPostType] = useState<'text' | 'image' | 'pdf'>(job?.post_type || 'text');
 
@@ -30,8 +33,6 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyAddress, setApplyAddress] = useState(
     job?.apply_address || (job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '') || ''
   );
-  const isExternalWebUrl = (url?: string | null) => 
-    !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
 
   const [applyInstructions, setApplyInstructions] = useState(
     job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url)
