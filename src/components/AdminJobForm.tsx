@@ -262,9 +262,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       country_id: isOverseas ? (countryId || null) : (sriLankaId || null),
       status,
       thumbnail_url: thumbnailUrl || null,
-      official_pdf_url: gazetteUrl.trim()
-        ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
-        : (officialPdfUrl.trim() || null),
+      official_pdf_url: officialPdfUrl.trim()
+        ? officialPdfUrl.trim()
+        : (gazetteUrl.trim()
+            ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
+            : null),
       gallery_images: galleryImages,
       gallery_pdfs: finalGalleryPdfs,
       replaceImages: true,
