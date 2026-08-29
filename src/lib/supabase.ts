@@ -316,3 +316,40 @@ export function formatCleanCompany(company?: string | null): string {
   
   return trimmed;
 }
+
+/**
+ * Parses Registered Post instructions vs postal address from apply_url text.
+ */
+export function parseRegisteredPostData(applyUrl?: string | null): { instructions: string; address: string } {
+  if (!applyUrl) return { instructions: '', address: '' };
+  
+  const str = applyUrl.trim();
+  if (str.includes('\n---\nPOSTAL_ADDRESS:\n')) {
+    const parts = str.split('\n---\nPOSTAL_ADDRESS:\n');
+    return {
+      instructions: parts[0].trim(),
+      address: parts[1].trim()
+    };
+  }
+
+  // If text contains application steps/notes
+  if (str.includes('පියවර') || str.includes('සඳහා') || str.includes('අයදුම්පත') || str.includes('විශේෂ')) {
+    return { instructions: str, address: '' };
+  }
+
+  return { instructions: '', address: str };
+}
+
+/**
+ * Formats Registered Post instructions and postal address into apply_url string.
+ */
+export function formatRegisteredPostApplyUrl(instructions: string, address: string): string | null {
+  const cleanInst = instructions.trim();
+  const cleanAddr = address.trim();
+
+  if (!cleanInst && !cleanAddr) return null;
+  if (cleanInst && !cleanAddr) return cleanInst;
+  if (!cleanInst && cleanAddr) return cleanAddr;
+
+  return `${cleanInst}\n---\nPOSTAL_ADDRESS:\n${cleanAddr}`;
+}

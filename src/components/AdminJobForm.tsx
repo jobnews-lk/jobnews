@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2 } from 'lucide-react';
 import FileUpload from './FileUpload';
-import { supabase, getLocalDateString, type Country, type Category, type Job } from '../lib/supabase';
+import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
 
 interface AdminJobFormProps {
   job?: Job | null;
@@ -30,15 +30,14 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyUrl, setApplyUrl] = useState(job?.apply_url || '');
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
-  const [applyAddress, setApplyAddress] = useState(
-    job?.apply_address || (job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '') || ''
-  );
 
-  const [applyInstructions, setApplyInstructions] = useState(
-    job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url)
-      ? job.apply_url
-      : ''
-  );
+  const initialPostData = job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url)
+    ? parseRegisteredPostData(job.apply_url)
+    : { instructions: '', address: '' };
+
+  const [applyAddress, setApplyAddress] = useState(job?.apply_address || initialPostData.address);
+  const [applyInstructions, setApplyInstructions] = useState(initialPostData.instructions);
+
   const [gazetteUrl, setGazetteUrl] = useState(
     isExternalWebUrl(job?.official_pdf_url)
       ? job!.official_pdf_url!
@@ -171,8 +170,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyUrl(job.apply_url || '');
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
-      setApplyAddress(job.apply_address || (job.apply_method === 'post' && job.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '') || '');
-      setApplyInstructions(job.apply_method === 'post' && job.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '');
+      const postData = job.apply_method === 'post' && job.apply_url && !isExternalWebUrl(job.apply_url)
+        ? parseRegisteredPostData(job.apply_url)
+        : { instructions: '', address: '' };
+      setApplyAddress(job.apply_address || postData.address);
+      setApplyInstructions(postData.instructions);
       setGazetteUrl(
         isExternalWebUrl(job.official_pdf_url)
           ? job.official_pdf_url!
@@ -204,10 +206,9 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return false;
       }
-    }
-    if (postType === 'pdf') {
+    } else if (postType === 'pdf') {
       if (!officialPdfUrl) {
-        setValidationError('PDF notices require an official PDF file.');
+        setValidationError('PDF notices require an uploaded PDF file.');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return false;
       }
@@ -223,7 +224,8 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    const finalGalleryPdfs = [...galleryPdfs];
+    
+    const finalGalleryPdfs = galleryPdfs.filter((p) => p.url);
     if (officialPdfUrl.trim() && !finalGalleryPdfs.some((p) => p.url === officialPdfUrl.trim())) {
       finalGalleryPdfs.unshift({ url: officialPdfUrl.trim(), filename: 'Official Notice PDF' });
     }
@@ -240,7 +242,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       posted_date: postedDate,
       apply_method: applyMethod,
       apply_url: applyMethod === 'post'
-        ? (applyAddress.trim() || applyInstructions.trim() || null)
+        ? formatRegisteredPostApplyUrl(applyInstructions, applyAddress)
         : (applyMethod === 'online'
             ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null)
             : null),
