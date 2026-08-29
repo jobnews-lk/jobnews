@@ -27,7 +27,9 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyUrl, setApplyUrl] = useState(job?.apply_url || '');
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
-  const [applyAddress, setApplyAddress] = useState(job?.apply_address || '');
+  const [applyAddress, setApplyAddress] = useState(
+    job?.apply_address || (job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '') || ''
+  );
   const isExternalWebUrl = (url?: string | null) => 
     !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
 
@@ -168,7 +170,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyUrl(job.apply_url || '');
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
-      setApplyAddress(job.apply_address || '');
+      setApplyAddress(job.apply_address || (job.apply_method === 'post' && job.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '') || '');
       setApplyInstructions(job.apply_method === 'post' && job.apply_url && !isExternalWebUrl(job.apply_url) ? job.apply_url : '');
       setGazetteUrl(
         isExternalWebUrl(job.official_pdf_url)
