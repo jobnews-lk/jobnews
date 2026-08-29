@@ -234,14 +234,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       company,
       salary: salary || null,
       location: location.trim(),
-      apply_address: applyMethod === 'post' ? (applyAddress.trim() || null) : null,
       description,
       requirements: requirements || null,
       closing_date: closingDate,
       posted_date: postedDate,
       apply_method: applyMethod,
       apply_url: applyMethod === 'post'
-        ? (applyInstructions.trim() || null)
+        ? (applyAddress.trim() || applyInstructions.trim() || null)
         : (applyMethod === 'online'
             ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null)
             : null),
