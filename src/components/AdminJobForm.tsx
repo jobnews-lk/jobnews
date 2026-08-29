@@ -31,9 +31,9 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
 
-  const initialPostData = job?.apply_method === 'post' && job?.apply_url && !isExternalWebUrl(job.apply_url)
-    ? parseRegisteredPostData(job.apply_url)
-    : { instructions: '', address: '' };
+  const initialPostData = job?.apply_method === 'post'
+    ? parseRegisteredPostData(job?.apply_url)
+    : { instructions: '', address: '', sourceUrl: '' };
 
   const [applyAddress, setApplyAddress] = useState(job?.apply_address || initialPostData.address);
   const [applyInstructions, setApplyInstructions] = useState(initialPostData.instructions);
@@ -41,7 +41,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [gazetteUrl, setGazetteUrl] = useState(
     isExternalWebUrl(job?.official_pdf_url)
       ? job!.official_pdf_url!
-      : (isExternalWebUrl(job?.apply_url) ? job!.apply_url! : '')
+      : (initialPostData.sourceUrl || (isExternalWebUrl(job?.apply_url) ? job!.apply_url! : ''))
   );
   const [isGovernment, setIsGovernment] = useState(job?.is_government || false);
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
@@ -175,15 +175,15 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyUrl(job.apply_url || '');
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
-      const postData = job.apply_method === 'post' && job.apply_url && !isExternalWebUrl(job.apply_url)
+      const postData = job.apply_method === 'post'
         ? parseRegisteredPostData(job.apply_url)
-        : { instructions: '', address: '' };
+        : { instructions: '', address: '', sourceUrl: '' };
       setApplyAddress(job.apply_address || postData.address);
       setApplyInstructions(postData.instructions);
       setGazetteUrl(
         isExternalWebUrl(job.official_pdf_url)
           ? job.official_pdf_url!
-          : (isExternalWebUrl(job.apply_url) ? job.apply_url! : '')
+          : (postData.sourceUrl || (isExternalWebUrl(job.apply_url) ? job.apply_url! : ''))
       );
       setIsGovernment(job.is_government);
       setIsOverseas(job.is_overseas);
@@ -249,7 +249,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       posted_date: postedDate,
       apply_method: applyMethod,
       apply_url: applyMethod === 'post'
-        ? formatRegisteredPostApplyUrl(applyInstructions, applyAddress)
+        ? formatRegisteredPostApplyUrl(applyInstructions, applyAddress, gazetteUrl)
         : (applyMethod === 'online'
             ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null)
             : null),

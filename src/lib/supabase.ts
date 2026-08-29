@@ -318,38 +318,61 @@ export function formatCleanCompany(company?: string | null): string {
 }
 
 /**
- * Parses Registered Post instructions vs postal address from apply_url text.
+ * Parses Registered Post instructions vs postal address vs sourceUrl from apply_url text.
  */
-export function parseRegisteredPostData(applyUrl?: string | null): { instructions: string; address: string } {
-  if (!applyUrl) return { instructions: '', address: '' };
+export function parseRegisteredPostData(applyUrl?: string | null): { instructions: string; address: string; sourceUrl: string } {
+  if (!applyUrl) return { instructions: '', address: '', sourceUrl: '' };
   
   const str = applyUrl.trim();
-  if (str.includes('\n---\nPOSTAL_ADDRESS:\n')) {
-    const parts = str.split('\n---\nPOSTAL_ADDRESS:\n');
-    return {
-      instructions: parts[0].trim(),
-      address: parts[1].trim()
-    };
+  let instructions = '';
+  let address = '';
+  let sourceUrl = '';
+
+  if (str.includes('\n---\n')) {
+    const blocks = str.split('\n---\n');
+    for (const b of blocks) {
+      const trimmed = b.trim();
+      if (trimmed.startsWith('POSTAL_ADDRESS:\n')) {
+        address = trimmed.replace('POSTAL_ADDRESS:\n', '').trim();
+      } else if (trimmed.startsWith('SOURCE_URL:\n')) {
+        sourceUrl = trimmed.replace('SOURCE_URL:\n', '').trim();
+      } else {
+        instructions = trimmed;
+      }
+    }
+    return { instructions, address, sourceUrl };
+  }
+
+  if (str.includes('POSTAL_ADDRESS:\n')) {
+    const parts = str.split('POSTAL_ADDRESS:\n');
+    return { instructions: parts[0].trim(), address: parts[1].trim(), sourceUrl: '' };
+  }
+
+  // Legacy web URL check
+  if (str.startsWith('http://') || str.startsWith('https://')) {
+    return { instructions: '', address: '', sourceUrl: str };
   }
 
   // If text contains application steps/notes
   if (str.includes('පියවර') || str.includes('සඳහා') || str.includes('අයදුම්පත') || str.includes('විශේෂ')) {
-    return { instructions: str, address: '' };
+    return { instructions: str, address: '', sourceUrl: '' };
   }
 
-  return { instructions: '', address: str };
+  return { instructions: '', address: str, sourceUrl: '' };
 }
 
 /**
- * Formats Registered Post instructions and postal address into apply_url string.
+ * Formats Registered Post instructions, postal address, and sourceUrl into apply_url string.
  */
-export function formatRegisteredPostApplyUrl(instructions: string, address: string): string | null {
+export function formatRegisteredPostApplyUrl(instructions: string, address: string, sourceUrl?: string): string | null {
   const cleanInst = instructions.trim();
   const cleanAddr = address.trim();
+  const cleanSrc = sourceUrl?.trim() || '';
 
-  if (!cleanInst && !cleanAddr) return null;
-  if (cleanInst && !cleanAddr) return cleanInst;
-  if (!cleanInst && cleanAddr) return cleanAddr;
+  const parts: string[] = [];
+  if (cleanInst) parts.push(cleanInst);
+  if (cleanAddr) parts.push(`POSTAL_ADDRESS:\n${cleanAddr}`);
+  if (cleanSrc) parts.push(`SOURCE_URL:\n${cleanSrc}`);
 
-  return `${cleanInst}\n---\nPOSTAL_ADDRESS:\n${cleanAddr}`;
+  return parts.length > 0 ? parts.join('\n---\n') : null;
 }
