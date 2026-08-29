@@ -765,15 +765,13 @@ export default function JobDetail() {
                       </div>
                     </div>
                   )}
+
+                  <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                    ℹ️ කරුණාකර හොඳින් තොරතුරු කියවා අවසාන දිනයට පෙර ඔබගේ අයදුම්පත ලියාපදිංචි තැපෑලෙන් යොමු කරන්න.
+                  </p>
                 </div>
               );
             })()}
-
-                <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                  ℹ️ කරුණාකර හොඳින් තොරතුරු කියවා අවසාන දිනයට පෙර ඔබගේ අයදුම්පත ලියාපදිංචි තැපෑලෙන් යොමු කරන්න.
-                </p>
-              </div>
-            )}
             {!job.apply_url && !job.apply_email && !job.apply_phone && job.apply_method === 'online' && (
               <div className="text-slate-600 dark:text-slate-400">Please refer to the official notice for application instructions.</div>
             )}
