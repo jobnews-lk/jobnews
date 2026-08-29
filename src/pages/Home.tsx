@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, FolderOpen, ArrowRight, FileText, Landmark, Plane, Briefcase, TrendingUp } from 'lucide-react';
+import { Search, MapPin, FolderOpen, ArrowRight, FileText, Landmark, Plane, Briefcase, TrendingUp, Loader2 } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
 import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
@@ -9,25 +9,31 @@ const SUPABASE_URL = 'https://njrkhpsbbpszvyzosxwf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
 
 export default function Home() {
-  const [latestJobs, setLatestJobs] = useState<Job[]>([]);
+  // Instant 0ms cache hydration from localStorage
+  const [latestJobs, setLatestJobs] = useState<Job[]>(() => {
+    try {
+      const cached = localStorage.getItem('jn_v3_home_jobs');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const published = parsed.filter((j: Job) => j.status === 'published');
+          if (published.length > 0) return published;
+        }
+      }
+    } catch (e) {}
+    return [];
+  });
+
   const [countries, setCountries] = useState<Country[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
   const [searchCountry, setSearchCountry] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(() => latestJobs.length === 0);
   const [newJobsCount, setNewJobsCount] = useState<number>(0);
   const [pendingNewJobs, setPendingNewJobs] = useState<Job[]>([]);
 
   useEffect(() => {
-    // Clear legacy localStorage cache keys to prevent mobile tab freezes
-    try {
-      localStorage.removeItem('jn_home_jobs');
-      localStorage.removeItem('jn_home_closing');
-      localStorage.removeItem('jn_v2_home_jobs');
-      localStorage.removeItem('jn_v2_home_closing');
-    } catch (e) {}
-
     let isMounted = true;
 
     async function loadFreshJobsWithRetry(attempt = 1) {
@@ -44,6 +50,9 @@ export default function Home() {
 
         if (jobsData && jobsData.length > 0 && isMounted) {
           setLatestJobs(jobsData as Job[]);
+          try {
+            localStorage.setItem('jn_v3_home_jobs', JSON.stringify(jobsData));
+          } catch (e) {}
           setLoading(false);
           return;
         }
@@ -66,6 +75,9 @@ export default function Home() {
             const rawData = await res.json();
             if (Array.isArray(rawData) && rawData.length > 0 && isMounted) {
               setLatestJobs(rawData as Job[]);
+              try {
+                localStorage.setItem('jn_v3_home_jobs', JSON.stringify(rawData));
+              } catch (e) {}
               setLoading(false);
               return;
             }
@@ -74,7 +86,7 @@ export default function Home() {
           // Retry after delay if still empty
           setTimeout(() => {
             if (isMounted) loadFreshJobsWithRetry(attempt + 1);
-          }, 800 * attempt);
+          }, 600 * attempt);
           return;
         }
 
@@ -84,7 +96,7 @@ export default function Home() {
         if (attempt <= 3 && isMounted) {
           setTimeout(() => {
             if (isMounted) loadFreshJobsWithRetry(attempt + 1);
-          }, 1000 * attempt);
+          }, 800 * attempt);
         } else if (isMounted) {
           setLoading(false);
         }
@@ -310,13 +322,22 @@ export default function Home() {
               All official job announcements in chronological order
             </p>
           </div>
-          <Link
-            to="/jobs"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 group"
-          >
-            <span>View All Job Notices ({latestJobs.length})</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          
+          {/* Smart Loading Header Indicator */}
+          {loading && latestJobs.length === 0 ? (
+            <span className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 px-3.5 py-1.5 rounded-full text-xs font-semibold animate-pulse border border-blue-200/60 dark:border-blue-900/60 shadow-sm">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 dark:text-blue-400" />
+              <span>Loading Job Vacancies...</span>
+            </span>
+          ) : (
+            <Link
+              to="/jobs"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 group"
+            >
+              <span>View All Job Notices ({latestJobs.length})</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          )}
         </div>
 
         {loading && latestJobs.length === 0 ? (
