@@ -868,9 +868,19 @@ export default function JobDetail() {
               මෙම රැකියා දැන්වීමේ අඩංගු සියලුම තොරතුරු ශ්‍රී ලංකා රජයේ නිල ගැසට් පත්‍රයෙන් උපුටා ගන්නා ලද ඒවා වේ. අපගේ වෙබ් අඩවිය (<strong className="font-semibold text-slate-900 dark:text-white">jobnews.lk</strong>) මඟින් සිදු කරන්නේ එම තොරතුරු ඔබ වෙත පහසුවෙන් ගෙන ඒම පමණි. අයදුම් කිරීමට පෙර අදාළ රජයේ ගැසට් නිවේදනය සම්පූර්ණයෙන් කියවා තොරතුරු තහවුරු කරගන්නා ලෙස අපි කාරුණිකව දන්වා සිටිමු.
             </p>
             {(() => {
-              const isExternalWebPage = (url?: string | null) => 
-                !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/') && !url.toLowerCase().endsWith('.pdf');
-              const targetWebLink = isExternalWebPage(job.official_pdf_url) ? job.official_pdf_url : (isExternalWebPage(job.apply_url) ? job.apply_url : null);
+              const parsedPostData = parseRegisteredPostData(job.apply_url);
+              const isWebUrl = (url?: string | null) => 
+                !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
+
+              let targetWebLink: string | null = null;
+              if (isWebUrl(job.official_pdf_url)) {
+                targetWebLink = job.official_pdf_url!;
+              } else if (parsedPostData.sourceUrl && isWebUrl(parsedPostData.sourceUrl)) {
+                targetWebLink = parsedPostData.sourceUrl;
+              } else if (isWebUrl(job.apply_url)) {
+                targetWebLink = job.apply_url!;
+              }
+
               if (!targetWebLink) return null;
               return (
                 <div className="pt-2 flex flex-wrap gap-3">
@@ -878,10 +888,10 @@ export default function JobDetail() {
                     href={targetWebLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Visit Official Gazette Portal (නිල රාජ්‍ය ගැසට් පිටුවට පිවිසෙන්න)
+                    Visit Official Gazette / Source Portal (නිල රාජ්‍ය ගැසට් / මූලාශ්‍ර WEB LINK එකට පිවිසෙන්න)
                   </a>
                 </div>
               );
