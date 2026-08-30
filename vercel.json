@@ -1,6 +1,17 @@
 {
   "rewrites": [
     {
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|viber|discordbot|slackbot|googlebot).*"
+        }
+      ],
+      "source": "/jobs/:id",
+      "destination": "/api/share-job?id=:id"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
