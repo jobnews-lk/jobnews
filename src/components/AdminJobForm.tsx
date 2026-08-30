@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2 } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2, Bold, Italic, List, ListOrdered, Heading } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
 
@@ -24,6 +24,100 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [location, setLocation] = useState(job?.location || '');
   const [description, setDescription] = useState(job?.description || '');
   const [requirements, setRequirements] = useState(job?.requirements || '');
+
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const requirementsRef = useRef<HTMLTextAreaElement>(null);
+
+  const applyTextFormat = (
+    textarea: HTMLTextAreaElement | null,
+    text: string,
+    setText: (val: string) => void,
+    action: 'bold' | 'italic' | 'bullet' | 'number' | 'heading'
+  ) => {
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = text.substring(start, end);
+
+    let replacement = '';
+    let newStart = start;
+    let newEnd = end;
+
+    switch (action) {
+      case 'bold':
+        if (selectedText) {
+          replacement = `**${selectedText}**`;
+          newEnd = start + replacement.length;
+        } else {
+          replacement = '**තද අකුරු**';
+          newStart = start + 2;
+          newEnd = start + replacement.length - 2;
+        }
+        break;
+
+      case 'italic':
+        if (selectedText) {
+          replacement = `*${selectedText}*`;
+          newEnd = start + replacement.length;
+        } else {
+          replacement = '*ඇල අකුරු*';
+          newStart = start + 1;
+          newEnd = start + replacement.length - 1;
+        }
+        break;
+
+      case 'bullet':
+        if (selectedText) {
+          replacement = selectedText
+            .split('\n')
+            .map((line) => (line.trim().startsWith('•') ? line : `• ${line}`))
+            .join('\n');
+          newEnd = start + replacement.length;
+        } else {
+          const prefix = start > 0 && text[start - 1] !== '\n' ? '\n• ' : '• ';
+          replacement = prefix;
+          newStart = start + prefix.length;
+          newEnd = newStart;
+        }
+        break;
+
+      case 'number':
+        if (selectedText) {
+          let count = 1;
+          replacement = selectedText
+            .split('\n')
+            .map((line) => `${count++}. ${line.replace(/^\d+\.\s*/, '')}`)
+            .join('\n');
+          newEnd = start + replacement.length;
+        } else {
+          const prefix = start > 0 && text[start - 1] !== '\n' ? '\n1. ' : '1. ';
+          replacement = prefix;
+          newStart = start + prefix.length;
+          newEnd = newStart;
+        }
+        break;
+
+      case 'heading':
+        if (selectedText) {
+          replacement = `### ${selectedText}`;
+          newEnd = start + replacement.length;
+        } else {
+          const prefix = start > 0 && text[start - 1] !== '\n' ? '\n### මාතෘකාව\n' : '### මාතෘකාව\n';
+          replacement = prefix;
+          newStart = start + (prefix.startsWith('\n') ? 5 : 4);
+          newEnd = newStart + 7;
+        }
+        break;
+    }
+
+    const updatedText = text.substring(0, start) + replacement + text.substring(end);
+    setText(updatedText);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(newStart, newEnd);
+    }, 10);
+  };
   const [closingDate, setClosingDate] = useState(job?.closing_date || '');
   const [postedDate, setPostedDate] = useState(job?.posted_date || getLocalDateString());
   const [applyMethod, setApplyMethod] = useState<'online' | 'email' | 'in_person' | 'phone' | 'post'>(job?.apply_method || 'online');
@@ -614,15 +708,129 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       </div>
 
       {/* Description */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Description *</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} required rows={5} className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y" />
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="block text-sm font-semibold text-slate-900 dark:text-white">Description *</label>
+          {/* Dedicated Description Formatting Toolbar */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              title="Bullet List (ලක්ෂ්‍ය)"
+              onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'bullet')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <List className="w-3.5 h-3.5 text-blue-600" />
+              <span>• Bullet</span>
+            </button>
+            <button
+              type="button"
+              title="Numbered List (අංක)"
+              onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'number')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <ListOrdered className="w-3.5 h-3.5 text-blue-600" />
+              <span>1. Number</span>
+            </button>
+            <button
+              type="button"
+              title="Bold Text (තද අකුරු)"
+              onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'bold')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <Bold className="w-3.5 h-3.5 text-blue-600" />
+              <span>B</span>
+            </button>
+            <button
+              type="button"
+              title="Italic Text (ඇල අකුරු)"
+              onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'italic')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium italic text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <Italic className="w-3.5 h-3.5 text-blue-600" />
+              <span>I</span>
+            </button>
+            <button
+              type="button"
+              title="Subheading (මාතෘකාව)"
+              onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'heading')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <Heading className="w-3.5 h-3.5 text-blue-600" />
+              <span>Heading</span>
+            </button>
+          </div>
+        </div>
+        <textarea
+          ref={descriptionRef}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          rows={5}
+          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm font-medium leading-relaxed"
+        />
       </div>
 
       {/* Requirements */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Requirements</label>
-        <textarea value={requirements} onChange={(e) => setRequirements(e.target.value)} rows={4} placeholder="List qualifications, experience, skills..." className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y" />
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <label className="block text-sm font-semibold text-slate-900 dark:text-white">Requirements (සුදුසුකම්)</label>
+          {/* Dedicated Requirements Formatting Toolbar */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              title="Bullet List (ලක්ෂ්‍ය)"
+              onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'bullet')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <List className="w-3.5 h-3.5 text-blue-600" />
+              <span>• Bullet</span>
+            </button>
+            <button
+              type="button"
+              title="Numbered List (අංක)"
+              onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'number')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <ListOrdered className="w-3.5 h-3.5 text-blue-600" />
+              <span>1. Number</span>
+            </button>
+            <button
+              type="button"
+              title="Bold Text (තද අකුරු)"
+              onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'bold')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <Bold className="w-3.5 h-3.5 text-blue-600" />
+              <span>B</span>
+            </button>
+            <button
+              type="button"
+              title="Italic Text (ඇල අකුරු)"
+              onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'italic')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium italic text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <Italic className="w-3.5 h-3.5 text-blue-600" />
+              <span>I</span>
+            </button>
+            <button
+              type="button"
+              title="Subheading (මාතෘකාව)"
+              onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'heading')}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
+            >
+              <Heading className="w-3.5 h-3.5 text-blue-600" />
+              <span>Heading</span>
+            </button>
+          </div>
+        </div>
+        <textarea
+          ref={requirementsRef}
+          value={requirements}
+          onChange={(e) => setRequirements(e.target.value)}
+          rows={4}
+          placeholder="List qualifications, experience, skills..."
+          className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm font-medium leading-relaxed"
+        />
       </div>
 
       {/* ========== UPLOADS ========== */}

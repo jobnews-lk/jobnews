@@ -47,10 +47,43 @@ export default function JobDetail() {
     }
   };
 
+  const renderFormattedInlineText = (textStr: string) => {
+    if (!textStr) return null;
+    const parts = textStr.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+        return (
+          <strong key={idx} className="font-bold text-slate-900 dark:text-white">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+        return (
+          <em key={idx} className="italic text-slate-800 dark:text-slate-200">
+            {part.slice(1, -1)}
+          </em>
+        );
+      }
+      return part;
+    });
+  };
+
   const formatContent = (text: string | null | undefined, forceBullets: boolean = false) => {
     if (!text) return null;
     return text.split('\n').filter(line => line.trim() !== '').map((line, i) => {
       const trimmed = line.trim();
+
+      // 0. Detect Subheadings (e.g. "### ...", "## ...", "# ...")
+      if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
+        const headingText = trimmed.replace(/^#+\s*/, '');
+        return (
+          <h4 key={i} className="text-base font-bold text-blue-950 dark:text-blue-200 mt-4 mb-1 flex items-center gap-2 border-b border-blue-100 dark:border-slate-800 pb-1">
+            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+            {renderFormattedInlineText(headingText)}
+          </h4>
+        );
+      }
 
       // 1. Detect Numbered Items (e.g. "1.", "1)", "(01)")
       const numberMatch = trimmed.match(/^(\(?\d{1,2}\)?[\.\)]\s*)(.+)/);
@@ -58,12 +91,12 @@ export default function JobDetail() {
         const numLabel = numberMatch[1].trim();
         const restText = numberMatch[2];
         return (
-          <div key={i} className="flex gap-2.5 items-start mt-3.5 bg-blue-50/40 dark:bg-slate-800/40 p-3 rounded-xl border border-blue-100/60 dark:border-slate-800">
+          <div key={i} className="flex gap-2.5 items-start mt-3 bg-blue-50/40 dark:bg-slate-800/40 p-3 rounded-xl border border-blue-100/60 dark:border-slate-800">
             <span className="shrink-0 px-2 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-md mt-0.5">
               {numLabel}
             </span>
             <span className="leading-relaxed text-slate-800 dark:text-slate-200 font-medium">
-              {restText}
+              {renderFormattedInlineText(restText)}
             </span>
           </div>
         );
@@ -81,7 +114,7 @@ export default function JobDetail() {
             <span className="text-blue-600 dark:text-blue-400 font-bold shrink-0 mt-1 text-sm">🔹</span>
             <div className="leading-relaxed">
               <strong className="text-slate-900 dark:text-white font-semibold">{keyPart}</strong>
-              <span className="text-slate-700 dark:text-slate-300 ml-1">{valPart}</span>
+              <span className="text-slate-700 dark:text-slate-300 ml-1">{renderFormattedInlineText(valPart)}</span>
             </div>
           </div>
         );
@@ -93,7 +126,7 @@ export default function JobDetail() {
         return (
           <div key={i} className="flex gap-2.5 items-start mt-2.5">
             <span className="text-blue-500 dark:text-blue-400 font-bold shrink-0 mt-1 text-xs">🔹</span>
-            <span className="leading-relaxed text-slate-700 dark:text-slate-300">{cleaned}</span>
+            <span className="leading-relaxed text-slate-700 dark:text-slate-300">{renderFormattedInlineText(cleaned)}</span>
           </div>
         );
       }
@@ -101,7 +134,7 @@ export default function JobDetail() {
       // 4. Standard Paragraph
       return (
         <div key={i} className={i > 0 ? "mt-3 leading-relaxed text-slate-700 dark:text-slate-300" : "leading-relaxed text-slate-700 dark:text-slate-300"}>
-          {line}
+          {renderFormattedInlineText(line)}
         </div>
       );
     });
