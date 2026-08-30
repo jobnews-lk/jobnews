@@ -82,7 +82,7 @@ export default function TopTicker() {
           className={`animate-marquee group-hover:[animation-play-state:paused] whitespace-nowrap inline-block ${
             isPaused ? '[animation-play-state:paused]' : '[animation-play-state:running]'
           }`}
-          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
+          style={{ animationPlayState: isPaused ? 'paused' : 'running', animationDuration: '240s' }}
         >
           {closingJobs.map((job, idx) => {
             const daysLeft = getDaysRemaining(job.closing_date);
