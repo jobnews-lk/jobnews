@@ -47,6 +47,50 @@ export default async function handler(req, res) {
 
     const siteUrl = `https://jobnews.lk/jobs/${job.id}`;
 
+    const jobSchema = {
+      "@context": "https://schema.org/",
+      "@type": "JobPosting",
+      "title": job.title,
+      "description": rawDesc,
+      "datePosted": job.posted_date || job.created_at,
+      "validThrough": job.closing_date ? new Date(job.closing_date).toISOString() : undefined,
+      "employmentType": "FULL_TIME",
+      "directApply": true,
+      "url": siteUrl,
+      "image": imageUrl,
+      "identifier": {
+        "@type": "PropertyValue",
+        "name": job.company || "JobNews.lk",
+        "value": job.id
+      },
+      "hiringOrganization": {
+        "@type": "Organization",
+        "name": job.company || "Government / Private Organization",
+        "sameAs": "https://jobnews.lk",
+        "logo": imageUrl
+      },
+      "jobLocation": {
+        "@type": "Place",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": job.location || "Sri Lanka",
+          "addressCountry": job.is_overseas ? "OVERSEAS" : "LK"
+        }
+      }
+    };
+
+    if (job.salary && String(job.salary).trim()) {
+      jobSchema.baseSalary = {
+        "@type": "MonetaryAmount",
+        "currency": "LKR",
+        "value": {
+          "@type": "QuantitativeValue",
+          "value": String(job.salary).trim(),
+          "unitText": "MONTH"
+        }
+      };
+    }
+
     const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -54,6 +98,7 @@ export default async function handler(req, res) {
     <title>${escapeHtml(cleanTitle)}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="${escapeHtml(cleanDesc)}" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="${siteUrl}" />
     
     <!-- Open Graph / WhatsApp / Facebook / LinkedIn -->
@@ -73,6 +118,11 @@ export default async function handler(req, res) {
     <meta name="twitter:title" content="${escapeHtml(cleanTitle)}" />
     <meta name="twitter:description" content="${escapeHtml(cleanDesc)}" />
     <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
+
+    <!-- Google Jobs Structured Data -->
+    <script type="application/ld+json">
+      ${JSON.stringify(jobSchema)}
+    </script>
 
     <meta http-equiv="refresh" content="0;url=${siteUrl}" />
   </head>
