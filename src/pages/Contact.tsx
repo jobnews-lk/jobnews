@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, Clock, ShieldQuestion, MessageSquare, Loader2, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function Contact() {
   const [name, setName] = useState('');
@@ -52,38 +53,32 @@ export default function Contact() {
     const cleanMessage = sanitizeText(message);
 
     try {
-      // Dispatch sanitized inquiry via Web3Forms API to support@jobnews.lk
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          access_key: '5669b76a-5412-4cbe-b883-9bfa00dfc106', // JobNews.lk Official Web3Forms Access Key
+      // 1. Save directly into JobNews.lk Supabase Private Database
+      const { error: dbError } = await supabase.from('contact_inquiries').insert([
+        {
           name: cleanName,
           email: cleanEmail,
-          subject: `[JobNews.lk Inquiry] ${cleanSubject}`,
+          subject: cleanSubject,
           message: cleanMessage,
-          from_name: 'JobNews.lk Portal',
-          replyto: cleanEmail,
-        }),
-      });
+          created_at: new Date().toISOString(),
+        },
+      ]);
 
-      const resData = await response.json();
-
-      if (resData.success) {
-        localStorage.setItem('jn_last_contact_submit', Date.now().toString());
-        setSubmitted(true);
-      } else {
-        // Fallback: If API key is pending verification, show clean confirmation & mailto backup
-        console.warn('Web3Forms response:', resData);
-        localStorage.setItem('jn_last_contact_submit', Date.now().toString());
-        setSubmitted(true);
+      if (dbError) {
+        console.warn('Supabase DB inquiry insert note:', dbError.message);
       }
+
+      // 2. Launch 1-Click Mailto Client Dispatcher as an interactive backup
+      const mailtoUrl = `mailto:support@jobnews.lk?subject=${encodeURIComponent('[JobNews Inquiry] ' + cleanSubject)}&body=${encodeURIComponent('From: ' + cleanName + ' (' + cleanEmail + ')\n\n' + cleanMessage)}`;
+      window.location.href = mailtoUrl;
+
+      localStorage.setItem('jn_last_contact_submit', Date.now().toString());
+      setSubmitted(true);
     } catch (err) {
       console.error('Contact submission error:', err);
-      // Even if network fails, show confirmation so user is not blocked
+      // Fallback mailto
+      const mailtoUrl = `mailto:support@jobnews.lk?subject=${encodeURIComponent('[JobNews Inquiry] ' + cleanSubject)}&body=${encodeURIComponent('From: ' + cleanName + ' (' + cleanEmail + ')\n\n' + cleanMessage)}`;
+      window.location.href = mailtoUrl;
       setSubmitted(true);
     } finally {
       setLoading(false);

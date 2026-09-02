@@ -13,6 +13,16 @@ export type Category = {
   slug: string;
 };
 
+export type ContactInquiry = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  created_at: string;
+  is_read?: boolean;
+};
+
 export type JobImage = {
   id: string;
   job_id: string;
