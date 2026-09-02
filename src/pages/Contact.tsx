@@ -33,7 +33,9 @@ export default function Contact() {
               <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="font-bold text-slate-900 dark:text-white text-base mb-1">Email Support</h3>
-            <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">support@jobnews.lk</p>
+            <a href="mailto:support@jobnews.lk" className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline mb-1 inline-block">
+              support@jobnews.lk
+            </a>
             <p className="text-xs text-slate-400 dark:text-slate-500">For general inquiries & feedback</p>
           </div>
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 text-center shadow-sm hover:border-blue-200 dark:hover:border-blue-500 transition-colors">
