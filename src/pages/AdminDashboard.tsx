@@ -67,18 +67,46 @@ export default function AdminDashboard() {
 
   const loadInquiries = async () => {
     setLoadingInquiries(true);
-    const { data, error: err } = await supabase
+    let combined: ContactInquiry[] = [];
+
+    // 1. Read local storage inquiries
+    const savedLocal = localStorage.getItem('jn_contact_inquiries');
+    if (savedLocal) {
+      try {
+        combined = JSON.parse(savedLocal);
+      } catch (e) {}
+    }
+
+    // 2. Read Supabase DB inquiries
+    const { data } = await supabase
       .from('contact_inquiries')
       .select('*')
       .order('created_at', { ascending: false });
-    if (data) {
-      setInquiries(data as ContactInquiry[]);
+
+    if (data && data.length > 0) {
+      const map = new Map();
+      [...combined, ...data].forEach((item: any) => {
+        map.set(item.id || item.created_at, item);
+      });
+      combined = Array.from(map.values());
     }
+
+    setInquiries(combined);
     setLoadingInquiries(false);
   };
 
   const handleDeleteInquiry = async (id: string) => {
-    await supabase.from('contact_inquiries').delete().eq('id', id);
+    // Delete from LocalStorage
+    const savedLocal = localStorage.getItem('jn_contact_inquiries');
+    if (savedLocal) {
+      try {
+        const arr = JSON.parse(savedLocal);
+        const filtered = arr.filter((x: any) => x.id !== id);
+        localStorage.setItem('jn_contact_inquiries', JSON.stringify(filtered));
+      } catch (e) {}
+    }
+    // Delete from Supabase DB
+    await supabase.from('contact_inquiries').delete().eq('id', id).catch(() => {});
     await loadInquiries();
   };
 

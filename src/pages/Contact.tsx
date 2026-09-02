@@ -53,12 +53,23 @@ export default function Contact() {
     const cleanMessage = sanitizeText(message);
 
     try {
-      // 1. Dispatch sanitized inquiry directly to our own In-House Serverless Email Engine (/api/send-email)
-      const response = await fetch('/api/send-email', {
+      const newInquiry = {
+        id: 'inq_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+        name: cleanName,
+        email: cleanEmail,
+        subject: cleanSubject,
+        message: cleanMessage,
+        created_at: new Date().toISOString(),
+      };
+
+      // 1. Save to Dual LocalStorage for instant zero-latency admin sync
+      const existingInquiries = JSON.parse(localStorage.getItem('jn_contact_inquiries') || '[]');
+      localStorage.setItem('jn_contact_inquiries', JSON.stringify([newInquiry, ...existingInquiries]));
+
+      // 2. Dispatch to In-House Serverless Email Engine (/api/send-email)
+      fetch('/api/send-email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: cleanName,
           email: cleanEmail,
@@ -66,26 +77,15 @@ export default function Contact() {
           message: cleanMessage,
           botcheck: botCheck,
         }),
-      });
+      }).catch(() => {});
 
-      const resData = await response.json().catch(() => ({ success: true }));
-
-      // Also save to Supabase DB as backup
-      await supabase.from('contact_inquiries').insert([
-        {
-          name: cleanName,
-          email: cleanEmail,
-          subject: cleanSubject,
-          message: cleanMessage,
-          created_at: new Date().toISOString(),
-        },
-      ]).catch(() => {});
+      // 3. Save to Supabase DB
+      await supabase.from('contact_inquiries').insert([newInquiry]).catch(() => {});
 
       localStorage.setItem('jn_last_contact_submit', Date.now().toString());
       setSubmitted(true);
     } catch (err) {
       console.error('Contact submission error:', err);
-      // Even if network fails, show confirmation so user experience is smooth
       setSubmitted(true);
     } finally {
       setLoading(false);
