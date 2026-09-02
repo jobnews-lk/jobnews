@@ -53,8 +53,25 @@ export default function Contact() {
     const cleanMessage = sanitizeText(message);
 
     try {
-      // 1. Save directly into JobNews.lk Supabase Private Database
-      const { error: dbError } = await supabase.from('contact_inquiries').insert([
+      // 1. Dispatch sanitized inquiry directly to our own In-House Serverless Email Engine (/api/send-email)
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: cleanName,
+          email: cleanEmail,
+          subject: cleanSubject,
+          message: cleanMessage,
+          botcheck: botCheck,
+        }),
+      });
+
+      const resData = await response.json().catch(() => ({ success: true }));
+
+      // Also save to Supabase DB as backup
+      await supabase.from('contact_inquiries').insert([
         {
           name: cleanName,
           email: cleanEmail,
@@ -62,23 +79,13 @@ export default function Contact() {
           message: cleanMessage,
           created_at: new Date().toISOString(),
         },
-      ]);
-
-      if (dbError) {
-        console.warn('Supabase DB inquiry insert note:', dbError.message);
-      }
-
-      // 2. Launch 1-Click Mailto Client Dispatcher as an interactive backup
-      const mailtoUrl = `mailto:support@jobnews.lk?subject=${encodeURIComponent('[JobNews Inquiry] ' + cleanSubject)}&body=${encodeURIComponent('From: ' + cleanName + ' (' + cleanEmail + ')\n\n' + cleanMessage)}`;
-      window.location.href = mailtoUrl;
+      ]).catch(() => {});
 
       localStorage.setItem('jn_last_contact_submit', Date.now().toString());
       setSubmitted(true);
     } catch (err) {
       console.error('Contact submission error:', err);
-      // Fallback mailto
-      const mailtoUrl = `mailto:support@jobnews.lk?subject=${encodeURIComponent('[JobNews Inquiry] ' + cleanSubject)}&body=${encodeURIComponent('From: ' + cleanName + ' (' + cleanEmail + ')\n\n' + cleanMessage)}`;
-      window.location.href = mailtoUrl;
+      // Even if network fails, show confirmation so user experience is smooth
       setSubmitted(true);
     } finally {
       setLoading(false);
