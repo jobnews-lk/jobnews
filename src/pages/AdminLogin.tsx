@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff, KeyRound, QrCode } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Shield, Eye, EyeOff, KeyRound, QrCode, ArrowLeft, Briefcase, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -249,164 +249,195 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-hidden selection:bg-blue-600 selection:text-white">
+      {/* Background Ambient Orbs & Subtle Grid Overlay */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[450px] h-[450px] bg-indigo-600/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
+
+      {/* Top Header Navigation */}
+      <header className="relative z-20 w-full max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-400 hover:text-white transition-colors bg-slate-900/80 hover:bg-slate-800 border border-slate-800 px-4 py-2 rounded-xl backdrop-blur-md shadow-sm"
+        >
+          <ArrowLeft className="w-4 h-4 text-blue-400" />
+          <span>← Back to JobNews.lk</span>
+        </Link>
+
+        <div className="flex items-center gap-2.5 bg-slate-900/80 border border-slate-800 px-3.5 py-1.5 rounded-full backdrop-blur-md">
+          <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-white">
+            <Briefcase className="w-3.5 h-3.5" />
+          </div>
+          <span className="text-xs font-bold tracking-tight text-white">
+            JobNews<span className="text-blue-500">.lk</span>
+          </span>
+          <span className="text-[10px] uppercase font-extrabold tracking-widest text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+            Enterprise Portal
+          </span>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="relative z-10 w-full max-w-md mx-auto px-4 py-10 flex-1 flex flex-col justify-center">
         {/* Step 1: Login Credentials */}
         {mfaStep === 'credentials' && (
-          <>
-            <div className="text-center mb-8">
-              <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+          <div className="bg-slate-900/90 backdrop-blur-2xl border border-slate-800/90 rounded-2xl p-7 sm:p-8 shadow-2xl shadow-blue-950/40 space-y-6">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400 shadow-inner">
+                <Shield className="w-7 h-7" />
               </div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Admin Login</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+              <h1 className="text-2xl font-bold text-white tracking-tight">Admin Login</h1>
+              <p className="text-slate-400 mt-1.5 text-xs sm:text-sm">
                 Sign in with your admin account to access the dashboard
               </p>
             </div>
 
-            <form onSubmit={handleCredentialsSubmit} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <form onSubmit={handleCredentialsSubmit} className="space-y-4 pt-2">
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm px-4 py-3 rounded-lg">
-                  {error}
+                <div className="bg-red-500/10 border border-red-500/30 text-red-300 text-xs sm:text-sm px-4 py-3 rounded-xl flex items-start gap-2.5">
+                  <Lock className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed font-medium">{error}</span>
                 </div>
               )}
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Email Address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@example.com"
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-800 bg-slate-950/80 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500 transition-all text-sm"
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Password</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter password"
+                    placeholder="Enter admin password"
                     required
-                    className="w-full pl-4 pr-11 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-4 pr-11 py-3 rounded-xl border border-slate-800 bg-slate-950/80 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-blue-500 transition-all text-sm"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
+
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition-all shadow-lg shadow-blue-600/30 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed mt-2"
               >
                 {loading ? 'Checking credentials...' : 'Sign In'}
               </button>
             </form>
-          </>
+          </div>
         )}
 
         {/* Step 2: First Time 2FA Enrollment (Scan QR Code) */}
         {mfaStep === 'enroll' && (
-          <>
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 bg-amber-50 dark:bg-amber-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <QrCode className="w-7 h-7 text-amber-600 dark:text-amber-400" />
+          <div className="bg-slate-900/90 backdrop-blur-2xl border border-slate-800/90 rounded-2xl p-7 sm:p-8 shadow-2xl shadow-blue-950/40 space-y-6">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-amber-400">
+                <QrCode className="w-7 h-7" />
               </div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Setup 2-Step Verification</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1 text-xs leading-relaxed">
+              <h1 className="text-xl font-bold text-white">Setup 2-Step Verification</h1>
+              <p className="text-slate-400 mt-1 text-xs leading-relaxed">
                 Scan this QR code using the <strong>Google Authenticator</strong> app on your phone.
               </p>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm px-4 py-3 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              {/* QR Code Container */}
-              <div className="flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-200 dark:border-slate-800">
-                {qrCode ? (
-                  <div className="w-56 h-56 bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center overflow-hidden">
-                    <div
-                      dangerouslySetInnerHTML={{ __html: parseQrSvg(qrCode) }}
-                      className="w-full h-full flex items-center justify-center"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-72 h-72 flex items-center justify-center text-xs text-slate-400">Loading QR...</div>
-                )}
-                {secretKey && (
-                  <div className="mt-4 text-center">
-                    <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Setup Key (Secret)</span>
-                    <code className="text-xs font-mono font-bold bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-3 py-1.5 rounded-lg select-all border border-slate-300 dark:border-slate-700">
-                      {secretKey}
-                    </code>
-                  </div>
-                )}
-                <span className="text-[11px] text-slate-500 mt-3 text-center">
-                  Open Google Authenticator App ➔ Tap + ➔ Scan QR Code
-                </span>
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-300 text-xs px-4 py-3 rounded-xl">
+                {error}
               </div>
+            )}
 
-              <form onSubmit={handleMfaVerifySubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                    Enter 6-Digit Code
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={mfaCode}
-                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
-                    placeholder="123456"
-                    required
-                    className="w-full text-center text-2xl font-mono tracking-[0.3em] px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* QR Code Container */}
+            <div className="flex flex-col items-center justify-center p-6 bg-slate-950/70 rounded-2xl border border-slate-800/80">
+              {qrCode ? (
+                <div className="w-52 h-52 bg-white p-3 rounded-xl shadow-lg border border-slate-700 flex items-center justify-center overflow-hidden">
+                  <div
+                    dangerouslySetInnerHTML={{ __html: parseQrSvg(qrCode) }}
+                    className="w-full h-full flex items-center justify-center"
                   />
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={loading || mfaCode.length !== 6}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Verifying...' : 'Verify & Enable 2FA'}
-                </button>
-              </form>
+              ) : (
+                <div className="w-52 h-52 flex items-center justify-center text-xs text-slate-400">Loading QR...</div>
+              )}
+              {secretKey && (
+                <div className="mt-4 text-center">
+                  <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold block mb-1">Setup Key (Secret)</span>
+                  <code className="text-xs font-mono font-bold bg-slate-800 text-blue-300 px-3 py-1.5 rounded-lg select-all border border-slate-700">
+                    {secretKey}
+                  </code>
+                </div>
+              )}
+              <span className="text-[11px] text-slate-400 mt-3 text-center">
+                Open Google Authenticator App ➔ Tap + ➔ Scan QR Code
+              </span>
             </div>
-          </>
+
+            <form onSubmit={handleMfaVerifySubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider text-center">
+                  Enter 6-Digit Code
+                </label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="123456"
+                  required
+                  className="w-full text-center text-2xl font-mono tracking-[0.3em] px-4 py-3 rounded-xl border border-slate-800 bg-slate-950 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || mfaCode.length !== 6}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition-all shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Verifying...' : 'Verify & Enable 2FA'}
+              </button>
+            </form>
+          </div>
         )}
 
         {/* Step 3: Regular 2FA Login Verification */}
         {mfaStep === 'verify' && (
-          <>
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                <KeyRound className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+          <div className="bg-slate-900/90 backdrop-blur-2xl border border-slate-800/90 rounded-2xl p-7 sm:p-8 shadow-2xl shadow-blue-950/40 space-y-6">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-400">
+                <KeyRound className="w-7 h-7" />
               </div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">2-Step Verification</h1>
-              <p className="text-slate-500 dark:text-slate-400 mt-1 text-xs">
+              <h1 className="text-xl font-bold text-white">2-Step Verification</h1>
+              <p className="text-slate-400 mt-1 text-xs">
                 Enter the 6-digit code from your Google Authenticator app
               </p>
             </div>
 
-            <form onSubmit={handleMfaVerifySubmit} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+            <form onSubmit={handleMfaVerifySubmit} className="space-y-4">
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 text-sm px-4 py-3 rounded-lg">
+                <div className="bg-red-500/10 border border-red-500/30 text-red-300 text-xs px-4 py-3 rounded-xl">
                   {error}
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider text-center">
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider text-center">
                   Authenticator Code
                 </label>
                 <input
@@ -417,14 +448,14 @@ export default function AdminLogin() {
                   placeholder="123456"
                   autoFocus
                   required
-                  className="w-full text-center text-2xl font-mono tracking-[0.3em] px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full text-center text-2xl font-mono tracking-[0.3em] px-4 py-3 rounded-xl border border-slate-800 bg-slate-950 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading || mfaCode.length !== 6}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-xl transition-all shadow-lg shadow-blue-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Verifying Code...' : 'Verify Code & Sign In'}
               </button>
@@ -436,14 +467,22 @@ export default function AdminLogin() {
                   setError('');
                   setMfaCode('');
                 }}
-                className="w-full text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors pt-2"
+                className="w-full text-xs text-slate-400 hover:text-slate-200 transition-colors pt-2"
               >
                 Back to Sign In
               </button>
             </form>
-          </>
+          </div>
         )}
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-20 py-5 text-center text-[11px] text-slate-500 font-medium">
+        <div className="flex items-center justify-center gap-1.5">
+          <Lock className="w-3.5 h-3.5 text-blue-500" />
+          <span>JobNews.lk Enterprise Portal &bull; Encrypted &amp; Protected</span>
+        </div>
+      </footer>
     </div>
   );
 }

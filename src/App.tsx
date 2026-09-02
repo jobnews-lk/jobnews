@@ -29,6 +29,9 @@ function App() {
       <ScrollToTop />
       <ErrorBoundary>
         <Routes>
+          {/* Standalone Dedicated Full-Screen Enterprise Admin Login Portal */}
+          <Route path="admin/login" element={<AdminLogin />} />
+
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="jobs" element={<Jobs />} />
@@ -41,7 +44,6 @@ function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
             <Route path="terms" element={<Terms />} />
-            <Route path="admin/login" element={<AdminLogin />} />
             <Route path="admin/signup" element={<Navigate to="/admin/login" replace />} />
             <Route path="admin/forgot-password" element={<AdminForgotPassword />} />
             <Route path="admin/reset-password" element={<AdminResetPassword />} />
