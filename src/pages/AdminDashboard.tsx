@@ -95,8 +95,11 @@ export default function AdminDashboard() {
     setLoadingInquiries(false);
   };
 
-  const handleDeleteInquiry = async (id: string) => {
-    // Delete from LocalStorage
+  const handleDeleteInquiry = (id: string) => {
+    // 1. Optimistically remove from state instantly (0ms latency!)
+    setInquiries((prev) => prev.filter((x) => x.id !== id));
+
+    // 2. Remove from LocalStorage instantly
     const savedLocal = localStorage.getItem('jn_contact_inquiries');
     if (savedLocal) {
       try {
@@ -105,9 +108,9 @@ export default function AdminDashboard() {
         localStorage.setItem('jn_contact_inquiries', JSON.stringify(filtered));
       } catch (e) {}
     }
-    // Delete from Supabase DB
-    await supabase.from('contact_inquiries').delete().eq('id', id).catch(() => {});
-    await loadInquiries();
+
+    // 3. Delete from Supabase DB asynchronously in background
+    supabase.from('contact_inquiries').delete().eq('id', id).then(() => {}).catch(() => {});
   };
 
   const handleParseGazette = async () => {
@@ -1383,11 +1386,11 @@ export default function AdminDashboard() {
                           {new Date(inq.created_at).toLocaleString()}
                         </span>
                         <button
-                          onClick={() => handleDeleteInquiry(inq.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
+                          onClick={(e) => { e.stopPropagation(); handleDeleteInquiry(inq.id); }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 border border-red-200 dark:border-red-800/60 rounded-lg font-semibold transition-colors shadow-xs"
                           title="Delete Inquiry"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" /> Delete
                         </button>
                       </div>
                     </div>
