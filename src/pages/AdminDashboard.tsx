@@ -6,7 +6,7 @@ import {
   Loader2, LayoutDashboard, Layers, CheckCircle2, Clock, AlertCircle, X,
   Search, SlidersHorizontal, Bot, Eye, ExternalLink, Mail, Phone
 } from 'lucide-react';
-import { supabase, adminApiCall, isBotDiscoveredJob, type Job } from '../lib/supabase';
+import { supabase, adminApiCall, isBotDiscoveredJob, type Job, type ContactInquiry } from '../lib/supabase';
 import { parseGazettePdfText, type ExtractedGazetteJob } from '../lib/gazettePdfParser';
 import FileUpload from '../components/FileUpload';
 import { useAuth } from '../context/AuthContext';
@@ -61,6 +61,26 @@ export default function AdminDashboard() {
   const [parsingGazette, setParsingGazette] = useState(false);
   const [extractedGazetteJobs, setExtractedGazetteJobs] = useState<ExtractedGazetteJob[]>([]);
   const [importingGazetteJobs, setImportingGazetteJobs] = useState(false);
+  const [showInquiriesModal, setShowInquiriesModal] = useState(false);
+  const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
+  const [loadingInquiries, setLoadingInquiries] = useState(false);
+
+  const loadInquiries = async () => {
+    setLoadingInquiries(true);
+    const { data, error: err } = await supabase
+      .from('contact_inquiries')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) {
+      setInquiries(data as ContactInquiry[]);
+    }
+    setLoadingInquiries(false);
+  };
+
+  const handleDeleteInquiry = async (id: string) => {
+    await supabase.from('contact_inquiries').delete().eq('id', id);
+    await loadInquiries();
+  };
 
   const handleParseGazette = async () => {
     const targetPdfUrl = uploadedGazettePdfs[0] || gazettePdfUrl.trim() || 'https://documents.gov.lk/files/gz/2026/8/2026-08-01(I-I)S.pdf';
@@ -223,6 +243,7 @@ export default function AdminDashboard() {
     if (!authLoading && (!user || !isAdmin)) return;
     if (!authLoading && user && isAdmin) {
       loadJobs();
+      loadInquiries();
       if (location.state && (location.state as any).infoMessage) {
         setInfoMessage((location.state as any).infoMessage);
       }
@@ -317,6 +338,17 @@ export default function AdminDashboard() {
             <p className="text-slate-500 dark:text-slate-400 mt-1">Manage job announcements and notices</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => { setShowInquiriesModal(true); loadInquiries(); }}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-semibold rounded-lg text-sm transition-colors border border-blue-200 dark:border-blue-800/60 relative"
+            >
+              <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Inquiries
+              {inquiries.length > 0 && (
+                <span className="px-1.5 py-0.5 text-xs bg-blue-600 text-white rounded-full font-bold ml-0.5">
+                  {inquiries.length}
+                </span>
+              )}
+            </button>
             <button
               onClick={() => setShowSourcesModal(true)}
               className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-lg text-sm transition-colors border border-slate-200 dark:border-slate-700"
@@ -1265,6 +1297,86 @@ export default function AdminDashboard() {
             <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
               <button
                 onClick={() => setShowGazetteModal(false)}
+                className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Inquiries Modal */}
+      {showInquiriesModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 max-w-3xl w-full shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">📬 Received Contact Inquiries</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Direct user inquiries sent via Contact Us portal ({inquiries.length})</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInquiriesModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {loadingInquiries ? (
+              <div className="py-12 text-center text-slate-500">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-blue-600" />
+                <p className="text-sm font-medium">Loading user inquiries...</p>
+              </div>
+            ) : inquiries.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+                <Mail className="w-12 h-12 mx-auto mb-3 opacity-40" />
+                <p className="text-base font-semibold text-slate-700 dark:text-slate-300">No Inquiries Received Yet</p>
+                <p className="text-xs text-slate-400 mt-1">When users send messages via the Contact page, they will appear here safely.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {inquiries.map((inq) => (
+                  <div key={inq.id} className="p-5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="font-bold text-slate-900 dark:text-white text-base">{inq.name}</span>
+                        <a href={`mailto:${inq.email}`} className="text-xs font-semibold text-blue-600 dark:text-blue-400 ml-2 hover:underline">
+                          ({inq.email})
+                        </a>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">
+                          {new Date(inq.created_at).toLocaleString()}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteInquiry(inq.id)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
+                          title="Delete Inquiry"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200 bg-slate-200/60 dark:bg-slate-900 px-3 py-1.5 rounded-md inline-block">
+                      📌 Subject: {inq.subject}
+                    </div>
+                    <div className="text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800/80 leading-relaxed whitespace-pre-wrap">
+                      {inq.message}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+              <button
+                onClick={() => setShowInquiriesModal(false)}
                 className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-lg transition-colors"
               >
                 Close
