@@ -117,9 +117,26 @@
              * **📋 ආදර්ශ ඉල්ලුම් පත්‍රය / අතිරේක ලේඛනය (Application Form & Attachments):** Styled in blue with a distinct `📋 Application Document / Form` badge.
            * **Full Database Sweep Across All 102 Jobs:** Executed batched scanner scripts (`deep_sweep_all_gov_jobs.cjs` & `execute_full_database_cleanup.cjs`) across all 102 jobs in the database (both published government jobs and draft jobs). Repaired and cleaned up duplicate PDF attachments and link misplacements for Psychologist Grade II, Navy Sailors, Stenographer/ලඝු ලේඛක, and Front Office Manager.
         * **CLOSING SOON TopTicker & Home Page Query Decoupling (COMPLETED - AUGUST 27, 2026):**
-           * **Query Decoupling & Storage Hydration (`TopTicker.tsx` & `Home.tsx`):** Decoupled `TopTicker` database fetch from `Home.tsx` main jobs query to prevent mobile network query contention and eliminate empty job flashes ("No job notices yet"). `TopTicker` hydrates instantly from `localStorage` (`jn_v2_home_closing` / `jn_v2_home_jobs`) and defers network fetch by 400ms. `Home.tsx` prioritizes `latestJobs` fetch independently before loading secondary items.
-           * **Mobile Smooth Marquee Speed & Touch Freeze (`TopTicker.tsx`):** Configured responsive marquee animation speeds (95s on mobile vs 60s on desktop) to ensure text glides smoothly across narrow phone screens. Integrated React `onTouchStart`, `onTouchEnd`, `onMouseEnter`, and `onMouseLeave` state handlers so touching the ticker freezes it instantly on mobile, and lifting the finger resumes scrolling immediately without sticky focus states.
-           * **Twitter/X Style Background Silent Revalidation & Floating Notification Pill (`Home.tsx`):** Implemented a 90-second background job checker that runs silently only when the browser tab is active (`document.visibilityState === 'visible'`). If new jobs are published by admin while a user is reading, a sleek floating notification pill (**`"🔔 N New Job Notices Published — Tap to View"`**) appears at the top center with zero layout shift. Tapping the pill prepends the new jobs smoothly into the feed and scrolls to top gracefully.
+           * **Query Decoupling & Storage Hydration (`TopTicker.tsx` & `Home.tsx`):** Decoupled `TopTicker` database fetch from `Home.tsx` main jobs query to prevent mobile network query contention and eliminate empty job flashes ("No job notices yet"). `TopTicker` hydrates instantly from `localStorage` (`jn_v2_home_closing` / `jn_v2_home_jobs`) and defers network fetch by 400ms. `Home.tsx` prioritizes `latestJobs` fetch independently befo            * **Twitter/X Style Background Silent Revalidation & Floating Notification Pill (`Home.tsx`):** Implemented a 90-second background job checker that runs silently only when the browser tab is active (`document.visibilityState === 'visible'`). If new jobs are published by admin while a user is reading, a sleek floating notification pill (**`"🔔 N New Job Notices Published — Tap to View"`**) appears at the top center with zero layout shift. Tapping the pill prepends the new jobs smoothly into the feed and scrolls to top gracefully.
+      * **Dedicated Enterprise Full-Screen Admin Login Portal (`AdminLogin.tsx` & `App.tsx` - SEPTEMBER 2026):**
+        Extracted `/admin/login` out of standard site `<Layout />` into a standalone dedicated full-screen enterprise security portal. Designed with deep slate-950/navy ambient radial mesh background, top navigation bar (`← Back to JobNews.lk`), enterprise brand badge, glassmorphic login/2FA card, and encrypted security footer.
+      * **Dedicated Rich Text Formatting Toolbars (`AdminJobForm.tsx` & `JobDetail.tsx` - SEPTEMBER 2026):**
+        Added separate formatting toolbars (`Bold`, `Italic`, `Bullet`, `Number`, `Heading`) above both `Description` and `Requirements` textareas in `AdminJobForm.tsx`. Updated `formatContent` in `JobDetail.tsx` to render inline bold, italic, subheadings, and bullet items.
+      * **Official Gazette / Source Web Link Restored (`JobDetail.tsx` - SEPTEMBER 2026):**
+        Restored blue `🌐 Visit Official Gazette / Source Portal` button in Disclaimer Box for Gazette PDFs and URLs.
+      * **Smooth Top Ticker Speed (`TopTicker.tsx` & `tailwind.config.js` - SEPTEMBER 2026):**
+        Slowed down marquee duration to `240s` for ultra-smooth gliding readability.
+      * **Official Domain Support Email (`support@jobnews.lk` - SEPTEMBER 2026):**
+        Configured Cloudflare Free Email Routing forwarding all incoming emails to `support@jobnews.lk` directly into personal Gmail (`kusalds99@gmail.com`).
+      * **In-House Anti-Virus Contact Inquiries Engine (`api/send-email.js`, `Contact.tsx`, `AdminDashboard.tsx` - SEPTEMBER 2026):**
+        Built 100% in-house Vercel serverless email API (`api/send-email.js`) and Dual Storage Sync Engine (LocalStorage + Supabase `contact_inquiries` table). Added dedicated `📬 Received Contact Inquiries` modal in `AdminDashboard.tsx` with 0ms instant optimistic delete and instant modal close.
+      * **Vercel Emergency 2FA Recovery Codes Backup (SEPTEMBER 2026):**
+        * `3fe6ee9e-5ddc9295`
+        * `4db4e506-d465cfc0`
+        * `6c571f32-1a80b045`
+        * `d44af4e9-45396b4c`
+        * `fe3f9511-0339d4ae`
+        * `7a4d0dca-a4736ee7`
 
 2. **Custom Domain & SEO Power Upgrades & Cross-Device Compatibility:**
    * Final verification of `jobnews.lk` custom domain routing and meta tag tuning.
@@ -131,4 +148,4 @@
 
 ---
 
-*Last Updated: 2026-08-27 by Antigravity AI*
+*Last Updated: September 6, 2026 by Antigravity AI*
