@@ -108,11 +108,20 @@ export default function FileUpload({
   };
 
   const isImage = (url: string) => {
-    return url.match(/\.(jpg|jpeg|png|gif|webp|avif)$/i) || url.startsWith('data:image');
+    if (!url) return false;
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    return (
+      !!cleanUrl.match(/\.(jpg|jpeg|png|gif|webp|avif|bmp|svg)$/i) ||
+      url.startsWith('data:image') ||
+      url.includes('/job-images/') ||
+      url.includes('/images/')
+    );
   };
 
   const isPdf = (url: string) => {
-    return url.match(/\.pdf$/i) || url.includes('/pdf/');
+    if (!url) return false;
+    const cleanUrl = url.split('?')[0].split('#')[0];
+    return !!cleanUrl.match(/\.pdf$/i) || url.includes('/pdf/') || url.includes('/job-pdfs/');
   };
 
   return (
