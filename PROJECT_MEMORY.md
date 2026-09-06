@@ -126,8 +126,9 @@
         Restored blue `🌐 Visit Official Gazette / Source Portal` button in Disclaimer Box for Gazette PDFs and URLs.
       * **Smooth Top Ticker Speed (`TopTicker.tsx` & `tailwind.config.js` - SEPTEMBER 2026):**
         Slowed down marquee duration to `240s` for ultra-smooth gliding readability.
-      * **Official Domain Support Email (`support@jobnews.lk` - SEPTEMBER 2026):**
-        Configured Cloudflare Free Email Routing forwarding all incoming emails to `support@jobnews.lk` directly into personal Gmail (`kusalds99@gmail.com`).
+      * **Official Domain Support Email & Gmail Outbound Alias (`support@jobnews.lk` - SEPTEMBER 2026):**
+        * **Incoming Email Routing:** Cloudflare Free Email Routing forwarding all incoming emails sent to `support@jobnews.lk` directly into personal Gmail (`kusalds99@gmail.com`).
+        * **Outgoing & Reply Alias ("Send mail as"):** Integrated Google App Password (`cgylvjndzwuvhyyy`) and custom SMTP alias (`smtp.gmail.com:587`, TLS, `kusalds99@gmail.com`) allowing 1-click outbound sending and replying directly from Gmail inbox as **`JobNews.lk Support <support@jobnews.lk>`**.
       * **In-House Anti-Virus Contact Inquiries Engine (`api/send-email.js`, `Contact.tsx`, `AdminDashboard.tsx` - SEPTEMBER 2026):**
         Built 100% in-house Vercel serverless email API (`api/send-email.js`) and Dual Storage Sync Engine (LocalStorage + Supabase `contact_inquiries` table). Added dedicated `📬 Received Contact Inquiries` modal in `AdminDashboard.tsx` with 0ms instant optimistic delete and instant modal close.
       * **Vercel Emergency 2FA Recovery Codes Backup (SEPTEMBER 2026):**
