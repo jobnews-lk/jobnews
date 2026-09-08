@@ -131,6 +131,9 @@
         * **Outgoing & Reply Alias ("Send mail as"):** Integrated Google App Password (`cgylvjndzwuvhyyy`) and custom SMTP alias (`smtp.gmail.com:587`, TLS, `kusalds99@gmail.com`) allowing 1-click outbound sending and replying directly from Gmail inbox as **`JobNews.lk Support <support@jobnews.lk>`**.
       * **In-House Anti-Virus Contact Inquiries Engine (`api/send-email.js`, `Contact.tsx`, `AdminDashboard.tsx` - SEPTEMBER 2026):**
         Built 100% in-house Vercel serverless email API (`api/send-email.js`) and Dual Storage Sync Engine (LocalStorage + Supabase `contact_inquiries` table). Added dedicated `📬 Received Contact Inquiries` modal in `AdminDashboard.tsx` with 0ms instant optimistic delete and instant modal close.
+      * **Google Search Console Onboarding & Dynamic Sitemap Submission (SEPTEMBER 9, 2026):**
+        * **Ownership Verified:** Added `google1b17d329aa0391fe.html` verification file in `public/` and `<meta name="google-site-verification" content="google1b17d329aa0391fe" />` in `index.html`. Ownership verified 100% on Google Search Console.
+        * **Dynamic Sitemap Submitted:** Submitted `https://jobnews.lk/sitemap.xml` to Google Search Console. Auto-indexes all 100+ published jobs directly from Supabase Database for top Google Sri Lanka search rankings.
       * **Vercel Emergency 2FA Recovery Codes Backup (SEPTEMBER 2026):**
         * `3fe6ee9e-5ddc9295`
         * `4db4e506-d465cfc0`
@@ -149,4 +152,4 @@
 
 ---
 
-*Last Updated: September 6, 2026 by Antigravity AI*
+*Last Updated: September 9, 2026 by Antigravity AI*
