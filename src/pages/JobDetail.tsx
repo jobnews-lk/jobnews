@@ -120,10 +120,8 @@ export default function JobDetail() {
       // 1. Detect Connector Words ("සහ", "හෝ", "නැතහොත්")
       if (isConnectorLine(trimmed)) {
         return (
-          <div key={i} className="my-3 pl-8 sm:pl-10 text-xs sm:text-sm font-extrabold text-amber-600 dark:text-amber-400 tracking-wider uppercase flex items-center gap-2">
-            <span className="h-px w-6 bg-amber-400 dark:bg-amber-600/70 inline-block"></span>
-            <span>{trimmed.replace(/^[-*•\(\)]+|\s+|[\(\)]+/g, '')}</span>
-            <span className="h-px w-6 bg-amber-400 dark:bg-amber-600/70 inline-block"></span>
+          <div key={i} className="my-2.5 pl-8 sm:pl-10 text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400">
+            {trimmed}
           </div>
         );
       }
