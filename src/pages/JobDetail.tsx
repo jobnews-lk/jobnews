@@ -120,7 +120,7 @@ export default function JobDetail() {
       // 1. Detect Connector Words ("සහ", "හෝ", "නැතහොත්")
       if (isConnectorLine(trimmed)) {
         return (
-          <div key={i} className="my-2.5 pl-8 sm:pl-10 text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400">
+          <div key={i} className="my-2 text-sm font-bold text-amber-600 dark:text-amber-400">
             {trimmed}
           </div>
         );
