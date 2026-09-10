@@ -52,7 +52,7 @@ export default function JobDetail() {
     const parts = textStr.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
     return parts.map((part, idx) => {
       if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
-        const content = part.slice(2, -2);
+        const content = part.slice(2, -2).trim();
         if (!content) return null;
         return (
           <strong key={idx} className="font-bold text-slate-900 dark:text-white">
@@ -61,7 +61,7 @@ export default function JobDetail() {
         );
       }
       if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
-        const content = part.slice(1, -1);
+        const content = part.slice(1, -1).trim();
         if (!content) return null;
         return (
           <em key={idx} className="italic text-slate-800 dark:text-slate-200">
@@ -69,14 +69,29 @@ export default function JobDetail() {
           </em>
         );
       }
-      // Strip any dangling unclosed raw asterisks so they never display as text
-      const sanitized = part.replace(/\*\*/g, '').replace(/\*/g, '');
+      // Completely strip any stray raw asterisks (* or **) so they never display as text
+      const sanitized = part.replace(/\*/g, '');
       return sanitized;
     });
   };
 
   const formatContent = (text: string | null | undefined, forceBullets: boolean = false) => {
     if (!text) return null;
+
+    // Helper to identify connector words that should NEVER have a bullet icon
+    const isConnectorLine = (str: string) => {
+      const clean = str.replace(/^[-*•\(\)]+|\s+|[\(\)]+/g, '').toLowerCase();
+      return (
+        clean === 'සහ' ||
+        clean === 'හෝ' ||
+        clean === 'සහ/හෝ' ||
+        clean === 'නැතහොත්' ||
+        clean === 'or' ||
+        clean === 'and' ||
+        clean === 'and/or'
+      );
+    };
+
     return text.split('\n').filter(line => line.trim() !== '').map((line, i) => {
       const trimmed = line.trim();
 
@@ -91,31 +106,40 @@ export default function JobDetail() {
         );
       }
 
-      // 1. Detect Numbered Items (e.g. "1.", "1)", "(01)")
-      const numberMatch = trimmed.match(/^(\(?\d{1,2}\)?[\.\)]\s*)(.+)/);
+      // 1. Detect Connector Words ("සහ", "හෝ", "නැතහොත්")
+      if (isConnectorLine(trimmed)) {
+        return (
+          <div key={i} className="my-2 pl-7 text-sm font-bold text-amber-600 dark:text-amber-400 tracking-wide uppercase">
+            {trimmed.replace(/^[-*•]\s*/, '')}
+          </div>
+        );
+      }
+
+      // 2. Detect Numbered Items & Roman Numerals (e.g. "1.", "1)", "(01)", "I.", "II.")
+      const numberMatch = trimmed.match(/^(\(?([0-9]{1,2}|[IVXLCDM]{1,4})\)?[\.\)]\s*)(.+)/i);
       if (numberMatch) {
         const numLabel = numberMatch[1].trim();
-        const restText = numberMatch[2];
+        const restText = numberMatch[3];
         return (
           <div key={i} className="flex gap-2.5 items-start mt-3 bg-blue-50/40 dark:bg-slate-800/40 p-3 rounded-xl border border-blue-100/60 dark:border-slate-800">
-            <span className="shrink-0 px-2 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-md mt-0.5">
+            <span className="shrink-0 px-2.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-md mt-0.5 shadow-xs">
               {numLabel}
             </span>
-            <span className="leading-relaxed text-slate-800 dark:text-slate-200 font-medium">
+            <span className="leading-relaxed text-slate-800 dark:text-slate-200 font-bold">
               {renderFormattedInlineText(restText)}
             </span>
           </div>
         );
       }
 
-      // 2. Detect Key-Value Pairs (e.g. "තනතුර: ...", "**රැකියාවේ විස්තරය:**")
+      // 3. Detect Key-Value Pairs (e.g. "තනතුර: ...", "**රැකියාවේ විස්තරය:**")
       let cleanLineForColon = trimmed;
       if (cleanLineForColon.startsWith('**') && cleanLineForColon.endsWith('**') && cleanLineForColon.length > 4) {
         cleanLineForColon = cleanLineForColon.slice(2, -2).trim();
       }
 
       const colonMatch = cleanLineForColon.match(/^([^:]+:\s*)(.*)/);
-      const isBullet = forceBullets || trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•');
+      const isExplicitBullet = trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•');
 
       if (colonMatch && !trimmed.startsWith('http') && !trimmed.startsWith('https')) {
         const keyPart = colonMatch[1];
@@ -131,8 +155,8 @@ export default function JobDetail() {
         );
       }
 
-      // 3. Detect Bullet Items
-      if (isBullet) {
+      // 4. Detect Bullet Items
+      if (isExplicitBullet || forceBullets) {
         const cleaned = trimmed.replace(/^[-*•]\s*/, '');
         return (
           <div key={i} className="flex gap-2.5 items-start mt-2.5">
@@ -142,7 +166,7 @@ export default function JobDetail() {
         );
       }
 
-      // 4. Standard Paragraph
+      // 5. Standard Paragraph
       return (
         <div key={i} className={i > 0 ? "mt-3 leading-relaxed text-slate-700 dark:text-slate-300" : "leading-relaxed text-slate-700 dark:text-slate-300"}>
           {renderFormattedInlineText(line)}
