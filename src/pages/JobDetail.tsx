@@ -366,18 +366,8 @@ export default function JobDetail() {
                 />
               </div>
               {allImages.length > 1 && (
-                <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-3 py-1 rounded-full">
+                <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-3 py-1 rounded-full z-20">
                   {allImages.length} images
-                </div>
-              )}
-              {hasPdf && (
-                <div className="absolute bottom-3 right-3">
-                  <button
-                    onClick={() => { if (pdfUrl) { setSelectedPdf(pdfUrl); setPdfViewerOpen(true); } }}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg shadow-lg transition-colors"
-                  >
-                    <Download className="w-4 h-4" /> View Official PDF
-                  </button>
                 </div>
               )}
             </div>
