@@ -51,21 +51,27 @@ export default function JobDetail() {
     if (!textStr) return null;
     const parts = textStr.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
     return parts.map((part, idx) => {
-      if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        const content = part.slice(2, -2);
+        if (!content) return null;
         return (
           <strong key={idx} className="font-bold text-slate-900 dark:text-white">
-            {part.slice(2, -2)}
+            {content}
           </strong>
         );
       }
-      if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+        const content = part.slice(1, -1);
+        if (!content) return null;
         return (
           <em key={idx} className="italic text-slate-800 dark:text-slate-200">
-            {part.slice(1, -1)}
+            {content}
           </em>
         );
       }
-      return part;
+      // Strip any dangling unclosed raw asterisks so they never display as text
+      const sanitized = part.replace(/\*\*/g, '').replace(/\*/g, '');
+      return sanitized;
     });
   };
 
@@ -102,8 +108,13 @@ export default function JobDetail() {
         );
       }
 
-      // 2. Detect Key-Value Pairs (e.g. "තනතුර: ...", "පුරප්පාඩු සංඛ්‍යාව: ...")
-      const colonMatch = trimmed.match(/^([^:]+:\s*)(.+)/);
+      // 2. Detect Key-Value Pairs (e.g. "තනතුර: ...", "**රැකියාවේ විස්තරය:**")
+      let cleanLineForColon = trimmed;
+      if (cleanLineForColon.startsWith('**') && cleanLineForColon.endsWith('**') && cleanLineForColon.length > 4) {
+        cleanLineForColon = cleanLineForColon.slice(2, -2).trim();
+      }
+
+      const colonMatch = cleanLineForColon.match(/^([^:]+:\s*)(.*)/);
       const isBullet = forceBullets || trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('•');
 
       if (colonMatch && !trimmed.startsWith('http') && !trimmed.startsWith('https')) {
@@ -113,8 +124,8 @@ export default function JobDetail() {
           <div key={i} className="flex gap-2.5 items-start mt-2.5">
             <span className="text-blue-600 dark:text-blue-400 font-bold shrink-0 mt-1 text-sm">🔹</span>
             <div className="leading-relaxed">
-              <strong className="text-slate-900 dark:text-white font-semibold">{keyPart}</strong>
-              <span className="text-slate-700 dark:text-slate-300 ml-1">{renderFormattedInlineText(valPart)}</span>
+              <strong className="text-slate-900 dark:text-white font-bold">{renderFormattedInlineText(keyPart)}</strong>
+              {valPart && valPart.trim() && <span className="text-slate-700 dark:text-slate-300 ml-1">{renderFormattedInlineText(valPart)}</span>}
             </div>
           </div>
         );
