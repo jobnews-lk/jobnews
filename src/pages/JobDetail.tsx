@@ -95,13 +95,24 @@ export default function JobDetail() {
     return text.split('\n').filter(line => line.trim() !== '').map((line, i) => {
       const trimmed = line.trim();
 
-      // 0. Detect Subheadings (e.g. "### ...", "## ...", "# ...")
+      // 0. Detect Markdown Subheadings (e.g. "### ...", "## ...", "# ...")
       if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
         const headingText = trimmed.replace(/^#+\s*/, '');
         return (
-          <h4 key={i} className="text-base font-bold text-blue-950 dark:text-blue-200 mt-4 mb-1 flex items-center gap-2 border-b border-blue-100 dark:border-slate-800 pb-1">
-            <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400"></span>
+          <h4 key={i} className="text-base font-bold text-blue-950 dark:text-blue-200 mt-5 mb-2 flex items-center gap-2 border-b border-blue-100 dark:border-slate-800 pb-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0"></span>
             {renderFormattedInlineText(headingText)}
+          </h4>
+        );
+      }
+
+      // 0.1 Detect Full Bold Title Lines (e.g. "**සුදුසුකම් (Requirements):**", "**I. අධ්‍යාපන සුදුසුකම්**")
+      if (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length > 4) {
+        const titleContent = trimmed.slice(2, -2).trim();
+        return (
+          <h4 key={i} className="text-base font-bold text-slate-900 dark:text-white mt-5 mb-2.5 flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-800 pb-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0"></span>
+            <span>{renderFormattedInlineText(titleContent)}</span>
           </h4>
         );
       }
@@ -109,8 +120,10 @@ export default function JobDetail() {
       // 1. Detect Connector Words ("සහ", "හෝ", "නැතහොත්")
       if (isConnectorLine(trimmed)) {
         return (
-          <div key={i} className="my-2 pl-7 text-sm font-bold text-amber-600 dark:text-amber-400 tracking-wide uppercase">
-            {trimmed.replace(/^[-*•]\s*/, '')}
+          <div key={i} className="my-3 pl-8 sm:pl-10 text-xs sm:text-sm font-extrabold text-amber-600 dark:text-amber-400 tracking-wider uppercase flex items-center gap-2">
+            <span className="h-px w-6 bg-amber-400 dark:bg-amber-600/70 inline-block"></span>
+            <span>{trimmed.replace(/^[-*•\(\)]+|\s+|[\(\)]+/g, '')}</span>
+            <span className="h-px w-6 bg-amber-400 dark:bg-amber-600/70 inline-block"></span>
           </div>
         );
       }
@@ -132,7 +145,7 @@ export default function JobDetail() {
         );
       }
 
-      // 3. Detect Key-Value Pairs (e.g. "තනතුර: ...", "**රැකියාවේ විස්තරය:**")
+      // 3. Detect Key-Value Pairs (e.g. "තනතුර: ...", "පුරප්පාඩු සංඛ්‍යාව: ...")
       let cleanLineForColon = trimmed;
       if (cleanLineForColon.startsWith('**') && cleanLineForColon.endsWith('**') && cleanLineForColon.length > 4) {
         cleanLineForColon = cleanLineForColon.slice(2, -2).trim();
