@@ -120,8 +120,11 @@ export default function JobDetail() {
       // 1. Detect Connector Words ("සහ", "හෝ", "නැතහොත්")
       if (isConnectorLine(trimmed)) {
         return (
-          <div key={i} className="my-2 text-sm font-bold text-amber-600 dark:text-amber-400">
-            {trimmed}
+          <div key={i} className="flex gap-2.5 items-start my-2">
+            <span className="text-blue-500 dark:text-blue-400 font-bold shrink-0 mt-1 text-xs opacity-0 select-none">🔹</span>
+            <span className="text-sm font-bold text-amber-600 dark:text-amber-400">
+              {renderFormattedInlineText(trimmed)}
+            </span>
           </div>
         );
       }
