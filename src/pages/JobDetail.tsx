@@ -22,28 +22,21 @@ export default function JobDetail() {
   const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  const handleDownloadPdf = async (url: string, filename: string) => {
+  const handleDownloadPdf = (url: string, filename: string) => {
     try {
       setDownloading(url);
-      const sep = url.includes('?') ? '&' : '?';
-      const freshUrl = `${url}${sep}v=${Date.now()}`;
-      const res = await fetch(freshUrl, { cache: 'no-cache' });
-      if (!res.ok) throw new Error('Network response was not ok');
-      const blob = await res.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = blobUrl;
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
       a.download = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      window.URL.revokeObjectURL(blobUrl);
     } catch (err) {
-      console.error('Download error:', err);
-      const sep = url.includes('?') ? '&' : '?';
-      window.open(`${url}${sep}v=${Date.now()}`, '_blank');
+      window.open(url, '_blank');
     } finally {
-      setDownloading(null);
+      setTimeout(() => setDownloading(null), 1000);
     }
   };
 
@@ -969,19 +962,19 @@ export default function JobDetail() {
       {/* PDF Viewer */}
       {pdfViewerOpen && selectedPdf && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-4xl h-[92vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-2">
-                <FileText className="w-5 h-5 text-red-500" /> PDF Document Viewer
+          <div className="bg-white dark:bg-slate-900 rounded-xl w-full max-w-5xl h-[94vh] flex flex-col overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 shrink-0">
+              <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base flex items-center gap-2 truncate pr-2">
+                <FileText className="w-5 h-5 text-red-500 shrink-0" /> PDF Document Viewer
               </h3>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <a
-                  href={`https://docs.google.com/gview?url=${encodeURIComponent(selectedPdf)}`}
+                  href={selectedPdf}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" /> Full Screen
+                  <ExternalLink className="w-3.5 h-3.5" /> Full Screen (Direct PDF)
                 </a>
                 <button
                   onClick={() => handleDownloadPdf(selectedPdf, 'Notice_Document.pdf')}
@@ -997,13 +990,38 @@ export default function JobDetail() {
                 </button>
               </div>
             </div>
-            <div className="flex-1 overflow-hidden bg-slate-100 dark:bg-slate-950 relative">
-              <iframe
-                src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedPdf)}&embedded=true`}
+            <div className="flex-1 overflow-hidden bg-slate-950 relative flex flex-col items-center justify-center">
+              {/* Native High-Speed PDF Render Engine */}
+              <object
+                data={selectedPdf}
+                type="application/pdf"
                 className="w-full h-full border-0"
-                title="PDF Viewer"
-                onError={() => {}}
-              />
+              >
+                <iframe
+                  src={selectedPdf}
+                  className="w-full h-full border-0"
+                  title="PDF Viewer"
+                >
+                  <iframe
+                    src={`https://docs.google.com/gview?url=${encodeURIComponent(selectedPdf)}&embedded=true`}
+                    className="w-full h-full border-0"
+                    title="PDF Viewer Fallback"
+                  />
+                </iframe>
+              </object>
+
+              {/* Bottom Quick Action Helper Banner */}
+              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700 text-white px-4 py-2 rounded-full text-xs flex items-center gap-3 shadow-xl z-20">
+                <span>📄 PDF නොපෙනේ නම් හෝ ප්‍රමාද නම්:</span>
+                <a
+                  href={selectedPdf}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 font-bold hover:underline flex items-center gap-1"
+                >
+                  කෙලින්ම PDF එක බලන්න <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
