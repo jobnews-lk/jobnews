@@ -1,10 +1,17 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, FolderOpen, Search, Heart } from 'lucide-react';
 import CategoriesDrawer from './CategoriesDrawer';
 
 export default function MobileBottomNav() {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const location = useLocation();
+
+  const handleNavClick = (targetPath: string) => {
+    if (location.pathname === targetPath) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <>
@@ -12,6 +19,7 @@ export default function MobileBottomNav() {
         <div className="flex justify-around items-center h-16">
           <NavLink
             to="/"
+            onClick={() => handleNavClick('/')}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
                 isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -34,6 +42,7 @@ export default function MobileBottomNav() {
 
           <NavLink
             to="/jobs"
+            onClick={() => handleNavClick('/jobs')}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
                 isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -46,6 +55,7 @@ export default function MobileBottomNav() {
 
           <NavLink
             to="/saved-jobs"
+            onClick={() => handleNavClick('/saved-jobs')}
             className={({ isActive }) =>
               `flex flex-col items-center justify-center w-full h-full space-y-1 ${
                 isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
