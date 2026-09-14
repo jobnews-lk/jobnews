@@ -38,8 +38,11 @@ function App() {
             <Route path="jobs/:id" element={<JobDetail />} />
             <Route path="saved-jobs" element={<SavedJobs />} />
             <Route path="government-jobs" element={<GovernmentJobs />} />
+            <Route path="government" element={<Navigate to="/government-jobs" replace />} />
             <Route path="private-jobs" element={<PrivateJobs />} />
+            <Route path="private" element={<Navigate to="/private-jobs" replace />} />
             <Route path="overseas-jobs" element={<OverseasJobs />} />
+            <Route path="overseas" element={<Navigate to="/overseas-jobs" replace />} />
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />

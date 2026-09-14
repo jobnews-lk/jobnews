@@ -63,18 +63,66 @@
     <meta name="twitter:description" content="Find the latest Government, Private, and Overseas job vacancies in Sri Lanka. JobNews.lk is your trusted portal for official Sri Lanka Gazette job announcements." />
     <meta name="twitter:image" content="https://jobnews.lk/og-banner.png" />
 
-    <!-- Schema.org JSON-LD Structured Data for Google -->
+    <!-- Schema.org JSON-LD Structured Data for Google Sitelinks & Search Navigation -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "JobNews.lk",
-        "url": "https://jobnews.lk",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://jobnews.lk/jobs?search={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://jobnews.lk/#website",
+            "name": "JobNews.lk",
+            "alternateName": ["Job News Sri Lanka", "JobNews"],
+            "url": "https://jobnews.lk",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://jobnews.lk/jobs?search={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          },
+          {
+            "@type": "ItemList",
+            "@id": "https://jobnews.lk/#sitenav",
+            "name": "Main Site Navigation",
+            "itemListElement": [
+              {
+                "@type": "SiteNavigationElement",
+                "position": 1,
+                "name": "Government Jobs",
+                "description": "Official Sri Lanka Government Job Vacancies & Gazette Notices",
+                "url": "https://jobnews.lk/government-jobs"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 2,
+                "name": "Private Sector Jobs",
+                "description": "Private Company & Corporate Job Vacancies in Sri Lanka",
+                "url": "https://jobnews.lk/private-jobs"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 3,
+                "name": "Overseas Jobs",
+                "description": "Foreign & Work Abroad Job Vacancies for Sri Lankans",
+                "url": "https://jobnews.lk/overseas-jobs"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 4,
+                "name": "Latest Jobs",
+                "description": "All Latest Job Vacancies in Sri Lanka",
+                "url": "https://jobnews.lk/jobs"
+              },
+              {
+                "@type": "SiteNavigationElement",
+                "position": 5,
+                "name": "Saved Jobs",
+                "description": "Your Bookmarked & Saved Job Vacancies",
+                "url": "https://jobnews.lk/saved-jobs"
+              }
+            ]
+          }
+        ]
       }
     </script>
   </head>
