@@ -2,6 +2,25 @@ const SUPABASE_URL = 'https://njrkhpsbbpszvyzosxwf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
 
 export default async function handler(req, res) {
+  // Proxy image to strip Supabase x-robots-tag: none header for WhatsApp & Facebook crawlers
+  if (req.query.img) {
+    try {
+      const imgUrl = req.query.img;
+      const imgRes = await fetch(imgUrl);
+      if (!imgRes.ok) throw new Error('Failed to fetch image');
+      const arrayBuffer = await imgRes.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.status(200).send(buffer);
+    } catch (err) {
+      return res.redirect(302, req.query.img);
+    }
+  }
+
   const { id } = req.query;
 
   if (!id) {
@@ -46,6 +65,11 @@ export default async function handler(req, res) {
     }
 
     const siteUrl = `https://jobnews.lk/jobs/${job.id}`;
+    
+    // Proxy image URL to bypass Supabase x-robots-tag header blocking WhatsApp preview cards
+    const proxyImageUrl = imageUrl.startsWith('http')
+      ? `https://jobnews.lk/api/share-job?img=${encodeURIComponent(imageUrl)}`
+      : imageUrl;
 
     const jobSchema = {
       "@context": "https://schema.org/",
@@ -57,7 +81,7 @@ export default async function handler(req, res) {
       "employmentType": "FULL_TIME",
       "directApply": true,
       "url": siteUrl,
-      "image": imageUrl,
+      "image": proxyImageUrl,
       "identifier": {
         "@type": "PropertyValue",
         "name": job.company || "JobNews.lk",
@@ -67,7 +91,7 @@ export default async function handler(req, res) {
         "@type": "Organization",
         "name": job.company || "Government / Private Organization",
         "sameAs": "https://jobnews.lk",
-        "logo": imageUrl
+        "logo": proxyImageUrl
       },
       "jobLocation": {
         "@type": "Place",
@@ -106,8 +130,8 @@ export default async function handler(req, res) {
     <meta property="og:site_name" content="JobNews.lk" />
     <meta property="og:title" content="${escapeHtml(cleanTitle)}" />
     <meta property="og:description" content="${escapeHtml(cleanDesc)}" />
-    <meta property="og:image" content="${escapeHtml(imageUrl)}" />
-    <meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />
+    <meta property="og:image" content="${escapeHtml(proxyImageUrl)}" />
+    <meta property="og:image:secure_url" content="${escapeHtml(proxyImageUrl)}" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -117,7 +141,7 @@ export default async function handler(req, res) {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${escapeHtml(cleanTitle)}" />
     <meta name="twitter:description" content="${escapeHtml(cleanDesc)}" />
-    <meta name="twitter:image" content="${escapeHtml(imageUrl)}" />
+    <meta name="twitter:image" content="${escapeHtml(proxyImageUrl)}" />
 
     <!-- Google Jobs Structured Data -->
     <script type="application/ld+json">

@@ -21,8 +21,8 @@ export default async function handler(req, res) {
   // Extract id from query params or URL
   const { id } = req.query;
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://uaznuhmsntkuxoxzivys.supabase.co";
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhem51aG1zbnRrdXhveHppdnlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEzMDgwMjIsImV4cCI6MjA1Njg4NDAyMn0.tL42V5s5U10S-aA3vE3i-M-X7y_O6c5i1Q9m9R6X-9k";
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://njrkhpsbbpszvyzosxwf.supabase.co";
+  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc";
 
   let title = "JobNews.lk - Sri Lanka's Latest Job Vacancies";
   let description = "Find the latest Government, Private, and Overseas job vacancies in Sri Lanka. JobNews.lk is your trusted portal for official job announcements.";

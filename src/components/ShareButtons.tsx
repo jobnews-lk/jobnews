@@ -16,8 +16,10 @@ export default function ShareButtons({ title, company, url, jobId }: ShareButton
   const extractedId = jobId || rawUrl.split('/jobs/')[1]?.split('?')[0] || rawUrl.split('/og/')[1]?.split('?')[0];
   const shareUrl = extractedId ? `https://jobnews.lk/jobs/${extractedId}` : rawUrl;
 
+  // Clean title & limit excessive length so WhatsApp link crawler parses preview image reliably
+  const displayTitle = title.length > 110 ? `${title.substring(0, 107)}...` : title;
   const companyStr = company ? ` at ${company}` : '';
-  const shareText = `🔍 Job Notice: ${title}${companyStr}\n\nApply now via JobNews.lk:`;
+  const shareText = `🔍 Job Notice: ${displayTitle}${companyStr}\n\nApply now via JobNews.lk:`;
 
   // Native Device Web Share API
   const handleNativeShare = async () => {
