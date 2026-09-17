@@ -123,19 +123,24 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-1.5 sm:gap-2">
             <Link
               to="/create-cv"
-              className="p-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl shadow-md shadow-indigo-600/30 border border-indigo-400/30 flex items-center justify-center transition-all active:scale-95"
+              className="w-9 h-9 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl shadow-md shadow-indigo-600/30 border border-indigo-400/30 inline-flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
               title="Create Free Professional CV"
               aria-label="Create CV"
             >
-              <FileText className="w-4 h-4 text-amber-300" />
+              <FileText className="w-4.5 h-4.5 text-amber-300 stroke-[2.2]" />
             </Link>
             <button 
               onClick={toggleTheme}
-              className="p-2 text-slate-500 dark:text-slate-400"
+              className="w-9 h-9 inline-flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors flex-shrink-0"
+              aria-label="Toggle dark mode"
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
-            <button className="p-2 text-slate-600 dark:text-slate-300" onClick={() => setOpen(!open)}>
+            <button 
+              className="w-9 h-9 inline-flex items-center justify-center text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors flex-shrink-0" 
+              onClick={() => setOpen(!open)}
+              aria-label="Toggle navigation menu"
+            >
               {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>

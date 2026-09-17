@@ -22,8 +22,7 @@ export default async function handler(req, res) {
       { url: 'https://jobnews.lk/', priority: '1.0', changefreq: 'hourly' },
       { url: 'https://jobnews.lk/government', priority: '0.9', changefreq: 'hourly' },
       { url: 'https://jobnews.lk/private-sector', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/overseas', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/saved', priority: '0.5', changefreq: 'weekly' }
+      { url: 'https://jobnews.lk/overseas', priority: '0.9', changefreq: 'hourly' }
     ];
 
     const todayIso = new Date().toISOString().split('T')[0];
