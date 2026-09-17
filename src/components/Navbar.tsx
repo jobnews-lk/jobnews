@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon, Search, MessageCircle, Heart } from 'lucide-react';
+import { Briefcase, Menu, X, Newspaper, Shield, LogOut, Sun, Moon, Search, MessageCircle, Heart, FileText, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -25,42 +25,50 @@ export default function Navbar() {
 
   const navLinkClass = (path: string) => {
     const isActive = location.pathname === path;
-    return `text-sm font-medium transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400'}`;
+    return `text-sm font-medium whitespace-nowrap transition-colors ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400'}`;
   };
 
   return (
     <nav className={`bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg shadow-blue-500/20">
+          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90 flex-shrink-0">
+            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg shadow-blue-500/20 flex-shrink-0">
               <Briefcase className="w-5 h-5 text-white" strokeWidth={2.2} />
               <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm">
                 <Search className="w-3 h-3 text-white" strokeWidth={3} />
               </div>
             </div>
             <div className="flex flex-col justify-center">
-              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none whitespace-nowrap">
                 JobNews<span className="text-blue-600 dark:text-blue-400">.lk</span>
               </span>
-              <span className="text-[8.5px] text-slate-500 dark:text-slate-400 font-bold tracking-[0.2em] uppercase mt-1 leading-none">
+              <span className="text-[8.5px] text-slate-500 dark:text-slate-400 font-bold tracking-[0.2em] uppercase mt-1 leading-none whitespace-nowrap">
                 Your Career, Our Mission
               </span>
             </div>
           </Link>
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-2.5 lg:gap-4.5">
             <Link to="/" className={navLinkClass('/')}>Home</Link>
             <Link to="/jobs" className={navLinkClass('/jobs')}>Latest Jobs</Link>
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas</Link>
-            <Link to="/saved-jobs" className={`${navLinkClass('/saved-jobs')} inline-flex items-center gap-1.5`}>
+            <Link to="/saved-jobs" className={`${navLinkClass('/saved-jobs')} inline-flex items-center gap-1.5 whitespace-nowrap`}>
               Saved Jobs
               {savedCount > 0 && (
                 <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-extrabold bg-red-500 text-white rounded-full min-w-[18px] h-4 shadow-sm animate-pulse">
                   {savedCount}
                 </span>
               )}
+            </Link>
+
+            <Link 
+              to="/create-cv" 
+              className="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 border border-indigo-400/30 transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300 animate-pulse" />
+              <span>Create CV</span>
             </Link>
             
             <a
@@ -112,7 +120,15 @@ export default function Navbar() {
             </button>
           </div>
           
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center gap-1.5 sm:gap-2">
+            <Link
+              to="/create-cv"
+              className="p-2 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl shadow-md shadow-indigo-600/30 border border-indigo-400/30 flex items-center justify-center transition-all active:scale-95"
+              title="Create Free Professional CV"
+              aria-label="Create CV"
+            >
+              <FileText className="w-4 h-4 text-amber-300" />
+            </Link>
             <button 
               onClick={toggleTheme}
               className="p-2 text-slate-500 dark:text-slate-400"
@@ -131,6 +147,13 @@ export default function Navbar() {
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government Jobs</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas Jobs</Link>
+            <Link 
+              to="/create-cv" 
+              className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 text-white font-black text-xs rounded-xl shadow-lg shadow-indigo-600/30 border border-indigo-400/30 flex items-center justify-center gap-2 tracking-wide"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" /> 
+              <span>Create Free Professional CV</span>
+            </Link>
             <Link to="/saved-jobs" className={`${navLinkClass('/saved-jobs')} inline-flex items-center justify-between`}>
               <span>Saved Jobs</span>
               {savedCount > 0 && (

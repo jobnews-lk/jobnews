@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, FolderOpen, Search, Heart } from 'lucide-react';
+import { Home, FolderOpen, Search, Heart, FileText } from 'lucide-react';
 import CategoriesDrawer from './CategoriesDrawer';
 
 export default function MobileBottomNav() {
@@ -51,6 +51,19 @@ export default function MobileBottomNav() {
           >
             <Search className="w-5 h-5" />
             <span className="text-[10px] font-medium">Search</span>
+          </NavLink>
+
+          <NavLink
+            to="/create-cv"
+            onClick={() => handleNavClick('/create-cv')}
+            className={({ isActive }) =>
+              `flex flex-col items-center justify-center w-full h-full space-y-1 ${
+                isActive ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`
+            }
+          >
+            <FileText className="w-5 h-5 text-amber-500" />
+            <span className="text-[10px] font-medium">CV Builder</span>
           </NavLink>
 
           <NavLink

@@ -7,6 +7,7 @@ import SavedJobs from './pages/SavedJobs';
 import GovernmentJobs from './pages/GovernmentJobs';
 import PrivateJobs from './pages/PrivateJobs';
 import OverseasJobs from './pages/OverseasJobs';
+import CvBuilder from './pages/CvBuilder';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -43,6 +44,9 @@ function App() {
             <Route path="private" element={<Navigate to="/private-jobs" replace />} />
             <Route path="overseas-jobs" element={<OverseasJobs />} />
             <Route path="overseas" element={<Navigate to="/overseas-jobs" replace />} />
+            <Route path="create-cv" element={<CvBuilder />} />
+            <Route path="cv-builder" element={<Navigate to="/create-cv" replace />} />
+            <Route path="cv" element={<Navigate to="/create-cv" replace />} />
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
             <Route path="privacy-policy" element={<PrivacyPolicy />} />
