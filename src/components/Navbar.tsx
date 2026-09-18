@@ -32,18 +32,18 @@ export default function Navbar() {
     <nav className={`bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200 ${scrolled ? 'shadow-sm' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90 flex-shrink-0">
-            <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg shadow-blue-500/20 flex-shrink-0">
-              <Briefcase className="w-5 h-5 text-white" strokeWidth={2.2} />
-              <div className="absolute -bottom-1.5 -right-1.5 w-5 h-5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm">
-                <Search className="w-3 h-3 text-white" strokeWidth={3} />
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 transition-opacity hover:opacity-90 flex-shrink-0 mr-2">
+            <div className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 shadow-lg shadow-blue-500/20 flex-shrink-0">
+              <Briefcase className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-white" strokeWidth={2.2} />
+              <div className="absolute -bottom-1 -right-1 sm:-bottom-1.5 sm:-right-1.5 w-4.5 h-4.5 sm:w-5 sm:h-5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center shadow-sm">
+                <Search className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" strokeWidth={3} />
               </div>
             </div>
             <div className="flex flex-col justify-center">
-              <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none whitespace-nowrap">
+              <span className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none whitespace-nowrap">
                 JobNews<span className="text-blue-600 dark:text-blue-400">.lk</span>
               </span>
-              <span className="text-[8.5px] text-slate-500 dark:text-slate-400 font-bold tracking-[0.2em] uppercase mt-1 leading-none whitespace-nowrap">
+              <span className="text-[7.5px] sm:text-[8.5px] text-slate-500 dark:text-slate-400 font-bold tracking-[0.16em] sm:tracking-[0.2em] uppercase mt-0.5 sm:mt-1 leading-none whitespace-nowrap">
                 Your Career, Our Mission
               </span>
             </div>
@@ -120,7 +120,7 @@ export default function Navbar() {
             </button>
           </div>
           
-          <div className="md:hidden flex items-center gap-1.5 sm:gap-2">
+          <div className="md:hidden flex items-center gap-2 sm:gap-2.5 flex-shrink-0 ml-auto">
             <Link
               to="/create-cv"
               className="w-9 h-9 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl shadow-md shadow-indigo-600/30 border border-indigo-400/30 inline-flex items-center justify-center transition-all active:scale-95 flex-shrink-0"
