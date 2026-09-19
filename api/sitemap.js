@@ -20,9 +20,13 @@ export default async function handler(req, res) {
 
     const staticRoutes = [
       { url: 'https://jobnews.lk/', priority: '1.0', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/government', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/private-sector', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/overseas', priority: '0.9', changefreq: 'hourly' }
+      { url: 'https://jobnews.lk/government-jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://jobnews.lk/private-jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://jobnews.lk/overseas-jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://jobnews.lk/create-cv', priority: '0.9', changefreq: 'daily' },
+      { url: 'https://jobnews.lk/jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://jobnews.lk/about', priority: '0.5', changefreq: 'monthly' },
+      { url: 'https://jobnews.lk/contact', priority: '0.5', changefreq: 'monthly' }
     ];
 
     const todayIso = new Date().toISOString().split('T')[0];
