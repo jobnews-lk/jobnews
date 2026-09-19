@@ -112,7 +112,7 @@ export default function About() {
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
-                <Calendar className="w-3.5 h-3.5 text-blue-500" /> Established in 2026 • Sri Lanka
+                <Calendar className="w-3.5 h-3.5 text-blue-500" /> Established in 2020 • Sri Lanka
               </p>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                 Founded JobNews.lk with a vision to connect Sri Lankan job seekers with official, verified career notices across public, private, and overseas sectors through modern web technologies.
