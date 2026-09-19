@@ -225,6 +225,7 @@ export default function CvBuilder() {
 
   const [photoPreview, setPhotoPreview] = useState<string>(cv.personal.photoUrl || '');
   const [selectedPresetIndex, setSelectedPresetIndex] = useState<number | null>(null);
+  const [mobileActiveDrawer, setMobileActiveDrawer] = useState<'none' | 'templates' | 'profile' | 'content' | 'colors'>('none');
 
   // Auto-Save to localStorage
   useEffect(() => {
@@ -2210,6 +2211,291 @@ export default function CvBuilder() {
           </div>
         </div>
       </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* CANVA-STYLE STICKY MOBILE DOCKED BOTTOM TOOLBAR (MOBILE ONLY) */}
+      {/* ------------------------------------------------------------- */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 px-3 py-2 shadow-2xl flex items-center justify-around no-print">
+        <button
+          onClick={() => setMobileActiveDrawer(prev => prev === 'templates' ? 'none' : 'templates')}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            mobileActiveDrawer === 'templates' ? 'text-blue-600 dark:text-blue-400 scale-105 font-bold' : 'text-slate-600 dark:text-slate-400'
+          }`}
+        >
+          <Layout className="w-5 h-5" />
+          <span className="text-[10px]">Layout</span>
+        </button>
+
+        <button
+          onClick={() => setMobileActiveDrawer(prev => prev === 'profile' ? 'none' : 'profile')}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            mobileActiveDrawer === 'profile' ? 'text-blue-600 dark:text-blue-400 scale-105 font-bold' : 'text-slate-600 dark:text-slate-400'
+          }`}
+        >
+          <User className="w-5 h-5" />
+          <span className="text-[10px]">Profile</span>
+        </button>
+
+        <button
+          onClick={() => setMobileActiveDrawer(prev => prev === 'content' ? 'none' : 'content')}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            mobileActiveDrawer === 'content' ? 'text-blue-600 dark:text-blue-400 scale-105 font-bold' : 'text-slate-600 dark:text-slate-400'
+          }`}
+        >
+          <Briefcase className="w-5 h-5" />
+          <span className="text-[10px]">Content</span>
+        </button>
+
+        <button
+          onClick={() => setMobileActiveDrawer(prev => prev === 'colors' ? 'none' : 'colors')}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            mobileActiveDrawer === 'colors' ? 'text-blue-600 dark:text-blue-400 scale-105 font-bold' : 'text-slate-600 dark:text-slate-400'
+          }`}
+        >
+          <Palette className="w-5 h-5" />
+          <span className="text-[10px]">Colors</span>
+        </button>
+
+        <button
+          onClick={handlePrintPdf}
+          className="flex flex-col items-center gap-1 text-emerald-600 dark:text-emerald-400 font-extrabold active:scale-95 transition-all"
+        >
+          <Download className="w-5 h-5" />
+          <span className="text-[10px]">Save PDF</span>
+        </button>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* CANVA-STYLE SLIDE-UP MOBILE EDITING DRAWERS (MOBILE ONLY)     */}
+      {/* ------------------------------------------------------------- */}
+      {mobileActiveDrawer !== 'none' && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex flex-col justify-end no-print md:hidden animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-t-3xl max-h-[82vh] flex flex-col shadow-2xl border-t border-slate-200 dark:border-slate-800 overflow-hidden animate-in slide-in-from-bottom duration-250">
+            {/* Top Handle & Header Bar */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/40 relative">
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full absolute top-2 left-1/2 -translate-x-1/2" />
+              <div className="flex items-center gap-2 pt-1">
+                {mobileActiveDrawer === 'templates' && (
+                  <>
+                    <Layout className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Choose Template Layout</h3>
+                  </>
+                )}
+                {mobileActiveDrawer === 'profile' && (
+                  <>
+                    <User className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Profile & Photo Settings</h3>
+                  </>
+                )}
+                {mobileActiveDrawer === 'content' && (
+                  <>
+                    <Briefcase className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Edit Resume Sections</h3>
+                  </>
+                )}
+                {mobileActiveDrawer === 'colors' && (
+                  <>
+                    <Palette className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Theme Color & Settings</h3>
+                  </>
+                )}
+              </div>
+
+              <button
+                onClick={() => setMobileActiveDrawer('none')}
+                className="w-8 h-8 rounded-full bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer Scrollable Content */}
+            <div className="p-5 overflow-y-auto space-y-6 flex-1">
+              {/* 1. TEMPLATES DRAWER */}
+              {mobileActiveDrawer === 'templates' && (
+                <div className="space-y-4">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Select a professional template style for your CV:
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'executive', name: 'Executive Corporate', desc: 'Adam Rose style dark top banner & 2-column progress bars' },
+                      { id: 'fresher', name: 'Fresher Modern', desc: 'Hannah Perkins style left sidebar & dot ratings' },
+                      { id: 'srilankan', name: 'Sri Lankan Technical', desc: 'Kusal Duminda style full blue sidebar & pill badges' },
+                      { id: 'classic', name: 'Minimal Classic', desc: 'Traditional serif typography & clean dividers' },
+                    ].map(tmpl => {
+                      const isSelected = cv.templateId === tmpl.id;
+                      return (
+                        <button
+                          key={tmpl.id}
+                          onClick={() => {
+                            setCv(prev => ({ ...prev, templateId: tmpl.id as any }));
+                            setMobileActiveDrawer('none');
+                          }}
+                          className={`p-3 text-left rounded-2xl border transition-all relative space-y-1 ${
+                            isSelected
+                              ? 'bg-blue-50/70 dark:bg-blue-950/40 border-blue-600 ring-2 ring-blue-500/20 shadow-sm'
+                              : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/60 hover:bg-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">{tmpl.name}</span>
+                            {isSelected && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
+                          </div>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-normal leading-tight">{tmpl.desc}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. PROFILE DRAWER */}
+              {mobileActiveDrawer === 'profile' && (
+                <div className="space-y-4">
+                  {/* Photo Uploader Card */}
+                  <div className="bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-20 h-20 ${getPhotoFrameClass(cv.personal.photoFrameShape)} bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-200 font-extrabold text-xl flex items-center justify-center border-2 border-blue-200/80 dark:border-blue-800 flex-shrink-0 shadow-sm overflow-hidden relative`}>
+                        {photoPreview ? (
+                          <img
+                            src={photoPreview}
+                            alt="Profile"
+                            style={getPhotoTransformStyle(cv.personal.photoScale, cv.personal.photoX, cv.personal.photoY)}
+                            className={`w-full h-full ${getPhotoFitClass(cv.personal.photoFit)} ${getPhotoPositionClass(cv.personal.photoPosition)} ${getPhotoFrameClass(cv.personal.photoFrameShape)}`}
+                          />
+                        ) : (
+                          getInitials(cv.personal.fullName)
+                        )}
+                      </div>
+                      <div className="space-y-2 flex-1">
+                        <label className="px-3.5 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-xl cursor-pointer shadow-2xs inline-block">
+                          Upload Photo
+                          <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhotoUpload} className="hidden" />
+                        </label>
+                        {photoPreview && (
+                          <button onClick={removePhoto} className="text-xs text-rose-600 font-bold block">
+                            ✕ Remove Photo
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {photoPreview && (
+                      <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
+                        <label className="block text-[10.5px] font-bold text-slate-700 dark:text-slate-300">Crop Mode:</label>
+                        <div className="flex gap-1.5">
+                          {[
+                            { id: 'contain', label: '🖼️ 100% Full Original' },
+                            { id: 'cover', label: '✂️ Fill Box' },
+                          ].map(fitMode => (
+                            <button
+                              key={fitMode.id}
+                              onClick={() => setCv(prev => ({ ...prev, personal: { ...prev.personal, photoFit: fitMode.id as any } }))}
+                              className={`px-2 py-1 text-[10px] font-bold rounded-xl border ${
+                                (cv.personal.photoFit || 'contain') === fitMode.id ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                              }`}
+                            >
+                              {fitMode.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Personal Fields */}
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={cv.personal.fullName}
+                        onChange={e => setCv(prev => ({ ...prev, personal: { ...prev.personal, fullName: e.target.value } }))}
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Job Title</label>
+                      <input
+                        type="text"
+                        value={cv.personal.jobTitle}
+                        onChange={e => setCv(prev => ({ ...prev, personal: { ...prev.personal, jobTitle: e.target.value } }))}
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                        <input
+                          type="email"
+                          value={cv.personal.email}
+                          onChange={e => setCv(prev => ({ ...prev, personal: { ...prev.personal, email: e.target.value } }))}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Phone</label>
+                        <input
+                          type="text"
+                          value={cv.personal.phone}
+                          onChange={e => setCv(prev => ({ ...prev, personal: { ...prev.personal, phone: e.target.value } }))}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. CONTENT DRAWER */}
+              {mobileActiveDrawer === 'content' && (
+                <div className="space-y-4">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Edit experience, education, skills, and references:
+                  </p>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-2xl border border-blue-200/70 dark:border-blue-900/50">
+                    <p className="text-xs text-blue-900 dark:text-blue-200 font-medium">
+                      💡 Tip: Use the main form on desktop or scroll up on mobile to edit full section details! All changes auto-save instantly.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setMobileActiveDrawer('none')}
+                    className="w-full py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl shadow-sm"
+                  >
+                    Return to Live CV View
+                  </button>
+                </div>
+              )}
+
+              {/* 4. COLORS DRAWER */}
+              {mobileActiveDrawer === 'colors' && (
+                <div className="space-y-4">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Preset Theme Colors:</span>
+                  <div className="flex items-center gap-3">
+                    {PRESET_COLORS.map(color => {
+                      const isSelected = cv.themeColor === color.hex;
+                      return (
+                        <button
+                          key={color.hex}
+                          onClick={() => setCv(prev => ({ ...prev, themeColor: color.hex }))}
+                          className={`w-9 h-9 rounded-full transition-all flex items-center justify-center relative ${
+                            isSelected ? 'ring-2 ring-blue-600 ring-offset-2 scale-110 shadow-sm' : 'hover:scale-105 border border-slate-200'
+                          }`}
+                          style={{ backgroundColor: color.hex }}
+                          title={color.name}
+                        >
+                          {isSelected && <Check className="w-4 h-4 text-white stroke-[3]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   </div>
 );
