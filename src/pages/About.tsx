@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Newspaper, Globe, Landmark, Building2, CheckCircle, ShieldCheck, HeartHandshake, AlertCircle } from 'lucide-react';
+import { Newspaper, Globe, Landmark, Building2, CheckCircle, ShieldCheck, HeartHandshake, AlertCircle, User, Calendar, ExternalLink } from 'lucide-react';
 
 export default function About() {
   return (
@@ -94,6 +94,48 @@ export default function About() {
             <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
               <strong className="text-slate-900 dark:text-white">Independence & Legal Notice:</strong> JobNews is an independent news and announcement platform. We are not a government agency, nor are we directly affiliated with the employers whose notices appear on this website. For full details on our operational policies and liability terms, please review our <Link to="/terms" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Terms & Disclaimer</Link> and <Link to="/privacy-policy" className="text-blue-600 dark:text-blue-400 font-semibold hover:underline">Privacy Policy</Link>.
             </p>
+          </div>
+        </div>
+
+        {/* Leadership & Founder */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 mb-8 shadow-sm transition-colors">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Leadership & Founder</h2>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl font-extrabold shadow-md shrink-0">
+              KD
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">H A Kusal Duminda</h3>
+                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/40 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">
+                  Founder
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-blue-500" /> Established in 2026 • Sri Lanka
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Founded JobNews.lk with a vision to connect Sri Lankan job seekers with official, verified career notices across public, private, and overseas sectors through modern web technologies.
+              </p>
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <a
+                  href="https://web.facebook.com/profile.php?id=61593547437825"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg"
+                >
+                  Facebook Page <ExternalLink className="w-3 h-3" />
+                </a>
+                <a
+                  href="https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-lg"
+                >
+                  WhatsApp Channel <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 

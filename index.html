@@ -63,17 +63,45 @@
     <meta name="twitter:description" content="Find the latest Government, Private, and Overseas job vacancies in Sri Lanka. JobNews.lk is your trusted portal for official Sri Lanka Gazette job announcements." />
     <meta name="twitter:image" content="https://jobnews.lk/og-banner.png" />
 
-    <!-- Schema.org JSON-LD Structured Data for Google Sitelinks & Search Navigation -->
+    <!-- Schema.org JSON-LD Structured Data for Google Sitelinks, Knowledge Panel & Search Navigation -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://jobnews.lk/#organization",
+            "name": "JobNews.lk",
+            "legalName": "JobNews Sri Lanka",
+            "alternateName": ["Job News Sri Lanka", "JobNews"],
+            "url": "https://jobnews.lk",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://jobnews.lk/og-banner.png",
+              "caption": "JobNews.lk Logo"
+            },
+            "image": "https://jobnews.lk/og-banner.png",
+            "description": "Sri Lanka's trusted job vacancy portal for official Government Gazette notices, private sector vacancies, and overseas employment opportunities.",
+            "foundingDate": "2026",
+            "founder": {
+              "@type": "Person",
+              "name": "H A Kusal Duminda",
+              "jobTitle": "Founder"
+            },
+            "sameAs": [
+              "https://web.facebook.com/profile.php?id=61593547437825",
+              "https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y"
+            ]
+          },
           {
             "@type": "WebSite",
             "@id": "https://jobnews.lk/#website",
             "name": "JobNews.lk",
             "alternateName": ["Job News Sri Lanka", "JobNews"],
             "url": "https://jobnews.lk",
+            "publisher": {
+              "@id": "https://jobnews.lk/#organization"
+            },
             "potentialAction": {
               "@type": "SearchAction",
               "target": "https://jobnews.lk/jobs?search={search_term_string}",
