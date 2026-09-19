@@ -1424,7 +1424,7 @@ export default function CvBuilder() {
           </div>
 
           {/* A4 PRINT CONTAINER SCROLLABLE WRAPPER */}
-          <div className="flex-1 overflow-y-auto rounded-2xl space-y-4 pr-0.5 overflow-x-hidden shadow-2xl">
+          <div className="flex-1 overflow-y-auto rounded-2xl space-y-4 pr-0.5 overflow-x-auto sm:overflow-x-hidden shadow-2xl pb-28 sm:pb-0">
             <div
               id="cv-print-area"
               className="bg-white text-slate-900 rounded-2xl min-h-[842px] border border-slate-200/80 text-xs font-sans relative overflow-hidden flex flex-col justify-between p-0"
@@ -1436,8 +1436,8 @@ export default function CvBuilder() {
             {cv.templateId === 'executive' && (
               <div className="flex-1 flex min-h-[842px]">
                 {/* Left Sidebar - 32% Width Full Height Dark Navy */}
-                <div className="w-[32%] text-white p-6 space-y-6 flex flex-col justify-between" style={{ backgroundColor: cv.themeColor || '#1b3044' }}>
-                  <div className="space-y-6">
+                <div className="w-[32%] text-white p-3 sm:p-6 space-y-4 sm:space-y-6 flex flex-col justify-between" style={{ backgroundColor: cv.themeColor || '#1b3044' }}>
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Circular Photo */}
                     <div className="pt-2 text-center">
                       {cv.personal.photoUrl ? (
@@ -1447,7 +1447,7 @@ export default function CvBuilder() {
                           onMouseUp={handlePhotoMouseUp}
                           onMouseLeave={handlePhotoMouseUp}
                           title="Click & Drag mouse to center photo"
-                          className={`w-32 h-32 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-4 border-white/90 shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
+                          className={`w-20 h-20 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-2 sm:border-4 border-white/90 shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
                         >
                           <img
                             src={cv.personal.photoUrl}
@@ -1460,7 +1460,7 @@ export default function CvBuilder() {
                           </div>
                         </div>
                       ) : (
-                        <div className={`w-28 h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} bg-white/10 text-white font-extrabold text-2xl flex items-center justify-center mx-auto border-2 border-white/40 shadow-lg`}>
+                        <div className={`w-16 h-16 sm:w-28 sm:h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} bg-white/10 text-white font-extrabold text-lg sm:text-2xl flex items-center justify-center mx-auto border-2 border-white/40 shadow-lg`}>
                           {getInitials(cv.personal.fullName)}
                         </div>
                       )}
@@ -1545,7 +1545,7 @@ export default function CvBuilder() {
                 </div>
 
                 {/* Right Main Panel - 68% Width White */}
-                <div className="w-[68%] p-8 space-y-6 bg-white flex flex-col justify-between">
+                <div className="w-[68%] p-4 sm:p-8 space-y-4 sm:space-y-6 bg-white flex flex-col justify-between">
                   <div className="space-y-6">
                     {/* Header Name */}
                     <div className="space-y-1 border-b-2 pb-4" style={{ borderColor: cv.themeColor || '#1b3044' }}>
@@ -1657,8 +1657,8 @@ export default function CvBuilder() {
             {cv.templateId === 'fresher' && (
               <div className="flex-1 flex min-h-[842px]">
                 {/* Left Sidebar - 33% Dynamic Theme Color */}
-                <div className="w-[33%] text-white p-6 space-y-6 flex flex-col justify-between" style={{ backgroundColor: cv.themeColor || '#425b76' }}>
-                  <div className="space-y-6">
+                <div className="w-[33%] text-white p-3 sm:p-6 space-y-4 sm:space-y-6 flex flex-col justify-between" style={{ backgroundColor: cv.themeColor || '#425b76' }}>
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Circular Photo */}
                     <div className="pt-2 text-center">
                       {cv.personal.photoUrl ? (
@@ -1668,7 +1668,7 @@ export default function CvBuilder() {
                           onMouseUp={handlePhotoMouseUp}
                           onMouseLeave={handlePhotoMouseUp}
                           title="Click & Drag mouse to center photo"
-                          className={`w-32 h-32 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-4 border-white shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
+                          className={`w-20 h-20 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-2 sm:border-4 border-white shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
                         >
                           <img
                             src={cv.personal.photoUrl}
@@ -1681,7 +1681,7 @@ export default function CvBuilder() {
                           </div>
                         </div>
                       ) : (
-                        <div className={`w-28 h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} bg-white/20 text-white font-extrabold text-2xl flex items-center justify-center mx-auto border-2 border-white/40 shadow-lg`}>
+                        <div className={`w-16 h-16 sm:w-28 sm:h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} bg-white/20 text-white font-extrabold text-lg sm:text-2xl flex items-center justify-center mx-auto border-2 border-white/40 shadow-lg`}>
                           {getInitials(cv.personal.fullName)}
                         </div>
                       )}
@@ -1763,7 +1763,7 @@ export default function CvBuilder() {
                 </div>
 
                 {/* Right Main Panel - 67% Light Grey Background */}
-                <div className="w-[67%] p-8 space-y-6 bg-[#f8fafc] flex flex-col justify-between">
+                <div className="w-[67%] p-4 sm:p-8 space-y-4 sm:space-y-6 bg-[#f8fafc] flex flex-col justify-between">
                   <div className="space-y-6">
                     {/* Candidate Name Header */}
                     <div className="space-y-1">
@@ -1856,8 +1856,8 @@ export default function CvBuilder() {
             {cv.templateId === 'srilankan' && (
               <div className="flex-1 flex min-h-[842px]">
                 {/* Left Sidebar - 32% Charcoal Navy */}
-                <div className="w-[32%] text-white p-6 space-y-6 flex flex-col justify-between" style={{ backgroundColor: cv.themeColor || '#263342' }}>
-                  <div className="space-y-6">
+                <div className="w-[32%] text-white p-3 sm:p-6 space-y-4 sm:space-y-6 flex flex-col justify-between" style={{ backgroundColor: cv.themeColor || '#263342' }}>
+                  <div className="space-y-4 sm:space-y-6">
                     {/* Circular Photo */}
                     <div className="pt-2 text-center">
                       {cv.personal.photoUrl ? (
@@ -1867,7 +1867,7 @@ export default function CvBuilder() {
                           onMouseUp={handlePhotoMouseUp}
                           onMouseLeave={handlePhotoMouseUp}
                           title="Click & Drag mouse to center photo"
-                          className={`w-32 h-32 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-4 border-white/90 shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
+                          className={`w-20 h-20 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-2 sm:border-4 border-white/90 shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
                         >
                           <img
                             src={cv.personal.photoUrl}
@@ -1880,7 +1880,7 @@ export default function CvBuilder() {
                           </div>
                         </div>
                       ) : (
-                        <div className={`w-28 h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} bg-white/10 text-white font-extrabold text-2xl flex items-center justify-center mx-auto border-2 border-white/40 shadow-lg`}>
+                        <div className={`w-16 h-16 sm:w-28 sm:h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} bg-white/10 text-white font-extrabold text-lg sm:text-2xl flex items-center justify-center mx-auto border-2 border-white/40 shadow-lg`}>
                           {getInitials(cv.personal.fullName)}
                         </div>
                       )}
@@ -1940,7 +1940,7 @@ export default function CvBuilder() {
                 </div>
 
                 {/* Right Main Panel - 68% White */}
-                <div className="w-[68%] p-8 space-y-6 bg-white flex flex-col justify-between">
+                <div className="w-[68%] p-4 sm:p-8 space-y-4 sm:space-y-6 bg-white flex flex-col justify-between">
                   <div className="space-y-6">
                     {/* Header Name & Wide Tracked Title */}
                     <div className="space-y-1">
@@ -2032,7 +2032,7 @@ export default function CvBuilder() {
                 {/* Top Header Banner Across Top Right in Dark Espresso */}
                 <div className="flex">
                   <div className="w-[33%] bg-[#e2d7cd]" />
-                  <div className="w-[67%] text-white p-6 space-y-1" style={{ backgroundColor: cv.themeColor || '#231917' }}>
+                  <div className="w-[67%] text-white p-4 sm:p-6 space-y-1" style={{ backgroundColor: cv.themeColor || '#231917' }}>
                     <h1 className="text-3xl font-black uppercase tracking-wider text-white">
                       {cv.personal.fullName || 'DONNA STROUPE'}
                     </h1>
@@ -2045,10 +2045,10 @@ export default function CvBuilder() {
                 {/* Main Body Grid */}
                 <div className="flex-1 flex">
                   {/* Left Sidebar - 33% Warm Sand/Beige */}
-                  <div className="w-[33%] bg-[#e2d7cd] text-slate-900 p-6 space-y-6 flex flex-col justify-between">
-                    <div className="space-y-6">
+                  <div className="w-[33%] bg-[#e2d7cd] text-slate-900 p-3 sm:p-6 space-y-4 sm:space-y-6 flex flex-col justify-between">
+                    <div className="space-y-4 sm:space-y-6">
                       {/* Photo Overlapping Junction */}
-                      <div className="-mt-14 text-center">
+                      <div className="-mt-8 sm:-mt-14 text-center">
                         {cv.personal.photoUrl ? (
                           <div
                             onMouseDown={handlePhotoMouseDown}
@@ -2056,7 +2056,7 @@ export default function CvBuilder() {
                             onMouseUp={handlePhotoMouseUp}
                             onMouseLeave={handlePhotoMouseUp}
                             title="Click & Drag mouse to center photo"
-                            className={`w-32 h-32 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-4 border-white shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
+                            className={`w-20 h-20 sm:w-36 sm:h-36 ${getPhotoFrameClass(cv.personal.photoFrameShape)} border-2 sm:border-4 border-white shadow-2xl mx-auto overflow-hidden bg-white relative cursor-grab active:cursor-grabbing group select-none transition-all`}
                           >
                             <img
                               src={cv.personal.photoUrl}
@@ -2069,7 +2069,7 @@ export default function CvBuilder() {
                             </div>
                           </div>
                         ) : (
-                          <div className={`w-28 h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} text-white font-extrabold text-2xl flex items-center justify-center mx-auto border-4 border-white shadow-xl`} style={{ backgroundColor: cv.themeColor || '#231917' }}>
+                          <div className={`w-16 h-16 sm:w-28 sm:h-28 ${getPhotoFrameClass(cv.personal.photoFrameShape)} text-white font-extrabold text-lg sm:text-2xl flex items-center justify-center mx-auto border-2 sm:border-4 border-white shadow-xl`} style={{ backgroundColor: cv.themeColor || '#231917' }}>
                             {getInitials(cv.personal.fullName)}
                           </div>
                         )}
@@ -2134,7 +2134,7 @@ export default function CvBuilder() {
                   </div>
 
                   {/* Right Main Panel - 67% White */}
-                  <div className="w-[67%] p-8 space-y-6 bg-white flex flex-col justify-between">
+                  <div className="w-[67%] p-4 sm:p-8 space-y-4 sm:space-y-6 bg-white flex flex-col justify-between">
                     <div className="space-y-6">
                       {/* About Me */}
                       {cv.personal.summary && (
