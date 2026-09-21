@@ -65,6 +65,33 @@ export default function AdminDashboard() {
   const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
 
+  // Delete Job by ID modal state
+  const [showDeleteByIdModal, setShowDeleteByIdModal] = useState(false);
+  const [deleteByIdInput, setDeleteByIdInput] = useState('');
+  const [deletingById, setDeletingById] = useState(false);
+
+  const handleDeleteById = async () => {
+    if (!deleteByIdInput.trim()) return;
+    setDeletingById(true);
+    setError('');
+    try {
+      let id = deleteByIdInput.trim();
+      const uuidMatch = id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      if (uuidMatch) {
+        id = uuidMatch[0];
+      }
+      await adminApiCall('DELETE', undefined, id);
+      setInfoMessage(`Job (${id}) deleted successfully!`);
+      setShowDeleteByIdModal(false);
+      setDeleteByIdInput('');
+      await loadJobs();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete job');
+    } finally {
+      setDeletingById(false);
+    }
+  };
+
   const loadInquiries = async () => {
     setLoadingInquiries(true);
     let combined: ContactInquiry[] = [];
@@ -401,6 +428,12 @@ export default function AdminDashboard() {
             >
               <FileText className="w-4 h-4" /> 📄 Gazette PDF Importer
             </button>
+            <button
+              onClick={() => setShowDeleteByIdModal(true)}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold rounded-lg text-sm transition-colors border border-red-200 dark:border-red-800/60"
+            >
+              <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" /> Delete by Job ID
+            </button>
             <Link
               to="/admin/jobs/new"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
@@ -545,6 +578,61 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Direct Delete by Job ID Modal */}
+        {showDeleteByIdModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 transition-colors">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-xl bg-red-50 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+                    <Trash2 className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Delete Job by ID or Link</h2>
+                </div>
+                <button onClick={() => setShowDeleteByIdModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+                Paste the Job URL or Job ID (e.g., <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-blue-600 dark:text-blue-400 font-mono">31f79757-91a4-49f3-a088-26cdf90dfc66</code>) to permanently remove it from the database.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Job ID or Full URL:
+                  </label>
+                  <input
+                    type="text"
+                    value={deleteByIdInput}
+                    onChange={(e) => setDeleteByIdInput(e.target.value)}
+                    placeholder="https://jobnews.lk/jobs/31f79757-91a4-49f3-a088-26cdf90dfc66"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    onClick={() => setShowDeleteByIdModal(false)}
+                    className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDeleteById}
+                    disabled={deletingById || !deleteByIdInput.trim()}
+                    className="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 rounded-xl shadow-sm transition-colors"
+                  >
+                    {deletingById ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                    {deletingById ? 'Deleting...' : 'Delete Job Permanently'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Search & Filters */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 mb-6 transition-colors">
           <div className="flex flex-col sm:flex-row gap-3">
@@ -554,7 +642,7 @@ export default function AdminDashboard() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search jobs by title, company, or location..."
+                placeholder="Search jobs by title, company, location, or ID..."
                 className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 dark:bg-slate-950/50 transition-colors"
               />
             </div>
