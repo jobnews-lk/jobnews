@@ -9,7 +9,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|viber|discordbot|slackbot|googlebot).*"
+          "value": "(?i).*(whatsapp|facebookexternalhit|twitterbot|telegrambot|linkedinbot|viber|discordbot|slackbot).*"
         }
       ],
       "source": "/jobs/:id",

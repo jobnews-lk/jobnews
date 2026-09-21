@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     }
 
     const staticRoutes = [
-      { url: 'https://jobnews.lk/', priority: '1.0', changefreq: 'hourly' },
+      { url: 'https://jobnews.lk', priority: '1.0', changefreq: 'hourly' },
       { url: 'https://jobnews.lk/government-jobs', priority: '0.9', changefreq: 'hourly' },
       { url: 'https://jobnews.lk/private-jobs', priority: '0.9', changefreq: 'hourly' },
       { url: 'https://jobnews.lk/overseas-jobs', priority: '0.9', changefreq: 'hourly' },
