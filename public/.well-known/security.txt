@@ -1,0 +1,5 @@
+# Security Policy for JobNews.lk
+Contact: mailto:support@jobnews.lk
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en, si
+Canonical: https://jobnews.lk/.well-known/security.txt
