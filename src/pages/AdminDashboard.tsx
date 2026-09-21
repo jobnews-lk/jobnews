@@ -646,6 +646,13 @@ export default function AdminDashboard() {
                 className="w-full pl-10 pr-4 py-3 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 dark:bg-slate-950/50 transition-colors"
               />
             </div>
+            <button
+              onClick={() => setShowDeleteByIdModal(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors shrink-0 shadow-sm"
+              title="Delete any job directly by pasting Job ID or Link"
+            >
+              <Trash2 className="w-4 h-4" /> Delete by Job ID
+            </button>
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="w-4 h-4 text-slate-400" />
               <div className="flex gap-2">
