@@ -184,105 +184,114 @@ export default function JobDetail() {
 
   useEffect(() => {
     async function loadJob() {
-      if (!id) return;
-      let query = supabase
-        .from('jobs')
-        .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
-        .eq('id', id);
-
-      // Only filter by published status if NOT in admin preview mode
-      if (!isAdmin && !isPreviewParam) {
-        query = query.eq('status', 'published');
+      if (!id) {
+        setLoading(false);
+        return;
       }
 
-      const { data } = await query.maybeSingle();
-      if (data) {
-        setJob(data as Job);
-        const fullTitle = `${data.title} - ${data.company || 'JobNews.lk'} | Sri Lanka Job Vacancy`;
-        document.title = fullTitle;
+      try {
+        let query = supabase
+          .from('jobs')
+          .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
+          .eq('id', id);
 
-        // Dynamic Meta Description & Canonical Link
-        try {
-          const metaDescText = (data.description || `${data.title} job vacancy at ${data.company || 'JobNews.lk'}. Sri Lanka Gazette and Job Notices.`)
-            .substring(0, 160)
-            .replace(/[\r\n]+/g, ' ')
-            .trim();
-
-          let metaDesc = document.querySelector('meta[name="description"]');
-          if (metaDesc) {
-            metaDesc.setAttribute('content', metaDescText);
-          }
-
-          let canonicalLink = document.querySelector('link[rel="canonical"]');
-          if (canonicalLink) {
-            canonicalLink.setAttribute('href', `https://jobnews.lk/jobs/${data.id}`);
-          }
-        } catch (e) {
-          console.warn('Meta update error:', e);
+        // Only filter by published status if NOT in admin preview mode
+        if (!isAdmin && !isPreviewParam) {
+          query = query.eq('status', 'published');
         }
 
-        // Inject Google Jobs Schema.org Structured Data
-        try {
-          let schemaScript = document.getElementById('google-job-schema');
-          if (!schemaScript) {
-            schemaScript = document.createElement('script');
-            schemaScript.id = 'google-job-schema';
-            schemaScript.setAttribute('type', 'application/ld+json');
-            document.head.appendChild(schemaScript);
+        const { data } = await query.maybeSingle();
+        if (data) {
+          setJob(data as Job);
+          const fullTitle = `${data.title} - ${data.company || 'JobNews.lk'} | Sri Lanka Job Vacancy`;
+          document.title = fullTitle;
+
+          // Dynamic Meta Description & Canonical Link
+          try {
+            const metaDescText = (data.description || `${data.title} job vacancy at ${data.company || 'JobNews.lk'}. Sri Lanka Gazette and Job Notices.`)
+              .substring(0, 160)
+              .replace(/[\r\n]+/g, ' ')
+              .trim();
+
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc) {
+              metaDesc.setAttribute('content', metaDescText);
+            }
+
+            let canonicalLink = document.querySelector('link[rel="canonical"]');
+            if (canonicalLink) {
+              canonicalLink.setAttribute('href', `https://jobnews.lk/jobs/${data.id}`);
+            }
+          } catch (e) {
+            console.warn('Meta update error:', e);
           }
 
-          const imgUrl = (data.job_images && data.job_images[0]?.url) || data.thumbnail_url || 'https://jobnews.lk/og-banner.png';
-
-          const jobSchema: Record<string, unknown> = {
-            "@context": "https://schema.org/",
-            "@type": "JobPosting",
-            "title": data.title,
-            "description": data.description || `${data.title} vacancy at ${data.company || 'JobNews.lk'}. Apply on JobNews.lk`,
-            "datePosted": data.posted_date || data.created_at,
-            "validThrough": data.closing_date ? new Date(data.closing_date).toISOString() : undefined,
-            "employmentType": "FULL_TIME",
-            "directApply": true,
-            "url": `https://jobnews.lk/jobs/${data.id}`,
-            "image": imgUrl,
-            "identifier": {
-              "@type": "PropertyValue",
-              "name": data.company || "JobNews.lk",
-              "value": data.id
-            },
-            "hiringOrganization": {
-              "@type": "Organization",
-              "name": data.company || "Government / Private Organization",
-              "sameAs": "https://jobnews.lk",
-              "logo": imgUrl
-            },
-            "jobLocation": {
-              "@type": "Place",
-              "address": {
-                "@type": "PostalAddress",
-                "addressLocality": data.location || (data.countries?.name || "Sri Lanka"),
-                "addressCountry": data.countries?.code || (data.is_overseas ? "OVERSEAS" : "LK")
-              }
+          // Inject Google Jobs Schema.org Structured Data
+          try {
+            let schemaScript = document.getElementById('google-job-schema');
+            if (!schemaScript) {
+              schemaScript = document.createElement('script');
+              schemaScript.id = 'google-job-schema';
+              schemaScript.setAttribute('type', 'application/ld+json');
+              document.head.appendChild(schemaScript);
             }
-          };
 
-          if (data.salary && data.salary.trim()) {
-            jobSchema.baseSalary = {
-              "@type": "MonetaryAmount",
-              "currency": "LKR",
-              "value": {
-                "@type": "QuantitativeValue",
-                "value": data.salary.trim(),
-                "unitText": "MONTH"
+            const imgUrl = (data.job_images && data.job_images[0]?.url) || data.thumbnail_url || 'https://jobnews.lk/og-banner.png';
+
+            const jobSchema: Record<string, unknown> = {
+              "@context": "https://schema.org/",
+              "@type": "JobPosting",
+              "title": data.title,
+              "description": data.description || `${data.title} vacancy at ${data.company || 'JobNews.lk'}. Apply on JobNews.lk`,
+              "datePosted": data.posted_date || data.created_at,
+              "validThrough": data.closing_date ? new Date(data.closing_date).toISOString() : undefined,
+              "employmentType": "FULL_TIME",
+              "directApply": true,
+              "url": `https://jobnews.lk/jobs/${data.id}`,
+              "image": imgUrl,
+              "identifier": {
+                "@type": "PropertyValue",
+                "name": data.company || "JobNews.lk",
+                "value": data.id
+              },
+              "hiringOrganization": {
+                "@type": "Organization",
+                "name": data.company || "Government / Private Organization",
+                "sameAs": "https://jobnews.lk",
+                "logo": imgUrl
+              },
+              "jobLocation": {
+                "@type": "Place",
+                "address": {
+                  "@type": "PostalAddress",
+                  "addressLocality": data.location || (data.countries?.name || "Sri Lanka"),
+                  "addressCountry": data.countries?.code || (data.is_overseas ? "OVERSEAS" : "LK")
+                }
               }
             };
-          }
 
-          schemaScript.textContent = JSON.stringify(jobSchema);
-        } catch (e) {
-          console.warn('Schema injection error:', e);
+            if (data.salary && data.salary.trim()) {
+              jobSchema.baseSalary = {
+                "@type": "MonetaryAmount",
+                "currency": "LKR",
+                "value": {
+                  "@type": "QuantitativeValue",
+                  "value": data.salary.trim(),
+                  "unitText": "MONTH"
+                }
+              };
+            }
+
+            schemaScript.textContent = JSON.stringify(jobSchema);
+          } catch (e) {
+            console.warn('Schema injection error:', e);
+          }
         }
+      } catch (err) {
+        console.warn('Error loading job:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     loadJob();
   }, [id, isAdmin, isPreviewParam]);
