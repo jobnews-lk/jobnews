@@ -303,13 +303,25 @@ export default function JobDetail() {
 
   if (!job) {
     return (
-      <div className="py-20 px-4 text-center">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Notice Not Found</h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">The job announcement you are looking for does not exist or has been removed.</p>
-          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300">
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
+      <div className="py-16 px-4 text-center">
+        <div className="max-w-lg mx-auto bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl">
+          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-5 text-2xl shadow-inner">
+            📌
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-3">
+            මෙම රැකියාවේ අයදුම්පත් භාරගැනීම අවසන් වී ඇත
+          </h1>
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+            මෙම රැකියා නිවේදනයේ අයදුම්පත් භාරගන්නා අවසන් දිනය පසුවී ඇති බැවින් හෝ ආයතනය විසින් ඉවත් කර ඇති බැවින් මෙම නිවේදනය දැනට සක්‍රීය නැත.
+          </p>
+          <div className="pt-2">
+            <Link
+              to="/jobs"
+              className="inline-flex items-center gap-2 px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95 text-sm sm:text-base"
+            >
+              🚀 නවතම සක්‍රීය රැකියා බලන්න / View Active Jobs
+            </Link>
+          </div>
         </div>
       </div>
     );

@@ -56,10 +56,13 @@ export default async function handler(req, res) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, follow" />
   </head>
-  <body style="font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 60px 20px; background: #0f172a; color: #f8fafc;">
-    <h1 style="font-size: 24px; margin-bottom: 12px; color: #f59e0b;">මෙම රැකියා නිවේදනය අවසන් වී හෝ ඉවත් කර ඇත</h1>
-    <p style="color: #94a3b8; margin-bottom: 24px;">This job vacancy has been closed or removed from JobNews.lk.</p>
-    <a href="https://jobnews.lk/" style="display: inline-block; padding: 12px 24px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600;">View Active Vacancies / නවතම රැකියා බලන්න</a>
+  <body style="font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 60px 20px; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+    <div style="max-width: 520px; background: #1e293b; padding: 36px 24px; border-radius: 24px; border: 1px solid #334155; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+      <div style="font-size: 40px; margin-bottom: 16px;">📌</div>
+      <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #ffffff; line-height: 1.4;">මෙම රැකියාවේ අයදුම්පත් භාරගැනීම අවසන් වී ඇත</h1>
+      <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin-bottom: 28px;">මෙම රැකියා නිවේදනයේ අයදුම්පත් භාරගන්නා අවසන් දිනය පසුවී ඇති බැවින් හෝ ආයතනය විසින් ඉවත් කර ඇති බැවින් මෙම නිවේදනය දැනට සක්‍රීය නැත.</p>
+      <a href="https://jobnews.lk/jobs" style="display: inline-block; padding: 14px 28px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 15px;">🚀 නවතම සක්‍රීය රැකියා බලන්න / View Active Jobs</a>
+    </div>
   </body>
 </html>`);
     }
