@@ -46,7 +46,22 @@ export default async function handler(req, res) {
     const job = jobs && jobs[0];
 
     if (!job) {
-      return res.redirect(302, '/');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      return res.status(404).send(`<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vacancy Closed or Expired - JobNews.lk</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, follow" />
+  </head>
+  <body style="font-family: system-ui, -apple-system, sans-serif; text-align: center; padding: 60px 20px; background: #0f172a; color: #f8fafc;">
+    <h1 style="font-size: 24px; margin-bottom: 12px; color: #f59e0b;">මෙම රැකියා නිවේදනය අවසන් වී හෝ ඉවත් කර ඇත</h1>
+    <p style="color: #94a3b8; margin-bottom: 24px;">This job vacancy has been closed or removed from JobNews.lk.</p>
+    <a href="https://jobnews.lk/" style="display: inline-block; padding: 12px 24px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600;">View Active Vacancies / නවතම රැකියා බලන්න</a>
+  </body>
+</html>`);
     }
 
     const cleanTitle = `${job.title} - ${job.company || 'JobNews.lk'}`;
