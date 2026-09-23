@@ -150,6 +150,12 @@
      * **Sitemap.xml & Robots.txt:** Created `public/sitemap.xml` and `public/robots.txt` for instant search engine indexing.
      * **Bilingual SEO Keywords & OpenGraph:** Configured high-volume Sri Lanka job keywords (*"Sri Lanka Job Vacancies", "Government Jobs Sri Lanka", "Gazette Jobs 2026", "ශ්‍රී ලංකා රජයේ රැකියා", "ගැසට් නිවේදන"*) and OpenGraph meta tags for rich WhatsApp & Facebook sharing previews.
 
+       * **Search Console & Server Security Hardening (COMPLETED - SEPTEMBER 24, 2026):**
+         * **Deleted Jobs HTTP 404 Handler (`api/share-job.js`):** Updated social share API to return a clean `HTTP 404 (Not Found)` status page for deleted/expired jobs, preventing Googlebot from logging "Page with redirect" errors when crawling legacy deleted job URLs.
+         * **Cloudflare Security Grade A+:** Configured Cloudflare HSTS (6 months, subdomains, Preload, No-Sniff), set Minimum TLS version to `TLS 1.2`, and enabled DMARC TXT record & DMARC Management to protect `@jobnews.lk` email domain.
+         * **Vercel Security Headers (`vercel.json`):** Added `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection`, and `Referrer-Policy` headers.
+         * **Security Compliance (`public/.well-known/security.txt`):** Added `security.txt` file for Cloudflare and vulnerability reporting standards.
+
 ---
 
-*Last Updated: September 9, 2026 by Antigravity AI*
+*Last Updated: September 24, 2026 by Antigravity AI*
