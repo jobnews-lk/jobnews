@@ -35,79 +35,151 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
     action: 'bold' | 'italic' | 'bullet' | 'number' | 'heading'
   ) => {
     if (!textarea) return;
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
+    const scrollTop = textarea.scrollTop;
     const selectedText = text.substring(start, end);
 
     let replacement = '';
     let newStart = start;
     let newEnd = end;
 
-    switch (action) {
-      case 'bold':
-        if (selectedText) {
-          replacement = `**${selectedText}**`;
-          newEnd = start + replacement.length;
+    if (action === 'bullet') {
+      if (selectedText) {
+        replacement = selectedText
+          .split('\n')
+          .map((line) => (line.trim().startsWith('•') ? line : `• ${line.replace(/^•\s*/, '')}`))
+          .join('\n');
+        newEnd = start + replacement.length;
+      } else {
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        const lineEnd = text.indexOf('\n', start);
+        const actualLineEnd = lineEnd === -1 ? text.length : lineEnd;
+        const lineContent = text.substring(lineStart, actualLineEnd);
+
+        if (lineContent.trim().startsWith('•')) {
+          const unbulleted = lineContent.replace(/^•\s*/, '');
+          const updatedText = text.substring(0, lineStart) + unbulleted + text.substring(actualLineEnd);
+          const diff = lineContent.length - unbulleted.length;
+          newStart = Math.max(lineStart, start - diff);
+          newEnd = newStart;
+          setText(updatedText);
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(newStart, newEnd);
+            textarea.scrollTop = scrollTop;
+          }, 0);
+          return;
         } else {
-          replacement = '**තද අකුරු**';
+          const bulletedLine = `• ${lineContent}`;
+          const updatedText = text.substring(0, lineStart) + bulletedLine + text.substring(actualLineEnd);
           newStart = start + 2;
-          newEnd = start + replacement.length - 2;
-        }
-        break;
-
-      case 'italic':
-        if (selectedText) {
-          replacement = `*${selectedText}*`;
-          newEnd = start + replacement.length;
-        } else {
-          replacement = '*ඇල අකුරු*';
-          newStart = start + 1;
-          newEnd = start + replacement.length - 1;
-        }
-        break;
-
-      case 'bullet':
-        if (selectedText) {
-          replacement = selectedText
-            .split('\n')
-            .map((line) => (line.trim().startsWith('•') ? line : `• ${line}`))
-            .join('\n');
-          newEnd = start + replacement.length;
-        } else {
-          const prefix = start > 0 && text[start - 1] !== '\n' ? '\n• ' : '• ';
-          replacement = prefix;
-          newStart = start + prefix.length;
           newEnd = newStart;
+          setText(updatedText);
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(newStart, newEnd);
+            textarea.scrollTop = scrollTop;
+          }, 0);
+          return;
         }
-        break;
+      }
+    } else if (action === 'number') {
+      if (selectedText) {
+        let count = 1;
+        replacement = selectedText
+          .split('\n')
+          .map((line) => `${count++}. ${line.replace(/^\d+\.\s*/, '')}`)
+          .join('\n');
+        newEnd = start + replacement.length;
+      } else {
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        const lineEnd = text.indexOf('\n', start);
+        const actualLineEnd = lineEnd === -1 ? text.length : lineEnd;
+        const lineContent = text.substring(lineStart, actualLineEnd);
 
-      case 'number':
-        if (selectedText) {
-          let count = 1;
-          replacement = selectedText
-            .split('\n')
-            .map((line) => `${count++}. ${line.replace(/^\d+\.\s*/, '')}`)
-            .join('\n');
-          newEnd = start + replacement.length;
-        } else {
-          const prefix = start > 0 && text[start - 1] !== '\n' ? '\n1. ' : '1. ';
-          replacement = prefix;
-          newStart = start + prefix.length;
+        if (/^\d+\.\s*/.test(lineContent.trim())) {
+          const unnumbered = lineContent.replace(/^\d+\.\s*/, '');
+          const updatedText = text.substring(0, lineStart) + unnumbered + text.substring(actualLineEnd);
+          const diff = lineContent.length - unnumbered.length;
+          newStart = Math.max(lineStart, start - diff);
           newEnd = newStart;
-        }
-        break;
-
-      case 'heading':
-        if (selectedText) {
-          replacement = `### ${selectedText}`;
-          newEnd = start + replacement.length;
+          setText(updatedText);
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(newStart, newEnd);
+            textarea.scrollTop = scrollTop;
+          }, 0);
+          return;
         } else {
-          const prefix = start > 0 && text[start - 1] !== '\n' ? '\n### මාතෘකාව\n' : '### මාතෘකාව\n';
-          replacement = prefix;
-          newStart = start + (prefix.startsWith('\n') ? 5 : 4);
-          newEnd = newStart + 7;
+          const numberedLine = `1. ${lineContent}`;
+          const updatedText = text.substring(0, lineStart) + numberedLine + text.substring(actualLineEnd);
+          newStart = start + 3;
+          newEnd = newStart;
+          setText(updatedText);
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(newStart, newEnd);
+            textarea.scrollTop = scrollTop;
+          }, 0);
+          return;
         }
-        break;
+      }
+    } else if (action === 'bold') {
+      if (selectedText) {
+        replacement = `**${selectedText}**`;
+        newEnd = start + replacement.length;
+      } else {
+        replacement = '**තද අකුරු**';
+        newStart = start + 2;
+        newEnd = start + replacement.length - 2;
+      }
+    } else if (action === 'italic') {
+      if (selectedText) {
+        replacement = `*${selectedText}*`;
+        newEnd = start + replacement.length;
+      } else {
+        replacement = '*ඇල අකුරු*';
+        newStart = start + 1;
+        newEnd = start + replacement.length - 1;
+      }
+    } else if (action === 'heading') {
+      if (selectedText) {
+        replacement = `### ${selectedText}`;
+        newEnd = start + replacement.length;
+      } else {
+        const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+        const lineEnd = text.indexOf('\n', start);
+        const actualLineEnd = lineEnd === -1 ? text.length : lineEnd;
+        const lineContent = text.substring(lineStart, actualLineEnd);
+
+        if (lineContent.startsWith('### ')) {
+          const unheading = lineContent.substring(4);
+          const updatedText = text.substring(0, lineStart) + unheading + text.substring(actualLineEnd);
+          newStart = Math.max(lineStart, start - 4);
+          newEnd = newStart;
+          setText(updatedText);
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(newStart, newEnd);
+            textarea.scrollTop = scrollTop;
+          }, 0);
+          return;
+        } else {
+          const headingLine = `### ${lineContent}`;
+          const updatedText = text.substring(0, lineStart) + headingLine + text.substring(actualLineEnd);
+          newStart = start + 4;
+          newEnd = newStart;
+          setText(updatedText);
+          setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(newStart, newEnd);
+            textarea.scrollTop = scrollTop;
+          }, 0);
+          return;
+        }
+      }
     }
 
     const updatedText = text.substring(0, start) + replacement + text.substring(end);
@@ -116,7 +188,8 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(newStart, newEnd);
-    }, 10);
+      textarea.scrollTop = scrollTop;
+    }, 0);
   };
   const [closingDate, setClosingDate] = useState(job?.closing_date || '');
   const [postedDate, setPostedDate] = useState(job?.posted_date || getLocalDateString());
@@ -716,6 +789,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Bullet List (ලක්ෂ්‍ය)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'bullet')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -725,6 +799,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Numbered List (අංක)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'number')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -734,6 +809,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Bold Text (තද අකුරු)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'bold')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -743,6 +819,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Italic Text (ඇල අකුරු)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'italic')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium italic text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -752,6 +829,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Subheading (මාතෘකාව)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(descriptionRef.current, description, setDescription, 'heading')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -779,6 +857,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Bullet List (ලක්ෂ්‍ය)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'bullet')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -788,6 +867,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Numbered List (අංක)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'number')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -797,6 +877,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Bold Text (තද අකුරු)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'bold')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -806,6 +887,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Italic Text (ඇල අකුරු)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'italic')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium italic text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
@@ -815,6 +897,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <button
               type="button"
               title="Subheading (මාතෘකාව)"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyTextFormat(requirementsRef.current, requirements, setRequirements, 'heading')}
               className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-blue-600 rounded border border-slate-200 dark:border-slate-700 transition-colors shadow-2xs"
             >
