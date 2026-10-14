@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, FolderOpen } from 'lucide-react';
+import { X, FolderOpen, Smartphone } from 'lucide-react';
 import { supabase, type Category } from '../lib/supabase';
+import InstallPwaModal from './InstallPwaModal';
 
 interface CategoriesDrawerProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface CategoriesDrawerProps {
 
 export default function CategoriesDrawer({ isOpen, onClose }: CategoriesDrawerProps) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isPwaModalOpen, setIsPwaModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,9 +72,23 @@ export default function CategoriesDrawer({ isOpen, onClose }: CategoriesDrawerPr
                 <span className="font-medium text-slate-700 dark:text-slate-300">{cat.name}</span>
               </button>
             ))}
+
+            <div className="h-px bg-slate-200 dark:bg-slate-800 my-2" />
+            <button
+              onClick={() => {
+                onClose();
+                setIsPwaModalOpen(true);
+              }}
+              className="flex items-center gap-2.5 w-full text-left p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors border border-blue-200/60 dark:border-blue-900/60 shadow-2xs"
+            >
+              <Smartphone className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+              <span className="font-semibold text-xs">Add to Home Screen (මුල් තිරයට)</span>
+            </button>
           </div>
         </div>
       </div>
+
+      <InstallPwaModal isOpen={isPwaModalOpen} onClose={() => setIsPwaModalOpen(false)} />
     </>
   );
 }
