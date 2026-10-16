@@ -64,8 +64,8 @@ export default function InstallPwaModal({ isOpen, onClose }: InstallPwaModalProp
 
         {/* Header with App Icon */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white shadow-md shadow-blue-500/20 flex-shrink-0">
-            <Smartphone className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 p-1.5 flex items-center justify-center text-white shadow-md shadow-blue-500/20 flex-shrink-0 overflow-hidden">
+            <img src="/favicon.svg" alt="JobNews.lk Logo" className="w-full h-full object-contain rounded-lg" />
           </div>
           <div>
             <h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug">
