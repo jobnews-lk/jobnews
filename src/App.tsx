@@ -30,13 +30,23 @@ function App() {
   const [splashFade, setSplashFade] = useState(false);
 
   useEffect(() => {
+    // Detect if running inside installed standalone PWA app
+    const isStandalone = 
+      window.matchMedia('(display-mode: standalone)').matches || 
+      (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+
+    // In standalone mode, Android OS already showed the splash graphic during launch,
+    // so we smoothly fade out right as React mounts for a single, seamless transition!
+    const fadeDelay = isStandalone ? 200 : 450;
+    const removeDelay = isStandalone ? 550 : 800;
+
     const fadeTimer = setTimeout(() => {
       setSplashFade(true);
-    }, 1100);
+    }, fadeDelay);
 
     const removeTimer = setTimeout(() => {
       setSplashVisible(false);
-    }, 1500);
+    }, removeDelay);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -48,7 +58,7 @@ function App() {
     <BrowserRouter>
       {splashVisible && (
         <div 
-          className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-gradient-to-br from-[#1e3a8a] via-[#1d4ed8] to-[#2563eb] text-white transition-opacity duration-400 ease-out pointer-events-none ${
+          className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-gradient-to-b from-[#1e3a8a] to-[#1d4ed8] text-white transition-opacity duration-300 ease-out pointer-events-none ${
             splashFade ? 'opacity-0' : 'opacity-100'
           }`}
         >
