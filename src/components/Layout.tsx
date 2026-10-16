@@ -4,6 +4,7 @@ import Footer from './Footer';
 import TopTicker from './TopTicker';
 import MobileBottomNav from './MobileBottomNav';
 import WhatsAppFloatingButton from './WhatsAppFloatingButton';
+import InstallPwaModal from './InstallPwaModal';
 
 export default function Layout() {
   return (
@@ -19,6 +20,7 @@ export default function Layout() {
       <Footer />
       <MobileBottomNav />
       <WhatsAppFloatingButton />
+      <InstallPwaModal />
     </div>
   );
 }

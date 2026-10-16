@@ -4,11 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSavedJobs } from '../hooks/useSavedJobs';
-import InstallPwaModal from './InstallPwaModal';
-
 export default function Navbar() {
   const [open, setOpen] = useState(false);
-  const [isPwaModalOpen, setIsPwaModalOpen] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -203,7 +200,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => {
                   setOpen(false);
-                  setIsPwaModalOpen(true);
+                  window.dispatchEvent(new CustomEvent('open-pwa-install'));
                 }}
                 className="flex items-center justify-center gap-2 py-2 px-3 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 rounded-xl text-xs font-semibold transition-all border border-blue-200/60 dark:border-blue-800/60 text-left active:scale-[0.99]"
               >
@@ -227,8 +224,6 @@ export default function Navbar() {
           </div>
         )}
       </div>
-
-      <InstallPwaModal isOpen={isPwaModalOpen} onClose={() => setIsPwaModalOpen(false)} />
     </nav>
   );
 }
