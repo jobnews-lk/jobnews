@@ -13,7 +13,7 @@
     <meta name="color-scheme" content="light dark" />
     <title>JobNews.lk - Sri Lanka's Latest Job Vacancies</title>
     
-    <!-- Instant PWA Install Prompt Capture for 1-Click Install -->
+    <!-- Instant PWA Install Prompt Capture & Service Worker for 1-Click Install -->
     <script>
       window.__deferredPwaPrompt = null;
       window.addEventListener('beforeinstallprompt', function(e) {
@@ -21,6 +21,12 @@
         window.__deferredPwaPrompt = e;
         window.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
       });
+
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
     </script>
     
     <!-- Google Analytics (GA4) -->
