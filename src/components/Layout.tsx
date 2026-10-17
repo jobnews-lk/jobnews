@@ -4,7 +4,7 @@ import Footer from './Footer';
 import TopTicker from './TopTicker';
 import MobileBottomNav from './MobileBottomNav';
 import WhatsAppFloatingButton from './WhatsAppFloatingButton';
-import InstallPwaModal from './InstallPwaModal';
+import PwaBottomBanner from './PwaBottomBanner';
 
 export default function Layout() {
   return (
@@ -20,7 +20,7 @@ export default function Layout() {
       <Footer />
       <MobileBottomNav />
       <WhatsAppFloatingButton />
-      <InstallPwaModal />
+      <PwaBottomBanner />
     </div>
   );
 }
