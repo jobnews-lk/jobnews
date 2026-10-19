@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useSavedJobs } from '../hooks/useSavedJobs';
+import { useUnreadJobsBadge } from '../lib/appBadgeService';
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -12,6 +13,7 @@ export default function Navbar() {
   const { user, isAdmin, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { count: savedCount } = useSavedJobs();
+  const { unreadCount } = useUnreadJobsBadge();
 
   useEffect(() => {
     const checkStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
@@ -55,7 +57,14 @@ export default function Navbar() {
           </Link>
           <div className="hidden md:flex items-center gap-2.5 lg:gap-4.5">
             <Link to="/" className={navLinkClass('/')}>Home</Link>
-            <Link to="/jobs" className={navLinkClass('/jobs')}>Latest Jobs</Link>
+            <Link to="/jobs" className={`${navLinkClass('/jobs')} inline-flex items-center gap-1.5`}>
+              Latest Jobs
+              {unreadCount > 0 && (
+                <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-extrabold bg-red-600 text-white rounded-full min-w-[18px] h-4 shadow-sm animate-pulse">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </Link>
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas</Link>
@@ -153,7 +162,14 @@ export default function Navbar() {
         {open && (
           <div className="md:hidden pb-4 flex flex-col gap-3 border-t border-slate-100 pt-3">
             <Link to="/" className={navLinkClass('/')}>Home</Link>
-            <Link to="/jobs" className={navLinkClass('/jobs')}>Latest Jobs</Link>
+            <Link to="/jobs" className={`${navLinkClass('/jobs')} inline-flex items-center justify-between`}>
+              <span>Latest Jobs</span>
+              {unreadCount > 0 && (
+                <span className="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold bg-red-600 text-white rounded-full">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </Link>
             <Link to="/government-jobs" className={navLinkClass('/government-jobs')}>Government Jobs</Link>
             <Link to="/private-jobs" className={navLinkClass('/private-jobs')}>Private Sector</Link>
             <Link to="/overseas-jobs" className={navLinkClass('/overseas-jobs')}>Overseas Jobs</Link>

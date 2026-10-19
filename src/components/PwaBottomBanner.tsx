@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Share2, PlusSquare, CheckCircle2, Smartphone } from 'lucide-react';
+import { recordPwaInstall } from '../lib/pwaInstallTracker';
 
 export default function PwaBottomBanner() {
   const [isVisible, setIsVisible] = useState(false);
@@ -115,6 +116,7 @@ export default function PwaBottomBanner() {
         if (choiceResult && choiceResult.outcome === 'accepted') {
           setIsInstalled(true);
           setIsVisible(false);
+          recordPwaInstall('banner_try_it_accepted');
           try {
             localStorage.setItem('jobnews_pwa_installed', 'true');
             localStorage.setItem('jobnews_pwa_banner_dismissed_until', (Date.now() + 365 * 24 * 60 * 60 * 1000).toString());

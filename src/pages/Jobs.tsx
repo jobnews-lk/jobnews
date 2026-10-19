@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, X, MapPin, FolderOpen, ArrowLeft } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
+import { markJobsAsSeen } from '../lib/appBadgeService';
 
 export default function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -112,6 +113,7 @@ export default function Jobs() {
         const { data, error } = await query;
         if (!error && data) {
           setJobs(data as Job[]);
+          markJobsAsSeen();
           if (!search && !selectedCountry && !selectedCategory) {
             localStorage.setItem('jn_all_jobs', JSON.stringify(data));
           }

@@ -24,12 +24,16 @@ import AdminRoute from './components/AdminRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
 import NotFound from './pages/NotFound';
+import { initPwaInstallTracker } from './lib/pwaInstallTracker';
 
 function App() {
   const [splashVisible, setSplashVisible] = useState(true);
   const [splashFade, setSplashFade] = useState(false);
 
   useEffect(() => {
+    // Initialize PWA install and standalone session tracker
+    initPwaInstallTracker();
+
     // Detect if running inside installed standalone PWA app
     const isStandalone = 
       window.matchMedia('(display-mode: standalone)').matches || 

@@ -4,7 +4,8 @@ import {
   Plus, Pencil, Trash2, AlertTriangle, LogOut, MapPin, Building2,
   Calendar, FileText, ImageIcon, Type, Globe, Briefcase, Landmark,
   Loader2, LayoutDashboard, Layers, CheckCircle2, Clock, AlertCircle, X,
-  Search, SlidersHorizontal, Bot, Eye, ExternalLink, Mail, Phone
+  Search, SlidersHorizontal, Bot, Eye, ExternalLink, Mail, Phone,
+  Smartphone, Bell, Send, Copy, Check, RefreshCw
 } from 'lucide-react';
 import { supabase, adminApiCall, isBotDiscoveredJob, type Job, type ContactInquiry } from '../lib/supabase';
 import { parseGazettePdfText, type ExtractedGazetteJob } from '../lib/gazettePdfParser';
@@ -12,6 +13,8 @@ import FileUpload from '../components/FileUpload';
 import { useAuth } from '../context/AuthContext';
 import { runJobScraperEngine } from '../lib/jobScraperEngine';
 import { triggerJobHunterBot } from '../lib/adminScraperTrigger';
+import { fetchPwaStats, type PwaStatsSummary } from '../lib/pwaInstallTracker';
+import { showJobAlertNotification } from '../lib/pushNotificationService';
 
 type FilterStatus = 'all' | 'published' | 'draft' | 'expired';
 type FilterSector = 'all' | 'government' | 'private' | 'overseas';
@@ -69,6 +72,87 @@ export default function AdminDashboard() {
   const [showDeleteByIdModal, setShowDeleteByIdModal] = useState(false);
   const [deleteByIdInput, setDeleteByIdInput] = useState('');
   const [deletingById, setDeletingById] = useState(false);
+
+  // PWA App Installs & Web Push State
+  const [showPwaModal, setShowPwaModal] = useState(false);
+  const [pwaStats, setPwaStats] = useState<PwaStatsSummary>({
+    total: 0,
+    android: 0,
+    ios: 0,
+    desktop: 0,
+    other: 0,
+    recent: [],
+    isRealtimeSynced: false,
+  });
+  const [loadingPwaStats, setLoadingPwaStats] = useState(false);
+  const [pushTitle, setPushTitle] = useState('');
+  const [pushBody, setPushBody] = useState('');
+  const [sendingPush, setSendingPush] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
+
+  const loadPwaStats = async () => {
+    setLoadingPwaStats(true);
+    try {
+      const stats = await fetchPwaStats();
+      setPwaStats(stats);
+    } catch (e) {
+      console.warn('Failed to load PWA stats:', e);
+    } finally {
+      setLoadingPwaStats(false);
+    }
+  };
+
+  const handleSendPushAlert = async () => {
+    if (!pushTitle.trim() || !pushBody.trim()) {
+      setError('Please provide notification title and message');
+      return;
+    }
+    setSendingPush(true);
+    try {
+      await showJobAlertNotification({
+        title: pushTitle.trim(),
+        body: pushBody.trim(),
+        url: '/jobs',
+        unreadCount: Math.max(1, pwaStats.total),
+      });
+      setInfoMessage('🔔 Web Push Alert dispatched! App Icon Badges updated on user home screens.');
+      setPushTitle('');
+      setPushBody('');
+    } catch (err: any) {
+      setError(err?.message || 'Failed to dispatch alert');
+    } finally {
+      setSendingPush(false);
+    }
+  };
+
+  const handleFillWithLatestJob = () => {
+    if (jobs.length > 0) {
+      const latest = jobs[0];
+      setPushTitle(`JobNews.lk: ${latest.title.substring(0, 45)}`);
+      setPushBody(`නව රැකියා ඇබෑර්තුවක් පළවිය (${latest.company}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
+    }
+  };
+
+  const handleCopySql = () => {
+    const sql = `-- Run this in Supabase SQL Editor:
+CREATE TABLE IF NOT EXISTS pwa_installations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  device_id text UNIQUE NOT NULL,
+  platform text DEFAULT 'other',
+  user_agent text,
+  installed_at timestamptz DEFAULT now(),
+  last_active timestamptz DEFAULT now()
+);
+
+ALTER TABLE pwa_installations ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "allow_anon_insert_pwa_installations" ON pwa_installations FOR INSERT TO anon, authenticated WITH CHECK (true);
+CREATE POLICY "allow_anon_update_pwa_installations" ON pwa_installations FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "allow_anon_select_pwa_installations" ON pwa_installations FOR SELECT TO anon, authenticated USING (true);`;
+    navigator.clipboard.writeText(sql);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 2500);
+  };
 
   const handleDeleteById = async () => {
     if (!deleteByIdInput.trim()) return;
@@ -302,6 +386,7 @@ export default function AdminDashboard() {
     if (!authLoading && user && isAdmin) {
       loadJobs();
       loadInquiries();
+      loadPwaStats();
       if (location.state && (location.state as any).infoMessage) {
         setInfoMessage((location.state as any).infoMessage);
       }
@@ -409,6 +494,17 @@ export default function AdminDashboard() {
               )}
             </button>
             <button
+              onClick={() => { setShowPwaModal(true); loadPwaStats(); }}
+              className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 font-semibold rounded-lg text-sm transition-colors border border-purple-200 dark:border-purple-800/60 relative"
+            >
+              <Smartphone className="w-4 h-4 text-purple-600 dark:text-purple-400" /> App Installs
+              {pwaStats.total > 0 && (
+                <span className="px-1.5 py-0.5 text-xs bg-purple-600 text-white rounded-full font-bold ml-0.5">
+                  {pwaStats.total}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => setShowSourcesModal(true)}
               className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-medium rounded-lg text-sm transition-colors border border-slate-200 dark:border-slate-700"
             >
@@ -468,7 +564,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           <div 
             onClick={() => { setFilterSector('all'); setFilterStatus('all'); }}
             className={`rounded-xl border p-5 cursor-pointer transition-colors ${filterSector === 'all' && filterStatus === 'all' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}
@@ -516,6 +612,26 @@ export default function AdminDashboard() {
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Expired</span>
             </div>
             <p className="text-2xl font-bold text-slate-900 dark:text-white">{expiredJobs}</p>
+          </div>
+          <div 
+            onClick={() => { setShowPwaModal(true); loadPwaStats(); }}
+            className="rounded-xl border p-5 cursor-pointer transition-all bg-gradient-to-br from-purple-50 via-white to-purple-50/40 dark:from-purple-950/30 dark:via-slate-900 dark:to-purple-950/20 border-purple-200 dark:border-purple-800/60 hover:border-purple-400 dark:hover:border-purple-600 hover:shadow-md group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-600 text-white shadow-xs">
+                PWA
+              </span>
+            </div>
+            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">App Installs</span>
+            <div className="flex items-baseline justify-between mt-1">
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">{pwaStats.total}</p>
+              <span className="text-[11px] text-purple-600 dark:text-purple-400 font-semibold group-hover:translate-x-0.5 transition-transform">
+                Alerts &rarr;
+              </span>
+            </div>
           </div>
         </div>
 
@@ -1505,6 +1621,194 @@ export default function AdminDashboard() {
               <button
                 onClick={() => setShowInquiriesModal(false)}
                 className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-sm rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📱 PWA App Installs Analytics & Web Push Notification Dispatcher Modal */}
+      {showPwaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-xs">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>PWA App Installs & Web Push</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-600 text-white font-bold">
+                      {pwaStats.total} Users
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Real-time installation analytics and instant vacancy push notification alerts
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={loadPwaStats}
+                  className="p-2 text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  title="Refresh install metrics"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingPwaStats ? 'animate-spin' : ''}`} />
+                </button>
+                <button
+                  onClick={() => setShowPwaModal(false)}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  aria-label="Close modal"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Platform Metrics Cards */}
+            <div className="grid grid-cols-3 gap-3 my-5">
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center">
+                <span className="text-xl">🤖</span>
+                <p className="text-lg font-black text-slate-900 dark:text-white mt-1">{pwaStats.android}</p>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Android Users</span>
+              </div>
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center">
+                <span className="text-xl">🍏</span>
+                <p className="text-lg font-black text-slate-900 dark:text-white mt-1">{pwaStats.ios}</p>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">iPhone / Safari</span>
+              </div>
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center">
+                <span className="text-xl">💻</span>
+                <p className="text-lg font-black text-slate-900 dark:text-white mt-1">{pwaStats.desktop + pwaStats.other}</p>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Desktop / Other</span>
+              </div>
+            </div>
+
+            {/* 📢 Push Notification & Red Badge Alert Dispatcher */}
+            <div className="p-4 bg-gradient-to-br from-purple-500/10 via-blue-500/5 to-transparent rounded-2xl border border-purple-500/20 mb-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                    Instant Job Alert & App Badge Updater
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleFillWithLatestJob}
+                  className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                >
+                  ⚡ Use Latest Job
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Notification Title (e.g. JobNews.lk: නව රජයේ ගැසට් රැකියා!)"
+                  value={pushTitle}
+                  onChange={(e) => setPushTitle(e.target.value)}
+                  className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-hidden"
+                />
+                <textarea
+                  rows={2}
+                  placeholder="Notification Message / Details (e.g. අලුත්ම පුරප්පාඩු සඳහා දැන්ම අයදුම් කරන්න.)"
+                  value={pushBody}
+                  onChange={(e) => setPushBody(e.target.value)}
+                  className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-hidden resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  🔴 Sets red number badge on app icons + sends web notification.
+                </p>
+                <button
+                  type="button"
+                  disabled={sendingPush || !pushTitle.trim()}
+                  onClick={handleSendPushAlert}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  {sendingPush ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  <span>Send Real-Time Alert</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Recent Device Installs List */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                Recent Installed Devices ({pwaStats.recent.length})
+              </h4>
+              {pwaStats.recent.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-950 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                  📱 Active install records will automatically list here as visitors install the PWA.
+                </div>
+              ) : (
+                <div className="max-h-48 overflow-y-auto space-y-2 pr-1">
+                  {pwaStats.recent.map((rec, i) => (
+                    <div
+                      key={rec.id || rec.device_id || i}
+                      className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/70 flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center font-bold text-purple-700 dark:text-purple-300 text-[11px]">
+                          {rec.platform === 'android' ? '🤖' : rec.platform === 'ios' ? '🍏' : '💻'}
+                        </span>
+                        <div>
+                          <p className="font-bold text-slate-900 dark:text-white capitalize">
+                            {rec.platform} App Client
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-mono">
+                            ID: {rec.device_id?.substring(0, 16)}...
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-block px-2 py-0.5 text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-full">
+                          Installed ✓
+                        </span>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {rec.installed_at ? new Date(rec.installed_at).toLocaleDateString() : 'Active'}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Supabase SQL Helper Footer */}
+            <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={handleCopySql}
+                className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1.5 transition-colors font-medium"
+              >
+                {copiedSql ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">SQL Copied to Clipboard!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy pwa_installations SQL</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPwaModal(false)}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-lg transition-colors"
               >
                 Close
               </button>

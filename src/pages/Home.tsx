@@ -4,6 +4,7 @@ import { Search, MapPin, FolderOpen, ArrowRight, FileText, Landmark, Plane, Brie
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
 import LatestJobFeed from '../components/LatestJobFeed';
 import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
+import { syncUnreadJobsCount, setNativeAppBadge, markJobsAsSeen } from '../lib/appBadgeService';
 
 const SUPABASE_URL = 'https://njrkhpsbbpszvyzosxwf.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
@@ -50,6 +51,7 @@ export default function Home() {
 
         if (jobsData && jobsData.length > 0 && isMounted) {
           setLatestJobs(jobsData as Job[]);
+          syncUnreadJobsCount(jobsData as Job[]);
           try {
             localStorage.setItem('jn_v3_home_jobs', JSON.stringify(jobsData));
           } catch (e) {}
@@ -75,6 +77,7 @@ export default function Home() {
             const rawData = await res.json();
             if (Array.isArray(rawData) && rawData.length > 0 && isMounted) {
               setLatestJobs(rawData as Job[]);
+              syncUnreadJobsCount(rawData as Job[]);
               try {
                 localStorage.setItem('jn_v3_home_jobs', JSON.stringify(rawData));
               } catch (e) {}
@@ -160,6 +163,7 @@ export default function Home() {
           if (freshItems.length > 0) {
             setPendingNewJobs(freshItems);
             setNewJobsCount(freshItems.length);
+            setNativeAppBadge(freshItems.length);
           }
         }
       } catch (err) {
@@ -192,6 +196,7 @@ export default function Home() {
               setLatestJobs(prev => [...pendingNewJobs, ...prev]);
               setNewJobsCount(0);
               setPendingNewJobs([]);
+              markJobsAsSeen();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg text-xs md:text-sm font-bold flex items-center gap-2 border-2 border-white cursor-pointer active:scale-95"

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, FolderOpen, Search, Heart, FileText } from 'lucide-react';
 import CategoriesDrawer from './CategoriesDrawer';
+import { useUnreadJobsBadge } from '../lib/appBadgeService';
 
 export default function MobileBottomNav() {
+  const { unreadCount } = useUnreadJobsBadge();
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const location = useLocation();
 
@@ -49,7 +51,14 @@ export default function MobileBottomNav() {
               }`
             }
           >
-            <Search className="w-5 h-5" />
+            <div className="relative">
+              <Search className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-black flex items-center justify-center animate-pulse shadow-sm border border-white dark:border-slate-900">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </div>
             <span className="text-[10px] font-medium">Search</span>
           </NavLink>
 
