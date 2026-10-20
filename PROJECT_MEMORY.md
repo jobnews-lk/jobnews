@@ -158,4 +158,14 @@
 
 ---
 
-*Last Updated: September 24, 2026 by Antigravity AI*
+       * **Web Push Notifications & Native App Icon Red Badging System (COMPLETED - OCTOBER 20, 2026):**
+         * **VAPID Cryptographic Keypair:** Generated and linked standard VAPID authentication keys for trusted Google FCM / Apple APNs dispatch.
+         * **Enterprise RLS Database Security:** Created `push_subscriptions` table (`20261020000000_create_push_subscriptions.sql`) with strict Row Level Security (RLS) allowing anonymous devices to insert/update their own push tokens with zero exposure of sensitive data.
+         * **Native System Dialog Modal (`NativePushPermissionModal.tsx`):** Authentic iOS/system frosted glass modal styled with hairline borders (`Allow` / `Don't Allow`). Configured to display **STRICTLY ONLY to installed PWA app users** (`isRunningStandalone()`) with a gentle 2.5s launch delay, completely non-intrusive to regular web visitors.
+         * **Vercel Serverless Push Engine (`api/send-push.js` & `api/push-subscribe.js`):** Integrates `web-push` to broadcast alerts and payload unread counts to all active devices, with automated pruning of expired/410 endpoints.
+         * **Admin Auto-Broadcast & Real-Time Alerts:** Auto-dispatches web push alerts on job publish (`AdminNewJob.tsx`, `AdminEditJob.tsx`) and provides live subscriber telemetry in `AdminDashboard.tsx`.
+         * **App Icon Red Badge:** Updates native Android PWA home screen icon red number badges via `self.navigator.setAppBadge(count)` in `sw.js`.
+
+---
+
+*Last Updated: October 20, 2026 by Antigravity AI*

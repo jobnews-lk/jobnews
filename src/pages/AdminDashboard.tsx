@@ -84,6 +84,12 @@ export default function AdminDashboard() {
     recent: [],
     isRealtimeSynced: false,
   });
+  const [pushStats, setPushStats] = useState<{ total: number; android: number; ios: number; desktop: number }>({
+    total: 0,
+    android: 0,
+    ios: 0,
+    desktop: 0,
+  });
   const [loadingPwaStats, setLoadingPwaStats] = useState(false);
   const [pushTitle, setPushTitle] = useState('');
   const [pushBody, setPushBody] = useState('');
@@ -93,10 +99,18 @@ export default function AdminDashboard() {
   const loadPwaStats = async () => {
     setLoadingPwaStats(true);
     try {
-      const stats = await fetchPwaStats();
-      setPwaStats(stats);
+      const [stats, pushRes] = await Promise.allSettled([
+        fetchPwaStats(),
+        fetch('/api/push-subscribe').then((r) => r.json()),
+      ]);
+      if (stats.status === 'fulfilled') {
+        setPwaStats(stats.value);
+      }
+      if (pushRes.status === 'fulfilled' && pushRes.value && typeof pushRes.value.total === 'number') {
+        setPushStats(pushRes.value);
+      }
     } catch (e) {
-      console.warn('Failed to load PWA stats:', e);
+      console.warn('Failed to load PWA/Push stats:', e);
     } finally {
       setLoadingPwaStats(false);
     }
@@ -109,15 +123,41 @@ export default function AdminDashboard() {
     }
     setSendingPush(true);
     try {
+      // 1. Dispatch Web Push via Vercel Serverless Function to all registered devices
+      let remoteSent = 0;
+      try {
+        const pushRes = await fetch('/api/send-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: pushTitle.trim(),
+            body: pushBody.trim(),
+            url: '/jobs',
+            unreadCount: 1,
+          }),
+        });
+        const pushData = await pushRes.json();
+        if (pushData?.sent) remoteSent = pushData.sent;
+      } catch (remoteErr) {
+        console.warn('Remote push dispatch error:', remoteErr);
+      }
+
+      // 2. Also trigger local notification & app badge update
       await showJobAlertNotification({
         title: pushTitle.trim(),
         body: pushBody.trim(),
         url: '/jobs',
-        unreadCount: Math.max(1, pwaStats.total),
+        unreadCount: 1,
       });
-      setInfoMessage('🔔 Web Push Alert dispatched! App Icon Badges updated on user home screens.');
+
+      const messageText = remoteSent > 0
+        ? `🔔 Web Push Alert sent to ${remoteSent} active phone(s)! App Icon Red Badges updated.`
+        : '🔔 Web Push Alert dispatched! App Icon Badges updated on user home screens.';
+
+      setInfoMessage(messageText);
       setPushTitle('');
       setPushBody('');
+      loadPwaStats();
     } catch (err: any) {
       setError(err?.message || 'Failed to dispatch alert');
     } finally {
@@ -135,6 +175,7 @@ export default function AdminDashboard() {
 
   const handleCopySql = () => {
     const sql = `-- Run this in Supabase SQL Editor:
+-- 1. PWA Installations Table
 CREATE TABLE IF NOT EXISTS pwa_installations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   device_id text UNIQUE NOT NULL,
@@ -146,9 +187,35 @@ CREATE TABLE IF NOT EXISTS pwa_installations (
 
 ALTER TABLE pwa_installations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "allow_anon_insert_pwa_installations" ON pwa_installations;
 CREATE POLICY "allow_anon_insert_pwa_installations" ON pwa_installations FOR INSERT TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_anon_update_pwa_installations" ON pwa_installations;
 CREATE POLICY "allow_anon_update_pwa_installations" ON pwa_installations FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_anon_select_pwa_installations" ON pwa_installations FOR SELECT TO anon, authenticated USING (true);`;
+DROP POLICY IF EXISTS "allow_anon_select_pwa_installations" ON pwa_installations;
+CREATE POLICY "allow_anon_select_pwa_installations" ON pwa_installations FOR SELECT TO anon, authenticated USING (true);
+
+-- 2. Web Push Subscriptions Table
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  device_id text NOT NULL,
+  endpoint text UNIQUE NOT NULL,
+  p256dh text NOT NULL,
+  auth text NOT NULL,
+  platform text DEFAULT 'android',
+  user_agent text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "allow_anon_insert_push_subscriptions" ON push_subscriptions;
+CREATE POLICY "allow_anon_insert_push_subscriptions" ON push_subscriptions FOR INSERT TO anon, authenticated WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_anon_update_push_subscriptions" ON push_subscriptions;
+CREATE POLICY "allow_anon_update_push_subscriptions" ON push_subscriptions FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "allow_anon_select_push_subscriptions" ON push_subscriptions;
+CREATE POLICY "allow_anon_select_push_subscriptions" ON push_subscriptions FOR SELECT TO anon, authenticated USING (true);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions (endpoint);`;
     navigator.clipboard.writeText(sql);
     setCopiedSql(true);
     setTimeout(() => setCopiedSql(false), 2500);
@@ -1670,11 +1737,11 @@ CREATE POLICY "allow_anon_select_pwa_installations" ON pwa_installations FOR SEL
             </div>
 
             {/* Platform Metrics Cards */}
-            <div className="grid grid-cols-3 gap-3 my-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5">
               <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center">
                 <span className="text-xl">🤖</span>
                 <p className="text-lg font-black text-slate-900 dark:text-white mt-1">{pwaStats.android}</p>
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Android Users</span>
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Android Installs</span>
               </div>
               <div className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/80 text-center">
                 <span className="text-xl">🍏</span>
@@ -1685,6 +1752,11 @@ CREATE POLICY "allow_anon_select_pwa_installations" ON pwa_installations FOR SEL
                 <span className="text-xl">💻</span>
                 <p className="text-lg font-black text-slate-900 dark:text-white mt-1">{pwaStats.desktop + pwaStats.other}</p>
                 <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Desktop / Other</span>
+              </div>
+              <div className="p-3.5 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl border border-purple-500/30 text-center">
+                <span className="text-xl">🔔</span>
+                <p className="text-lg font-black text-purple-600 dark:text-purple-400 mt-1">{pushStats.total}</p>
+                <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-300">Push Subscribers</span>
               </div>
             </div>
 

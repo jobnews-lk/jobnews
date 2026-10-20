@@ -47,6 +47,21 @@ export default function AdminNewJob() {
           promises.push(postJobToWhatsApp(createdJob));
         }
 
+        // Web Push Notification & App Icon Badge Broadcast to all registered mobile devices
+        const pushPromise = fetch('/api/send-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: `JobNews.lk: ${createdJob.title.substring(0, 48)}`,
+            body: `නව රැකියා අවස්ථාවක් පළවිය (${createdJob.company}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`,
+            url: `/jobs/${createdJob.id}`,
+            unreadCount: 1,
+          }),
+        })
+          .then((r) => r.json())
+          .catch(() => null);
+        promises.push(pushPromise);
+
         if (promises.length > 0) {
           const autoResults = await Promise.all(promises);
           let idx = 0;
@@ -65,6 +80,10 @@ export default function AdminNewJob() {
             } else {
               infoParts.push(`WhatsApp AutoPost Notice: ${waRes?.error || 'Failed to post to WhatsApp'}`);
             }
+          }
+          const pushRes = autoResults[idx++];
+          if (pushRes?.sent > 0) {
+            infoParts.push(`Push Alert Sent to ${pushRes.sent} Device(s) 📱`);
           }
         }
       }

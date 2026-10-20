@@ -25,6 +25,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
 import NotFound from './pages/NotFound';
 import { initPwaInstallTracker } from './lib/pwaInstallTracker';
+import { NativePushPermissionModal } from './components/NativePushPermissionModal';
 
 function App() {
   const [splashVisible, setSplashVisible] = useState(true);
@@ -78,6 +79,7 @@ function App() {
         </div>
       )}
       <ScrollToTop />
+      <NativePushPermissionModal />
       <ErrorBoundary>
         <Routes>
           {/* Standalone Dedicated Full-Screen Enterprise Admin Login Portal */}
