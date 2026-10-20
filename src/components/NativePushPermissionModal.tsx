@@ -21,6 +21,13 @@ export const NativePushPermissionModal: React.FC = () => {
       return;
     }
 
+    // If notifications are already permitted (e.g. manually enabled in Phone Settings),
+    // silently ensure this device is subscribed and registered in Supabase!
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      subscribeDeviceToPush().catch(() => {});
+      return;
+    }
+
     if (shouldSuppressPrompt()) {
       return;
     }
