@@ -69,7 +69,7 @@ export default async function handler(req, res) {
       url: url || '/jobs',
       unreadCount: Number(unreadCount) || 1,
       icon: '/pwa-icon-192.png',
-      badge: '/favicon.svg',
+      badge: '/pwa-icon-192.png',
     });
 
     let sent = 0;

@@ -99,9 +99,14 @@ export default function AdminDashboard() {
   const loadPwaStats = async () => {
     setLoadingPwaStats(true);
     try {
+      const statsUrl =
+        typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+          ? 'https://www.jobnews.lk/api/push-subscribe'
+          : '/api/push-subscribe';
+
       const [stats, pushRes] = await Promise.allSettled([
         fetchPwaStats(),
-        fetch('/api/push-subscribe').then((r) => r.json()),
+        fetch(statsUrl).then((r) => r.json()),
       ]);
       if (stats.status === 'fulfilled') {
         setPwaStats(stats.value);
@@ -126,7 +131,12 @@ export default function AdminDashboard() {
       // 1. Dispatch Web Push via Vercel Serverless Function to all registered devices
       let remoteSent = 0;
       try {
-        const pushRes = await fetch('/api/send-push', {
+        const sendUrl =
+          typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? 'https://www.jobnews.lk/api/send-push'
+            : '/api/send-push';
+
+        const pushRes = await fetch(sendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

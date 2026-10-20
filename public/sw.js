@@ -1,5 +1,5 @@
 // JobNews.lk Ultra-Fast PWA Service Worker & Realtime Web Push Notification Handler
-const CACHE_NAME = 'jobnews-pwa-v2';
+const CACHE_NAME = 'jobnews-pwa-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -40,7 +40,7 @@ self.addEventListener('push', (event) => {
     title: 'JobNews.lk - නව රැකියා ඇබෑර්තුවක්!',
     body: 'අලුත්ම රජයේ / පෞද්ගලික රැකියා අවස්ථාවක් පළ විය. දැන්ම පරීක්ෂා කරන්න.',
     icon: '/pwa-icon-192.png',
-    badge: '/favicon.svg',
+    badge: '/pwa-icon-192.png',
     url: '/jobs',
     unreadCount: 1,
   };
@@ -63,10 +63,13 @@ self.addEventListener('push', (event) => {
     self.navigator.setAppBadge(payload.unreadCount || 1).catch(() => {});
   }
 
+  const cleanIcon = (payload.icon && !payload.icon.endsWith('.svg')) ? payload.icon : '/pwa-icon-192.png';
+  const cleanBadge = (payload.badge && !payload.badge.endsWith('.svg')) ? payload.badge : '/pwa-icon-192.png';
+
   const options = {
     body: payload.body,
-    icon: payload.icon || '/pwa-icon-192.png',
-    badge: payload.badge || '/favicon.svg',
+    icon: cleanIcon,
+    badge: cleanBadge,
     vibrate: [150, 80, 150],
     data: {
       url: payload.url || '/jobs',
