@@ -68,8 +68,8 @@ export default async function handler(req, res) {
       body: (body || 'අලුත්ම රැකියා අවස්ථාවක් පළ විය. දැන්ම පරීක්ෂා කරන්න.').trim(),
       url: url || '/jobs',
       unreadCount: Number(unreadCount) || 1,
-      icon: '/pwa-icon-192.png',
-      badge: '/pwa-icon-192.png',
+      icon: '/jobnews-icon-192.png',
+      badge: '/jobnews-badge-mono.png',
     });
 
     let sent = 0;

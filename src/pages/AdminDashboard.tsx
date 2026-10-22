@@ -144,6 +144,8 @@ export default function AdminDashboard() {
             body: pushBody.trim(),
             url: '/jobs',
             unreadCount: 1,
+            icon: '/jobnews-icon-192.png',
+            badge: '/jobnews-badge-mono.png',
           }),
         });
         const pushData = await pushRes.json();

@@ -66,6 +66,8 @@ export default function AdminEditJob() {
             body: `නව රැකියා අවස්ථාවක් පළවිය (${updatedJob.company}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`,
             url: `/jobs/${updatedJob.id}`,
             unreadCount: 1,
+            icon: '/jobnews-icon-192.png',
+            badge: '/jobnews-badge-mono.png',
           }),
         })
           .then((r) => r.json())
