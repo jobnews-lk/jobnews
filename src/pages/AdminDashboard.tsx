@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation, Link, Navigate } from 'react-router-dom';
 import {
   Plus, Pencil, Trash2, AlertTriangle, LogOut, MapPin, Building2,
@@ -96,6 +96,8 @@ export default function AdminDashboard() {
   const [pushUrl, setPushUrl] = useState('/jobs');
   const [sendingPush, setSendingPush] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
+  const [pushBadgeCount, setPushBadgeCount] = useState<number>(1);
+  const [selectedPreset, setSelectedPreset] = useState<string>('');
 
   const loadPwaStats = async () => {
     setLoadingPwaStats(true);
@@ -144,7 +146,7 @@ export default function AdminDashboard() {
             title: pushTitle.trim(),
             body: pushBody.trim(),
             url: pushUrl.trim() || '/jobs',
-            unreadCount: 1,
+            unreadCount: pushBadgeCount || 1,
             icon: '/jobnews-icon-192.png',
             badge: '/jobnews-badge-mono.png',
           }),
@@ -160,17 +162,19 @@ export default function AdminDashboard() {
         title: pushTitle.trim(),
         body: pushBody.trim(),
         url: pushUrl.trim() || '/jobs',
-        unreadCount: 1,
+        unreadCount: pushBadgeCount || 1,
       });
 
       const messageText = remoteSent > 0
-        ? `🔔 Web Push Alert sent to ${remoteSent} active phone(s)! App Icon Red Badges updated.`
-        : '🔔 Web Push Alert dispatched! App Icon Badges updated on user home screens.';
+        ? `🔔 Web Push Alert sent to ${remoteSent} active phone(s)! App Icon Red Badges updated (${pushBadgeCount}).`
+        : `🔔 Web Push Alert dispatched! App Icon Badges updated (${pushBadgeCount}) on user home screens.`;
 
       setInfoMessage(messageText);
       setPushTitle('');
       setPushBody('');
       setPushUrl('/jobs');
+      setPushBadgeCount(1);
+      setSelectedPreset('');
       loadPwaStats();
     } catch (err: any) {
       setError(err?.message || 'Failed to dispatch alert');
@@ -179,13 +183,105 @@ export default function AdminDashboard() {
     }
   };
 
+  // Dynamic Helpers for Smart Notifications (New Vacancies & Expiring Reminders)
+  const publishedJobsList = useMemo(() => jobs.filter((j) => j.status === 'published'), [jobs]);
+
+  const todayJobs = useMemo(() => {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    return publishedJobsList.filter((j) => new Date(j.created_at) >= todayStart);
+  }, [publishedJobsList]);
+
+  const recentJobs = useMemo(() => publishedJobsList.slice(0, 20), [publishedJobsList]);
+
+  const closingSoonJobs = useMemo(() => {
+    const now = new Date();
+    const limitDays = new Date();
+    limitDays.setDate(now.getDate() + 5);
+    limitDays.setHours(23, 59, 59, 999);
+
+    return publishedJobsList
+      .filter((j) => {
+        if (!j.closing_date) return false;
+        const closing = new Date(j.closing_date);
+        closing.setHours(23, 59, 59, 999);
+        return closing >= now && closing <= limitDays;
+      })
+      .map((j) => {
+        const closing = new Date(j.closing_date!);
+        closing.setHours(23, 59, 59, 999);
+        const diffDays = Math.ceil((closing.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        return { ...j, daysLeft: Math.max(0, diffDays) };
+      })
+      .sort((a, b) => a.daysLeft - b.daysLeft);
+  }, [publishedJobsList]);
+
+  const handleSelectPreset = (presetKey: string) => {
+    setSelectedPreset(presetKey);
+    if (!presetKey) return;
+
+    if (presetKey === 'new_all') {
+      const count = todayJobs.length > 0 ? todayJobs.length : Math.min(recentJobs.length, 5);
+      const topCompanies = (todayJobs.length > 0 ? todayJobs : recentJobs)
+        .slice(0, 3)
+        .map((j) => j.company || j.title)
+        .filter(Boolean)
+        .join(', ');
+      setPushTitle(`JobNews.lk: අද දින නව රැකියා ${count}ක් පළවිය! 📢`);
+      setPushBody(`${topCompanies} ඇතුළු නව රැකියා ${count}ක් දැන් JobNews.lk වෙතින් අයදුම් කරන්න.`);
+      setPushUrl('/jobs');
+      setPushBadgeCount(count);
+      return;
+    }
+
+    if (presetKey.startsWith('new_')) {
+      const jobId = presetKey.replace('new_', '');
+      const job = publishedJobsList.find((j) => j.id === jobId);
+      if (job) {
+        setPushTitle(`JobNews.lk: ${job.company || 'නව රැකියා ඇබෑර්තුවක්'}`);
+        setPushBody(`නව රැකියා අවස්ථාවක්: ${job.title.substring(0, 48)}. දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
+        setPushUrl(`/jobs/${job.id}`);
+        setPushBadgeCount(1);
+      }
+      return;
+    }
+
+    if (presetKey === 'exp_all') {
+      const count = closingSoonJobs.length;
+      const topCompanies = closingSoonJobs
+        .slice(0, 3)
+        .map((j) => j.company || j.title)
+        .filter(Boolean)
+        .join(', ');
+      setPushTitle(`⏳ අවසන් දිනය ළඟයි! කල් ඉකුත්වන රැකියා ${count}ක්`);
+      setPushBody(`${topCompanies} ඇතුළු රැකියා ${count}ක අයදුම්පත් භාරගැනීම ඉක්මනින් අවසන් වේ. ප්‍රමාද නොවී දැන්ම අයදුම් කරන්න!`);
+      setPushUrl('/jobs');
+      setPushBadgeCount(count);
+      return;
+    }
+
+    if (presetKey.startsWith('exp_')) {
+      const jobId = presetKey.replace('exp_', '');
+      const job = closingSoonJobs.find((j) => j.id === jobId);
+      if (job) {
+        const daysText =
+          job.daysLeft === 0
+            ? 'අදින් අවසන් වේ'
+            : job.daysLeft === 1
+            ? 'හෙටින් අවසන් වේ'
+            : `අයදුම් කිරීමට තව දින ${job.daysLeft}යි`;
+        setPushTitle(`⏳ ${daysText}! ${job.company || 'රැකියා අවස්ථාව'}`);
+        setPushBody(`අයදුම්පත් භාරගැනීමේ අවසන් දිනය ළඟා වේ (${job.title.substring(0, 45)}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
+        setPushUrl(`/jobs/${job.id}`);
+        setPushBadgeCount(1);
+      }
+      return;
+    }
+  };
+
   const handleFillWithLatestJob = () => {
-    const publishedJobs = jobs.filter((j) => j.status === 'published');
-    if (publishedJobs.length > 0) {
-      const latest = publishedJobs[0];
-      setPushTitle(`JobNews.lk: ${latest.title.substring(0, 45)}`);
-      setPushBody(`නව රැකියා ඇබෑර්තුවක් පළවිය (${latest.company}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
-      setPushUrl(`/jobs/${latest.id}`);
+    if (publishedJobsList.length > 0) {
+      handleSelectPreset(`new_${publishedJobsList[0].id}`);
     }
   };
 
@@ -1044,6 +1140,18 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                             >
                               <Eye className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                             </button>
+                            {job.status === 'published' && (
+                              <button
+                                onClick={() => {
+                                  setShowPwaModal(true);
+                                  handleSelectPreset(`new_${job.id}`);
+                                }}
+                                title="Send Real-Time Push Notification Alert for this Job"
+                                className="p-2 text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                              >
+                                <Bell className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                              </button>
+                            )}
                             <Link
                               to={`/admin/jobs/${job.id}/edit`}
                               title="Edit Job"
@@ -1788,10 +1896,53 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                 <button
                   type="button"
                   onClick={handleFillWithLatestJob}
-                  className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                  className="text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   ⚡ Use Latest Job
                 </button>
+              </div>
+
+              {/* 🎯 Smart Preset Dropdown Selector */}
+              <div className="bg-white/80 dark:bg-slate-950/80 p-2.5 rounded-xl border border-purple-200 dark:border-purple-900/60 shadow-2xs">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[11px] font-bold text-purple-700 dark:text-purple-300 flex items-center gap-1.5">
+                    <span>🎯 Smart Alert Template / Auto-Fill:</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+                    (Auto-formats title, body & link)
+                  </span>
+                </div>
+                <select
+                  value={selectedPreset}
+                  onChange={(e) => handleSelectPreset(e.target.value)}
+                  className="w-full text-xs font-semibold px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-purple-200 dark:border-purple-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-hidden"
+                >
+                  <option value="">-- Choose Notification Template (තෝරන්න) --</option>
+                  
+                  <optgroup label="⚡ අලුත්ම රැකියා (NEW VACANCIES)">
+                    <option value="new_all">
+                      📦 [Smart Summary] අද පළවූ සියලු රැකියා ({todayJobs.length > 0 ? todayJobs.length : Math.min(recentJobs.length, 5)} ක් එකවර)
+                    </option>
+                    {recentJobs.slice(0, 10).map((j, i) => (
+                      <option key={`new_${j.id}`} value={`new_${j.id}`}>
+                        📌 {i + 1}. {j.company || 'Job'} - {j.title.substring(0, 42)}
+                      </option>
+                    ))}
+                  </optgroup>
+
+                  {closingSoonJobs.length > 0 && (
+                    <optgroup label="⏳ කල් ඉකුත්වන රැකියා (EXPIRING SOON)">
+                      <option value="exp_all">
+                        ⚠️ [Closing Summary] ඉක්මනින් අවසන් වන සියලු රැකියා ({closingSoonJobs.length} ක් එකවර)
+                      </option>
+                      {closingSoonJobs.map((j) => (
+                        <option key={`exp_${j.id}`} value={`exp_${j.id}`}>
+                          ⏳ {j.daysLeft === 0 ? '🔴 අදින් අවසන්' : j.daysLeft === 1 ? '🟡 හෙටින් අවසන්' : `තව දින ${j.daysLeft}යි`} - {j.company} ({j.title.substring(0, 32)})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
               </div>
 
               <div className="space-y-2">
@@ -1809,27 +1960,42 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                   onChange={(e) => setPushBody(e.target.value)}
                   className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-hidden resize-none"
                 />
-                <div className="flex items-center gap-2 bg-white/70 dark:bg-slate-950/70 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">🔗 Click Opens:</span>
-                  <input
-                    type="text"
-                    placeholder="/jobs or /jobs/job-id"
-                    value={pushUrl}
-                    onChange={(e) => setPushUrl(e.target.value)}
-                    className="w-full text-[11px] font-mono bg-transparent text-purple-700 dark:text-purple-300 outline-hidden"
-                  />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                  <div className="sm:col-span-9 flex items-center gap-2 bg-white/70 dark:bg-slate-950/70 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">🔗 Click Opens:</span>
+                    <input
+                      type="text"
+                      placeholder="/jobs or /jobs/job-id"
+                      value={pushUrl}
+                      onChange={(e) => setPushUrl(e.target.value)}
+                      className="w-full text-[11px] font-mono bg-transparent text-purple-700 dark:text-purple-300 outline-hidden"
+                    />
+                  </div>
+                  <div className="sm:col-span-3 flex items-center gap-1.5 bg-white/70 dark:bg-slate-950/70 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">🔴 Badge:</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={99}
+                      value={pushBadgeCount}
+                      onChange={(e) => setPushBadgeCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full text-[11px] font-bold text-center bg-transparent text-red-600 dark:text-red-400 outline-hidden"
+                      title="Red badge number on app icons"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-1">
                 <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                  🔴 Sets red number badge on app icons + sends web notification.
+                  🔴 Sets red number badge ({pushBadgeCount}) on app icons + sends web notification.
                 </p>
                 <button
                   type="button"
                   disabled={sendingPush || !pushTitle.trim()}
                   onClick={handleSendPushAlert}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   {sendingPush ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

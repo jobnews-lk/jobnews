@@ -266,6 +266,20 @@
             4. **Seasonal Gift Box Badges (`🎁`):** Highlighting surge vacancies in hotels, supermarkets, retail, logistics, and hospitality.
             5. **Festive WhatsApp Floating Button:** Seasonal holiday accent on floating contact badge.
 
+        * **Smart Dynamic Notification & Expiring Reminder Hub (COMPLETED - OCTOBER 23, 2026):**
+          * **Architecture Upgrade (`AdminDashboard.tsx`):** Transformed the Web Push Alert modal from a single-job updater into a comprehensive, dynamic Push & App Badge Dispatcher.
+          * **Dynamic "New Vacancies" Engine:**
+            * `📦 [Smart Summary] All New Jobs Today`: Dynamically counts today's published jobs (`${todayJobs.length}`), auto-compiles top company names in the body, sets target URL to `/jobs`, and auto-sets app badge to the exact job count.
+            * `📌 Individual Recent Jobs`: Lists recent published jobs so the Admin can pick any single job to broadcast with its exact direct deep link (`/jobs/${id}`).
+          * **Dynamic "Expiring Soon" (Urgency / Deadline) Engine:**
+            * Filters active published vacancies closing within 0 to 5 days, calculating dynamic days remaining (`closing.setHours(23, 59, 59, 999)`).
+            * `⚠️ [Closing Summary] All Expiring Jobs`: Sends an urgency digest alert linking to `/jobs` with matching badge count.
+            * `⏳ Individual Expiring Jobs`: Dynamic urgency titles (`🔴 අදින් අවසන්`, `🟡 හෙටින් අවසන්`, `තව දින 2යි`), pre-filled with company, title, and direct vacancy link.
+          * **1-Click Row Alert Trigger:** Added an intuitive **Bell (`🔔`)** action button to every published job row in the main Admin Dashboard table, allowing 1-click modal popup pre-filled for that specific job.
+          * **Badge Count Customizer:** Added an interactive `🔴 Badge:` number input allowing admins to customize or verify the red badge number before dispatching.
+          * **100% Manual Notification Dispatch Enforcement:** Completely removed the automatic `/api/send-push` trigger on job creation and editing (`AdminNewJob.tsx` & `AdminEditJob.tsx`). Admins now have 100% manual control over all push notifications, eliminating any premature or accidental alerts. All broadcasts now originate exclusively from the dedicated Smart Notification Hub or row-level Bell (`🔔`) triggers.
+          * Production build verified: 0 errors (`dist/assets/index-D0QzlAK7.js`).
+
 ---
 
 *Last Updated: October 22, 2026 by Antigravity AI*
