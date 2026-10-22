@@ -367,7 +367,8 @@ export default function JobDetail() {
   }
 
   const closing = new Date(job.closing_date);
-  const isExpired = closing < new Date();
+  closing.setHours(23, 59, 59, 999); // Keep valid through entire closing day
+  const isExpired = closing.getTime() < Date.now();
   const daysLeft = Math.ceil((closing.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
   const images = job.job_images?.sort((a, b) => a.sort_order - b.sort_order) || [];
@@ -440,6 +441,41 @@ export default function JobDetail() {
           </button>
           <SaveJobButton jobId={job.id} />
         </div>
+
+        {/* ⏳ Friendly Notice for Expired Jobs (Strictly shown ONLY when isExpired === true) */}
+        {isExpired && (
+          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent dark:from-amber-950/40 dark:via-amber-900/20 dark:to-transparent border border-amber-300/80 dark:border-amber-700/60 rounded-2xl shadow-xs transition-all">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0 text-xl shadow-xs mt-0.5">
+                  ⏳
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                      මෙම රැකියාවේ අයදුම්පත් භාරගැනීමේ දිනය පසුවී ඇත
+                    </h4>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-red-100 dark:bg-red-950/80 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800">
+                      Application Closed
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    කෙසේ වෙතත්, ඔබගේ දැනගැනීම සඳහා සම්පූර්ණ රැකියා විස්තරය පහතින් කියවිය හැක.
+                  </p>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                    You can still view the full job details below for your reference.
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/"
+                className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:shadow-lg transition-all shrink-0 active:scale-95"
+              >
+                <span>🚀 අද දින අලුත්ම රැකියා බලන්න / Browse Latest Jobs</span>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Thumbnail / Hero Image */}
         {allImages.length > 0 && (
