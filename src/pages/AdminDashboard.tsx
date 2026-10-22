@@ -176,8 +176,9 @@ export default function AdminDashboard() {
   };
 
   const handleFillWithLatestJob = () => {
-    if (jobs.length > 0) {
-      const latest = jobs[0];
+    const publishedJobs = jobs.filter((j) => j.status === 'published');
+    if (publishedJobs.length > 0) {
+      const latest = publishedJobs[0];
       setPushTitle(`JobNews.lk: ${latest.title.substring(0, 45)}`);
       setPushBody(`නව රැකියා ඇබෑර්තුවක් පළවිය (${latest.company}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
     }

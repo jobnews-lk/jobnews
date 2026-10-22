@@ -1,5 +1,5 @@
 // JobNews.lk Ultra-Fast PWA Service Worker & Realtime Web Push Notification Handler
-const CACHE_NAME = 'jobnews-pwa-v3';
+const CACHE_NAME = 'jobnews-pwa-v4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
