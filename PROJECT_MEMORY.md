@@ -222,6 +222,50 @@
          * **Founder Persona Entity Linking (`index.html` & `About.tsx`):** Added Founder's personal LinkedIn profile (`https://www.linkedin.com/in/itcrathnadipahotelcolombo`) under `founder.sameAs` in Schema.org and linked directly from the Founder name on `/about`.
          * Accelerates Google Knowledge Graph entity recognition and brand verification for the future right-hand Knowledge Panel displaying Founder (H A Kusal Duminda) and brand logo.
 
+       * **Master Plan: Sri Lanka State & Corporate Directory System (PLANNED & READY FOR IMPLEMENTATION - OCTOBER 2026):**
+         * **Strategic Purpose:** Capture non-gazette government vacancies published directly on individual portals of ministries, state banks, armed forces, universities, and corporations. Expand to premier private corporate employers. Position JobNews.lk as Sri Lanka's undisputed #1 Career Super-Hub.
+         * **The 150+ State Institutions Registry (9 Sectors):**
+           1. රජයේ අමාත්‍යාංශ (25 Ministries)
+           2. රජයේ ප්‍රධාන කාර්යාල හා අධිකරණ (Key Offices & Courts: President/PM Offices, Parliament, Cabinet, Supreme Court, Court of Appeal)
+           3. ස්වාධීන හා රජයේ කොමිෂන් සභා (Commissions: PSC, Elections, Police, HRCSL, CIABOC, PUCSL, TRCSL, SEC, UGC, etc.)
+           4. රජයේ දෙපාර්තමේන්තු (Departments: Customs, IRD, Immigration, DMT, Health, Labour, Agriculture, Surveys, Wildlife, Exams, Prisons, etc.)
+           5. රජයේ අධිකාරි, මණ්ඩල, සංස්ථා (Corporations & Boards: CEB, CPC, Water Board, SLTB, Ports, Telecom, Road Dev, SLTDA, etc.)
+           6. රජයේ බැංකු හා මූල්‍ය ආයතන (State Banks: CBSL, BOC, People's Bank, NSB, RDB, SMIB, HDFC, EPF, ETF)
+           7. විශ්වවිද්‍යාල හා උසස් අධ්‍යාපන (State Universities: Colombo, Moratuwa, Peradeniya, Sri Jayewardenepura, Kelaniya, Ruhuna, Jaffna, Rajarata, etc.)
+           8. ආරක්ෂක අංශ (Tri-Forces & Police: Army, Navy, Air Force, Police, Civil Security)
+           9. දිස්ත්‍රික්, පළාත් හා ප්‍රාදේශීය ආයතන (Provincial, District & Local Councils)
+         * **Corporate / Private Sector Support (Extensible Architecture):**
+           * 8 Major Corporate Sectors: IT & Software (WSO2, IFS, Virtusa, LSEG), Private Banks (Commercial, Sampath, HNB, DFCC), Conglomerates (John Keells, Hayleys, Hemas, Aitken Spence), Apparel & Manufacturing (MAS, Brandix, Maliban), Telecom & Media (Dialog, Mobitel, Maharaja), Hospitality (Cinnamon, Jetwing), Private Hospitals (Asiri, Nawaloka, Lanka Hospitals), FMCG & Retail (Keells Super, Cargills).
+           * 100% legal, public domain compliance with standard fair-use disclaimers.
+         * **Desktop UI/UX Architecture Decisions (User-Validated):**
+           * **Navbar Preservation Decision:** Do NOT add another link to the top desktop Navbar to completely prevent 2-line text wrapping / crowding on standard 1366x768 / 1440x900 laptops.
+           * **Quick Stat Cards Floating Dropdowns (`Home.tsx`):** Upgrading the 4 Quick Stat Cards right below the Hero search box with sleek floating flyout menus (`▼`):
+             * `Government ▼` -> Floating menu with 9 State Sectors + "View All 150+ Institutions ➔".
+             * `Private Sector ▼` -> Floating menu with Corporate Industries + "View All Corporate Employers ➔".
+             * `Overseas ▼` -> Floating menu with Top Destinations (UAE/Dubai, Maldives, Qatar, Saudi) + "View All Overseas ➔".
+             * Dual action: Clicking card text navigates directly; clicking `▼` reveals the floating popover without any layout shifts.
+         * **Mobile UI/UX Architecture Decisions (`CategoriesDrawer.tsx`):**
+           * Mobile bottom navigation bar remains 100% clean with its 5 icons (`Home`, `Categories`, `Search`, `CV Builder`, `Saved`).
+           * Tapping `Categories` opens the left-side drawer enhanced with **3 Extensible Tabs**:
+             1. `[ 📂 Fields ]`: Standard job categories (Accounting, IT, Engineering) - 100% intact.
+             2. `[ 🏛️ රාජ්‍ය ]`: 150+ Government institutions with 0ms client-side fuzzy search and sector pills.
+             3. `[ 🏢 පුද්ගලික ]`: Top private corporate employers with industry filters.
+         * **Error Prevention & Google Search Console (GSC) Protection:**
+           * **Mobile Usability:** All clickable touch targets have min 48px size and 8px-12px padding (`gap-2`, `p-2.5`) to guarantee 100/100 GSC mobile validation.
+           * **Soft 404 & Thin Content Prevention:** Institutions with 0 active jobs still present rich entity data, verified website links, and career instructions so Google never flags thin pages.
+           * **URL Canonicalization:** Search query parameters canonicalize back to the primary canonical directory URL to eliminate duplicate content penalties.
+           * **Link Safety:** All external links use `target="_blank" rel="noopener noreferrer"`.
+           * **Performance:** 0ms RAM caching with pre-computed lowercase search index ensures zero lag on low-end devices.
+
+        * **Seasonal Feature: Christmas & New Year Holiday Auto-Timer (PLANNED FOR NOV 10 - JAN 7):**
+          * **Smart Auto-Schedule:** Activates automatically on **November 10** (matching Sri Lanka's holiday shopping and hiring surge) and terminates automatically on **January 7** (after New Year celebrations) with zero manual code edits required.
+          * **Delightful Festive Elements Planned:**
+            1. **Santa Hat on Logo:** Jaunty mini Santa hat tilted above the JobNews.lk logo in Navbar.
+            2. **Subtle Falling Snow (CSS Snowflakes):** Ultra-lightweight background drifting snow particles (0% battery drain, zero reading obstruction).
+            3. **Festive Ticker Greeting:** Seasonal greeting banner with jingle bells (`🎄 "Festive Season: නත්තල් සහ අලුත් අවුරුදු සමයේ ඔබගේ සිහින රැකියාව JobNews.lk වෙතින් සොයාගන්න!"`).
+            4. **Seasonal Gift Box Badges (`🎁`):** Highlighting surge vacancies in hotels, supermarkets, retail, logistics, and hospitality.
+            5. **Festive WhatsApp Floating Button:** Seasonal holiday accent on floating contact badge.
+
 ---
 
 *Last Updated: October 22, 2026 by Antigravity AI*
