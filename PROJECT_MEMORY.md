@@ -208,6 +208,15 @@
          * **All Job Notices Speed Engine (`Jobs.tsx`):** Upgraded `Jobs.tsx` to hydrate instantly from `jn_v3_all_jobs` (fallback to `jn_v3_home_jobs`), eliminating the 5-second "Loading notices..." delay. Limited initial query to 60 rows (`.limit(60)`) to drastically speed up query response on mobile 4G/3G.
          * **Cache Purge Synchronization (`supabase.ts`):** Added `jn_v3_*` keys to `clearPublicJobCaches()`.
 
+       * **Expired Vacancies Traffic Retention & Bilingual Alert Card (COMPLETED - OCTOBER 22, 2026):**
+         * **Traffic & SEO Retention Strategy:** Retaining expired job URLs preserves high-ranking Google organic search traffic and evergreen social media referrals (Facebook/WhatsApp groups).
+         * **Timezone-Safe Expiry Calculation (`JobDetail.tsx`):** Enforced `closing.setHours(23, 59, 59, 999)` so active jobs on their final calendar day never prematurely trigger the expired state during daytime.
+         * **Strictly Conditional Bilingual Alert Card (`JobDetail.tsx`):** Rendered STRICTLY when `isExpired === true` (active vacancies remain 100% clean and untouched).
+           * Displays gentle amber hourglass card (`⏳`) above the job content.
+           * Polite bilingual copy: *"මෙම රැකියාවේ අයදුම්පත් භාරගැනීමේ දිනය පසුවී ඇත (Application Closed)"* with note *"කෙසේ වෙතත්, ඔබගේ දැනගැනීම සඳහා සම්පූර්ණ රැකියා විස්තරය පහතින් කියවිය හැක / You can still view the full job details below for your reference"*.
+           * Gen Z / Mobile-Friendly 1-Tap CTA: `[ 🚀 අද දින අලුත්ම රැකියා බලන්න / Browse Latest Jobs ]` routing directly to `/` with 0ms hydration.
+           * Preserves 100% of the underlying vacancy's text, requirements, images, and documents without any obstructive modals or layout clipping.
+
 ---
 
 *Last Updated: October 22, 2026 by Antigravity AI*
