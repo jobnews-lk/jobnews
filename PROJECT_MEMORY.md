@@ -166,6 +166,48 @@
          * **Admin Auto-Broadcast & Real-Time Alerts:** Auto-dispatches web push alerts on job publish (`AdminNewJob.tsx`, `AdminEditJob.tsx`) and provides live subscriber telemetry in `AdminDashboard.tsx`.
          * **App Icon Red Badge:** Updates native Android PWA home screen icon red number badges via `self.navigator.setAppBadge(count)` in `sw.js`.
 
+       * **Android Push Notification Icon Alpha-Masking Fix & Dual Icon Architecture (COMPLETED - OCTOBER 21-22, 2026):**
+         * **Root Cause Identification (Modern Android Masking):** On modern Android versions (Android 14, Honor MagicOS 8, Huawei EMUI, Samsung OneUI), passing a solid full-color image into `options.badge` or as the small status bar icon causes Android to apply a solid white alpha tint over all non-transparent pixels, rendering the notification as an unreadable solid white blank square (`white box`).
+         * **Android Push Notification Specification Separation:**
+           * `options.icon` (Large Drawer Icon): Can and should be a rich, high-resolution 32-bit full-color RGBA bitmap.
+           * `options.badge` (Small Icon / Status Bar Badge): **MUST be an alpha-only monochrome silhouette** (pure white `#FFFFFF` vector shapes with 100% transparent alpha background `rgba(0,0,0,0)`).
+         * **Dedicated Assets Generated:**
+           * `public/jobnews-icon-192.png`: 192x192 high-resolution, full-color royal blue card (`#1e3a8a` to `#2563eb`) with white briefcase and gold magnifying glass accent for `options.icon`.
+           * `public/jobnews-badge-mono.png`: 96x96 pure white vector briefcase silhouette on 100% transparent background for `options.badge`.
+         * **Cache-Busting & Asset Renaming:** Renamed away from `/pwa-icon-192.png` to instantly bypass 4-hour Cloudflare and mobile browser disk caches.
+         * **Service Worker Upgrade to v5 (`public/sw.js`):** Upgraded cache name to `const CACHE_NAME = 'jobnews-pwa-v5';`. Explicitly standardized push event handler options to use `icon: '/jobnews-icon-192.png'` and `badge: '/jobnews-badge-mono.png'`.
+         * **Serverless Push Backend (`api/send-push.js`):** Standardized default fallback payload parameters to enforce `icon: '/jobnews-icon-192.png'` and `badge: '/jobnews-badge-mono.png'` across all broadcast alerts.
+         * **Admin Broadcasting Components (`AdminDashboard.tsx`, `AdminNewJob.tsx`, `AdminEditJob.tsx`):** Aligned all admin payload dispatches to transmit the standardized dual icon paths.
+
+       * **Admin Dashboard "Use Latest Job" Draft Filtering Protection (COMPLETED - OCTOBER 21, 2026):**
+         * **Issue Resolved:** The `⚡ Use Latest Job` button in `AdminDashboard.tsx` auto-filled `jobs[0]` directly without verifying `status`, inadvertently loading unpublished draft vacancies (e.g. `Chef de Partie`) into the notification broadcast form.
+         * **Fix Implemented:** Updated `handleFillWithLatestJob` in `AdminDashboard.tsx` to strictly filter by published vacancies:
+           ```typescript
+           const publishedJobs = jobs.filter(j => j.status === 'published');
+           const latest = publishedJobs[0];
+           ```
+           Guaranteed only verified, published vacancies are auto-filled for real-time notification alerts.
+
+       * **Android PWA Badging & Settings Telemetry (OCTOBER 21-22, 2026):**
+         * Documented Android launcher badge support across manufacturers (Honor MagicOS, Samsung OneUI, Xiaomi MIUI/HyperOS, Google Pixel Launcher).
+         * The Badging API functions via `self.navigator.setAppBadge(count)` in `sw.js` when the PWA is installed (`display: standalone`).
+         * Android OS registers the PWA in `Settings -> Notifications -> App icon badges` once an active notification channel is opened by incoming push alerts.
+         * App clears the red badge count via `navigator.clearAppBadge()` on app launch in `App.tsx`.
+
+       * **Production Build & Verification (OCTOBER 22, 2026):**
+         * Production Vite build verified: 0 errors (`dist/assets/index-DiARBBo5.js`).
+         * Deployed live to Vercel and verified:
+           * `https://www.jobnews.lk/sw.js` -> 200 OK (`const CACHE_NAME = 'jobnews-pwa-v5';`)
+           * `https://www.jobnews.lk/jobnews-icon-192.png` -> 200 OK (6,585 bytes)
+           * `https://www.jobnews.lk/jobnews-badge-mono.png` -> 200 OK (1,108 bytes)
+           * `https://www.jobnews.lk/api/push-subscribe` -> 200 OK (`{"total":2,"android":2,"ios":0,"desktop":0}`)
+
+       * **Push Notification Deep-Linking & 0ms Instant Loading Optimization (COMPLETED - OCTOBER 22, 2026):**
+         * **Direct Job Deep-Linking (`AdminDashboard.tsx`):** Added `pushUrl` state and UI target input in the Web Push card. `handleFillWithLatestJob` now automatically links `/jobs/${latest.id}` instead of hardcoded generic `/jobs`. Clicking a notification now opens the EXACT vacancy directly.
+         * **0ms SWR Cache Hydration (`JobDetail.tsx`):** Added multi-tier instant cache lookup (`jn_job_${id}` -> `jn_v3_home_jobs` -> `jn_v3_all_jobs`). If the job was already in memory, it renders in 0ms with zero skeleton delay while silently revalidating with Supabase.
+         * **All Job Notices Speed Engine (`Jobs.tsx`):** Upgraded `Jobs.tsx` to hydrate instantly from `jn_v3_all_jobs` (fallback to `jn_v3_home_jobs`), eliminating the 5-second "Loading notices..." delay. Limited initial query to 60 rows (`.limit(60)`) to drastically speed up query response on mobile 4G/3G.
+         * **Cache Purge Synchronization (`supabase.ts`):** Added `jn_v3_*` keys to `clearPublicJobCaches()`.
+
 ---
 
-*Last Updated: October 20, 2026 by Antigravity AI*
+*Last Updated: October 22, 2026 by Antigravity AI*

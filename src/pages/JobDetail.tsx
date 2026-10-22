@@ -13,8 +13,35 @@ export default function JobDetail() {
   const { isAdmin } = useAuth();
   const isPreviewParam = searchParams.get('preview') === 'true';
 
-  const [job, setJob] = useState<Job | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [job, setJob] = useState<Job | null>(() => {
+    if (!id) return null;
+    try {
+      // 1. Direct single job cache
+      const singleCached = localStorage.getItem(`jn_job_${id}`);
+      if (singleCached) {
+        const parsed = JSON.parse(singleCached);
+        if (parsed && parsed.id === id) return parsed;
+      }
+
+      // 2. Search in home jobs cache
+      const homeCached = localStorage.getItem('jn_v3_home_jobs');
+      if (homeCached) {
+        const list = JSON.parse(homeCached);
+        const match = Array.isArray(list) ? list.find((j: any) => j.id === id) : null;
+        if (match) return match;
+      }
+
+      // 3. Search in all jobs cache
+      const allCached = localStorage.getItem('jn_v3_all_jobs') || localStorage.getItem('jn_all_jobs');
+      if (allCached) {
+        const list = JSON.parse(allCached);
+        const match = Array.isArray(list) ? list.find((j: any) => j.id === id) : null;
+        if (match) return match;
+      }
+    } catch (e) {}
+    return null;
+  });
+  const [loading, setLoading] = useState<boolean>(() => !job);
   const [imageIndex, setImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
@@ -203,6 +230,9 @@ export default function JobDetail() {
         const { data } = await query.maybeSingle();
         if (data) {
           setJob(data as Job);
+          try {
+            localStorage.setItem(`jn_job_${data.id}`, JSON.stringify(data));
+          } catch (e) {}
           const fullTitle = `${data.title} - ${data.company || 'JobNews.lk'} | Sri Lanka Job Vacancy`;
           document.title = fullTitle;
 

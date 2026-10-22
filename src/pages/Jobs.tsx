@@ -9,11 +9,19 @@ export default function Jobs() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>(() => {
     try {
-      const cached = localStorage.getItem('jn_all_jobs');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
+      const cached = localStorage.getItem('jn_v3_all_jobs') || localStorage.getItem('jn_all_jobs');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      // Fallback to home jobs cache if all-jobs cache is still hydrating
+      const homeCached = localStorage.getItem('jn_v3_home_jobs');
+      if (homeCached) {
+        const parsed = JSON.parse(homeCached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return [];
   });
   const [countries, setCountries] = useState<Country[]>(() => {
     try {
@@ -31,13 +39,7 @@ export default function Jobs() {
       return [];
     }
   });
-  const [loading, setLoading] = useState<boolean>(() => {
-    try {
-      return !localStorage.getItem('jn_all_jobs');
-    } catch (e) {
-      return true;
-    }
-  });
+  const [loading, setLoading] = useState<boolean>(() => jobs.length === 0);
   
   const initialSearch = searchParams.get('search') || '';
   const [searchInput, setSearchInput] = useState(initialSearch);
@@ -65,7 +67,7 @@ export default function Jobs() {
   useEffect(() => {
     // Session Cache for instant rendering
     try {
-      const cached = localStorage.getItem('jn_all_jobs');
+      const cached = localStorage.getItem('jn_v3_all_jobs') || localStorage.getItem('jn_all_jobs');
       if (cached && !search && !selectedCountry && !selectedCategory) {
         setJobs(JSON.parse(cached));
         setLoading(false);
@@ -88,7 +90,7 @@ export default function Jobs() {
       // Don't show full skeleton if we already have cached jobs and no active filters
       if (!search && !selectedCountry && !selectedCategory && jobs.length > 0) {
         setLoading(false);
-      } else {
+      } else if (jobs.length === 0) {
         setLoading(true);
       }
 
@@ -97,7 +99,8 @@ export default function Jobs() {
           .from('jobs')
           .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, countries(id, name, slug), categories(id, name, slug), job_images(id, url), job_pdfs(id, url)')
           .eq('status', 'published')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .limit(60);
 
         if (selectedCountry) {
           const ct = countries.find(c => c.slug === selectedCountry);
@@ -115,7 +118,10 @@ export default function Jobs() {
           setJobs(data as Job[]);
           markJobsAsSeen();
           if (!search && !selectedCountry && !selectedCategory) {
-            localStorage.setItem('jn_all_jobs', JSON.stringify(data));
+            try {
+              localStorage.setItem('jn_v3_all_jobs', JSON.stringify(data));
+              localStorage.setItem('jn_all_jobs', JSON.stringify(data));
+            } catch (e) {}
           }
         }
       } catch (err) {

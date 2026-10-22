@@ -93,6 +93,7 @@ export default function AdminDashboard() {
   const [loadingPwaStats, setLoadingPwaStats] = useState(false);
   const [pushTitle, setPushTitle] = useState('');
   const [pushBody, setPushBody] = useState('');
+  const [pushUrl, setPushUrl] = useState('/jobs');
   const [sendingPush, setSendingPush] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
 
@@ -142,7 +143,7 @@ export default function AdminDashboard() {
           body: JSON.stringify({
             title: pushTitle.trim(),
             body: pushBody.trim(),
-            url: '/jobs',
+            url: pushUrl.trim() || '/jobs',
             unreadCount: 1,
             icon: '/jobnews-icon-192.png',
             badge: '/jobnews-badge-mono.png',
@@ -158,7 +159,7 @@ export default function AdminDashboard() {
       await showJobAlertNotification({
         title: pushTitle.trim(),
         body: pushBody.trim(),
-        url: '/jobs',
+        url: pushUrl.trim() || '/jobs',
         unreadCount: 1,
       });
 
@@ -169,6 +170,7 @@ export default function AdminDashboard() {
       setInfoMessage(messageText);
       setPushTitle('');
       setPushBody('');
+      setPushUrl('/jobs');
       loadPwaStats();
     } catch (err: any) {
       setError(err?.message || 'Failed to dispatch alert');
@@ -183,6 +185,7 @@ export default function AdminDashboard() {
       const latest = publishedJobs[0];
       setPushTitle(`JobNews.lk: ${latest.title.substring(0, 45)}`);
       setPushBody(`නව රැකියා ඇබෑර්තුවක් පළවිය (${latest.company}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
+      setPushUrl(`/jobs/${latest.id}`);
     }
   };
 
@@ -1806,6 +1809,16 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                   onChange={(e) => setPushBody(e.target.value)}
                   className="w-full text-xs px-3 py-2 rounded-lg bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-hidden resize-none"
                 />
+                <div className="flex items-center gap-2 bg-white/70 dark:bg-slate-950/70 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 shrink-0">🔗 Click Opens:</span>
+                  <input
+                    type="text"
+                    placeholder="/jobs or /jobs/job-id"
+                    value={pushUrl}
+                    onChange={(e) => setPushUrl(e.target.value)}
+                    className="w-full text-[11px] font-mono bg-transparent text-purple-700 dark:text-purple-300 outline-hidden"
+                  />
+                </div>
               </div>
 
               <div className="flex items-center justify-between pt-1">
