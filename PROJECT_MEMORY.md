@@ -217,6 +217,11 @@
            * Gen Z / Mobile-Friendly 1-Tap CTA: `[ 🚀 අද දින අලුත්ම රැකියා බලන්න / Browse Latest Jobs ]` routing directly to `/` with 0ms hydration.
            * Preserves 100% of the underlying vacancy's text, requirements, images, and documents without any obstructive modals or layout clipping.
 
+       * **Google Knowledge Panel & LinkedIn Structured Data Integration (COMPLETED - OCTOBER 22, 2026):**
+         * **LinkedIn Schema.org Linking (`index.html`):** Connected official public LinkedIn Company Page (`https://www.linkedin.com/company/143933279`) to Schema.org `Organization.sameAs` graph alongside Facebook and WhatsApp.
+         * **Founder Persona Entity Linking (`index.html` & `About.tsx`):** Added Founder's personal LinkedIn profile (`https://www.linkedin.com/in/itcrathnadipahotelcolombo`) under `founder.sameAs` in Schema.org and linked directly from the Founder name on `/about`.
+         * Accelerates Google Knowledge Graph entity recognition and brand verification for the future right-hand Knowledge Panel displaying Founder (H A Kusal Duminda) and brand logo.
+
 ---
 
 *Last Updated: October 22, 2026 by Antigravity AI*

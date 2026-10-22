@@ -19,7 +19,7 @@ export default function About() {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-9 mb-8 shadow-sm transition-colors">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Our Story & Mission</h2>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-            Founded in 2020 by <strong className="text-slate-900 dark:text-white font-bold">H A Kusal Duminda</strong>, JobNews.lk was created with a clear vision: to modernize how Sri Lankans discover career opportunities. Finding genuine, up-to-date job announcements often involved scattered newspaper clippings, slow government portals, and unverified social media posts. **JobNews was built to solve this problem.**
+            Founded in 2020 by <a href="https://www.linkedin.com/in/itcrathnadipahotelcolombo" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-1">H A Kusal Duminda <ExternalLink className="w-3 h-3 inline" /></a>, JobNews.lk was created with a clear vision: to modernize how Sri Lankans discover career opportunities. Finding genuine, up-to-date job announcements often involved scattered newspaper clippings, slow government portals, and unverified social media posts. **JobNews was built to solve this problem.**
           </p>
           <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
             We curate, organize, and publish verified vacancy notices from across Sri Lanka and international markets into one clean, lightning-fast platform. Whether you are looking for a prestigious civil service appointment, a high-growth private sector career, or a rewarding foreign employment opportunity, JobNews delivers official, accurate information directly to your screen.
@@ -35,6 +35,14 @@ export default function About() {
               className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800/50"
             >
               Facebook Page <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/143933279"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline bg-sky-50 dark:bg-sky-900/30 px-3 py-1.5 rounded-lg border border-sky-100 dark:border-sky-800/50"
+            >
+              LinkedIn Page <ExternalLink className="w-3 h-3" />
             </a>
             <a
               href="https://whatsapp.com/channel/0029Vb8F3lw42DcjuB8vvQ1y"
