@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Plane, ArrowLeft, Search, MapPin, FolderOpen, X } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
+import { getCachedCategories, getCachedCountries, fetchFreshCategories, fetchFreshCountries } from '../lib/categoriesService';
 import LatestJobFeed from '../components/LatestJobFeed';
 
 export default function OverseasJobs() {
@@ -14,22 +15,8 @@ export default function OverseasJobs() {
       return [];
     }
   });
-  const [countries, setCountries] = useState<Country[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_ovs_countries');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_ovs_categories');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [countries, setCountries] = useState<Country[]>(getCachedCountries);
+  const [categories, setCategories] = useState<Category[]>(getCachedCategories);
   const [loading, setLoading] = useState<boolean>(jobs.length === 0);
 
   const [searchInput, setSearchInput] = useState('');
@@ -75,20 +62,17 @@ export default function OverseasJobs() {
         }
 
         const [jobRes, ctsRes, catsRes] = await Promise.all([
-          query,
-          countries.length === 0 ? supabase.from('countries').select('id, name, slug').order('name') : Promise.resolve(null),
-          categories.length === 0 ? supabase.from('categories').select('id, name, slug').order('name') : Promise.resolve(null)
+          query
         ]);
 
+        fetchFreshCountries().then(cts => {
+          if (cts && isSubscribed) setCountries(cts);
+        });
+        fetchFreshCategories().then(cats => {
+          if (cats && isSubscribed) setCategories(cats);
+        });
+
         if (isSubscribed) {
-          if (ctsRes?.data) {
-            setCountries(ctsRes.data as Country[]);
-            localStorage.setItem('jn_ovs_countries', JSON.stringify(ctsRes.data));
-          }
-          if (catsRes?.data) {
-            setCategories(catsRes.data as Category[]);
-            localStorage.setItem('jn_ovs_categories', JSON.stringify(catsRes.data));
-          }
           if (!jobRes.error && jobRes.data) {
             setJobs(jobRes.data as Job[]);
             if (!isFiltered) {

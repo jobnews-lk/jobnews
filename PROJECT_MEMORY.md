@@ -280,6 +280,23 @@
           * **100% Manual Notification Dispatch Enforcement:** Completely removed the automatic `/api/send-push` trigger on job creation and editing (`AdminNewJob.tsx` & `AdminEditJob.tsx`). Admins now have 100% manual control over all push notifications, eliminating any premature or accidental alerts. All broadcasts now originate exclusively from the dedicated Smart Notification Hub or row-level Bell (`🔔`) triggers.
           * Production build verified: 0 errors (`dist/assets/index-D0QzlAK7.js`).
 
+        * **Resilient Categories & Countries Instant Fallback & Caching Engine (COMPLETED - OCTOBER 23, 2026):**
+          * **Root Cause of Empty Categories on Mobile Chrome:**
+            * When visiting via Mobile Chrome browser (non-standalone web mode), slow mobile network latency (4G/3G in Sri Lanka) or connection cold start caused the live `supabase.from('categories')` query in `Home.tsx` and `CategoriesDrawer.tsx` to delay or fail.
+            * Unlike `jobs` (which had a robust multi-tier localStorage cache and retry engine), `categories` and `countries` had zero synchronous cache hydration and zero fallback data, initializing with empty array `[]`.
+            * In `CategoriesDrawer.tsx`, while categories were empty in Chrome browser (`!isStandalone === true`), only "All Job Categories" and "Add to Home Screen (මුල් තිරයට)" rendered.
+          * **Bulletproof Solution Implemented:**
+            * Created `src/lib/categoriesService.ts`:
+              * `DEFAULT_CATEGORIES`: 10 official categories (IDs, names, slugs) hardcoded for instant 0ms fallback.
+              * `DEFAULT_COUNTRIES`: 20 official countries for instant 0ms fallback.
+              * `getCachedCategories()` & `getCachedCountries()`: Synchronous 0ms hydration from `localStorage` (`jn_v3_categories` / `jn_v3_countries`) falling back to defaults.
+              * `fetchFreshCategories()` & `fetchFreshCountries()`: SWR background revalidation with Supabase JS SDK + Direct REST fallback (`https://njrkhpsbbpszvyzosxwf.supabase.co/rest/v1/...`).
+            * Updated `CategoriesDrawer.tsx`: Initialized state with `getCachedCategories` and background sync on open.
+            * Updated `Home.tsx`: Filter dropdowns near Search box now hydrate at 0ms.
+            * Updated `Jobs.tsx`, `GovernmentJobs.tsx`, `PrivateJobs.tsx`, `OverseasJobs.tsx`: Unified to use `getCachedCategories` and `fetchFreshCategories`.
+            * Guarantee: Categories Drawer and Search box dropdowns can NEVER be empty on any browser, mobile phone, or offline.
+          * Production build verified: 0 errors (`dist/assets/index-Cnpg-ZaP.js`).
+
 ---
 
-*Last Updated: October 22, 2026 by Antigravity AI*
+*Last Updated: October 23, 2026 by Antigravity AI*

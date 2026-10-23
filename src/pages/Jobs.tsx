@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, X, MapPin, FolderOpen, ArrowLeft } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
+import { getCachedCategories, getCachedCountries, fetchFreshCategories, fetchFreshCountries } from '../lib/categoriesService';
 import LatestJobFeed from '../components/LatestJobFeed';
 import { markJobsAsSeen } from '../lib/appBadgeService';
 
@@ -23,22 +24,8 @@ export default function Jobs() {
     } catch (e) {}
     return [];
   });
-  const [countries, setCountries] = useState<Country[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_jobs_countries');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_jobs_categories');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [countries, setCountries] = useState<Country[]>(getCachedCountries);
+  const [categories, setCategories] = useState<Category[]>(getCachedCategories);
   const [loading, setLoading] = useState<boolean>(() => jobs.length === 0);
   
   const initialSearch = searchParams.get('search') || '';
@@ -74,15 +61,8 @@ export default function Jobs() {
       }
     } catch (e) {}
 
-    async function loadData() {
-      const [ctsRes, catsRes] = await Promise.all([
-        supabase.from('countries').select('id, name, slug').order('name'),
-        supabase.from('categories').select('id, name, slug').order('name')
-      ]);
-      if (ctsRes.data) setCountries(ctsRes.data);
-      if (catsRes.data) setCategories(catsRes.data);
-    }
-    loadData();
+    fetchFreshCountries().then(cts => { if (cts) setCountries(cts); });
+    fetchFreshCategories().then(cats => { if (cats) setCategories(cats); });
   }, []);
 
   useEffect(() => {

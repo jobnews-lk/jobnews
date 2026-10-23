@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Landmark, ArrowLeft, Search, FolderOpen, X } from 'lucide-react';
 import { supabase, type Job, type Category } from '../lib/supabase';
+import { getCachedCategories, fetchFreshCategories } from '../lib/categoriesService';
 import LatestJobFeed from '../components/LatestJobFeed';
 
 export default function GovernmentJobs() {
@@ -14,14 +15,7 @@ export default function GovernmentJobs() {
       return [];
     }
   });
-  const [categories, setCategories] = useState<Category[]>(() => {
-    try {
-      const cached = localStorage.getItem('jn_gov_categories');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      return [];
-    }
-  });
+  const [categories, setCategories] = useState<Category[]>(getCachedCategories);
   const [loading, setLoading] = useState<boolean>(() => {
     try {
       const cached = localStorage.getItem('jn_gov_jobs');
@@ -43,14 +37,9 @@ export default function GovernmentJobs() {
   }, [searchInput]);
 
   useEffect(() => {
-    async function loadMetadata() {
-      const { data } = await supabase.from('categories').select('id, name, slug').order('name');
-      if (data) {
-        setCategories(data as Category[]);
-        localStorage.setItem('jn_gov_categories', JSON.stringify(data));
-      }
-    }
-    loadMetadata();
+    fetchFreshCategories().then(cats => {
+      if (cats) setCategories(cats);
+    });
   }, []);
 
   useEffect(() => {

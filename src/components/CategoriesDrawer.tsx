@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, FolderOpen, Smartphone } from 'lucide-react';
-import { supabase, type Category } from '../lib/supabase';
+import { type Category } from '../lib/supabase';
+import { getCachedCategories, fetchFreshCategories } from '../lib/categoriesService';
+
 interface CategoriesDrawerProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export default function CategoriesDrawer({ isOpen, onClose }: CategoriesDrawerProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(getCachedCategories);
   const [isStandalone, setIsStandalone] = useState(false);
   const navigate = useNavigate();
 
@@ -19,11 +21,9 @@ export default function CategoriesDrawer({ isOpen, onClose }: CategoriesDrawerPr
 
   useEffect(() => {
     if (!isOpen) return;
-    async function load() {
-      const { data } = await supabase.from('categories').select('*').order('name');
-      if (data) setCategories(data);
-    }
-    if (categories.length === 0) load();
+    fetchFreshCategories().then(fresh => {
+      if (fresh && fresh.length > 0) setCategories(fresh);
+    });
   }, [isOpen]);
 
   const handleSelect = (slug: string) => {

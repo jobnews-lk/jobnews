@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, MapPin, FolderOpen, ArrowRight, FileText, Landmark, Plane, Briefcase, TrendingUp, Loader2 } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
+import { getCachedCategories, getCachedCountries, fetchFreshCategories, fetchFreshCountries } from '../lib/categoriesService';
 import LatestJobFeed from '../components/LatestJobFeed';
 import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
 import { syncUnreadJobsCount, setNativeAppBadge, markJobsAsSeen } from '../lib/appBadgeService';
@@ -25,8 +26,8 @@ export default function Home() {
     return [];
   });
 
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [countries, setCountries] = useState<Country[]>(getCachedCountries);
+  const [categories, setCategories] = useState<Category[]>(getCachedCategories);
   const [search, setSearch] = useState('');
   const [searchCountry, setSearchCountry] = useState('');
   const [searchCategory, setSearchCategory] = useState('');
@@ -106,14 +107,13 @@ export default function Home() {
       }
     }
 
-    // Load filter options asynchronously
-    Promise.all([
-      supabase.from('countries').select('id, name, slug').order('name'),
-      supabase.from('categories').select('id, name, slug').order('name')
-    ]).then(([ctsRes, catsRes]) => {
-      if (ctsRes.data && isMounted) setCountries(ctsRes.data as Country[]);
-      if (catsRes.data && isMounted) setCategories(catsRes.data as Category[]);
-    }).catch(e => console.warn('Secondary options fetch error:', e));
+    // Load filter options asynchronously with resilient fallback and caching
+    fetchFreshCountries().then(cts => {
+      if (cts && isMounted) setCountries(cts);
+    });
+    fetchFreshCategories().then(cats => {
+      if (cats && isMounted) setCategories(cats);
+    });
 
     loadFreshJobsWithRetry();
 
