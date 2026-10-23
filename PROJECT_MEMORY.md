@@ -297,6 +297,18 @@
             * Guarantee: Categories Drawer and Search box dropdowns can NEVER be empty on any browser, mobile phone, or offline.
           * Production build verified: 0 errors (`dist/assets/index-Cnpg-ZaP.js`).
 
+        * **Sri Lanka State & Corporate Directory System - Agreed Architecture Plan (APPROVED BY USER - OCTOBER 23, 2026):**
+          * **User Alignment & Approval:**
+            * When adding/editing a job in Admin (`AdminJobForm.tsx`):
+              * Checking `[✔] Government` transforms `Company/Organization` into an **Intelligent Auto-Suggest (Searchable dropdown)** featuring all 150+ official Government institutions (Ministries, State Banks, Boards, Corporations, Armed Forces, Universities).
+              * Quick 1-click institution selection eliminates manual typing and spelling inconsistencies (e.g. typing "Bank" suggests `Bank of Ceylon (BOC)`, `People's Bank`, `National Savings Bank`).
+              * Selecting an institution auto-tags the corresponding **Government Sector** (e.g. `State Banks & Financial`).
+              * Admin retains 100% freedom to type any custom unlisted organization name if needed.
+              * The `Category` field remains clean and dedicated to professions (`IT & Software`, `Engineering`, `Banking & Insurance`), enabling multi-dimensional cross-filtering.
+            * Frontend Integration:
+              * **Mobile:** 3-Tab Drawer in `CategoriesDrawer.tsx` (`[ 📂 Fields ]`, `[ 🏛️ රාජ්‍ය ]`, `[ 🏢 පුද්ගලික ]`).
+              * **Desktop:** Floating flyout dropdowns (`▼`) on the 4 Quick Stat Cards below the Hero search box (`Government ▼`, `Private Sector ▼`, `Overseas ▼`).
+
 ---
 
 *Last Updated: October 23, 2026 by Antigravity AI*
