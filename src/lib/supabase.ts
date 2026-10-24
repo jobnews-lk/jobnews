@@ -40,6 +40,7 @@ export type JobPdf = {
 
 export type Job = {
   id: string;
+  slug?: string | null;
   title: string;
   company: string;
   salary: string | null;
@@ -153,11 +154,24 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
     const finalImages = (gallery_images || images) as string[] | undefined;
     const finalPdfs = (gallery_pdfs || pdfs) as any[] | undefined;
 
-    const { data: job, error } = await supabase.from('jobs').insert({
+    let { data: job, error } = await supabase.from('jobs').insert({
       ...jobData,
       thumbnail_url: thumbnail_url || null,
       official_pdf_url: official_pdf_url || null,
     }).select().single();
+
+    // Zero-Damage Safeguard: If inserting with slug failed because slug column does not exist yet in database,
+    // retry inserting without slug so job creation NEVER breaks!
+    if (error && error.message?.includes('slug')) {
+      const { slug, ...withoutSlug } = jobData as any;
+      const retryRes = await supabase.from('jobs').insert({
+        ...withoutSlug,
+        thumbnail_url: thumbnail_url || null,
+        official_pdf_url: official_pdf_url || null,
+      }).select().single();
+      job = retryRes.data;
+      error = retryRes.error;
+    }
     
     if (error) throw new Error(error.message);
 
@@ -204,11 +218,24 @@ export async function adminApiCall(method: string, body?: Record<string, unknown
     const finalImages = (gallery_images || images) as string[] | undefined;
     const finalPdfs = (gallery_pdfs || pdfs) as any[] | undefined;
 
-    const { data: job, error } = await supabase.from('jobs').update({
+    let { data: job, error } = await supabase.from('jobs').update({
       ...jobData,
       thumbnail_url: thumbnail_url || null,
       official_pdf_url: official_pdf_url || null,
     }).eq('id', jobId).select().single();
+
+    // Zero-Damage Safeguard: If updating with slug failed because slug column does not exist yet in database,
+    // retry updating without slug so job editing NEVER breaks!
+    if (error && error.message?.includes('slug')) {
+      const { slug, ...withoutSlug } = jobData as any;
+      const retryRes = await supabase.from('jobs').update({
+        ...withoutSlug,
+        thumbnail_url: thumbnail_url || null,
+        official_pdf_url: official_pdf_url || null,
+      }).eq('id', jobId).select().single();
+      job = retryRes.data;
+      error = retryRes.error;
+    }
     
     if (error) throw new Error(error.message);
 

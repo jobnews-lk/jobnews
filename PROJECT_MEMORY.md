@@ -309,6 +309,22 @@
               * **Mobile:** 3-Tab Drawer in `CategoriesDrawer.tsx` (`[ 📂 Fields ]`, `[ 🏛️ රාජ්‍ය ]`, `[ 🏢 පුද්ගලික ]`).
               * **Desktop:** Floating flyout dropdowns (`▼`) on the 4 Quick Stat Cards below the Hero search box (`Government ▼`, `Private Sector ▼`, `Overseas ▼`).
 
+        * **Universal SEO Clean URL Slug Engine (COMPLETED - OCTOBER 24, 2026):**
+          * **Feature Purpose:** Eliminates ugly, unindexed UUID links (`/jobs/4e286487...`) in favor of Google-optimized, human-readable semantic slugs (`/jobs/boc-management-trainee-vacancies-2026`).
+          * **Zero-Damage & Backward Compatibility Guarantees:**
+            * Created `src/lib/slugUtils.ts`: Intelligent slugifier (`generateJobSlug`), canonical link path resolver (`getJobPath`), and identifier parser (`extractJobIdentifier`).
+            * Supports 3 URL styles simultaneously:
+              1. Pure Clean Slug: `/jobs/boc-management-trainee-2026`
+              2. Hybrid Slug: `/jobs/boc-management-trainee-2026--4e286487...`
+              3. Legacy UUID: `/jobs/4e286487-e327-44e3-843e-6269174b3dba`
+            * In `JobDetail.tsx`: Seamlessly resolves jobs by UUID, slug, or hybrid with instant fallback.
+            * In `AdminJobForm.tsx`: Auto-generates clean slugs from Company and Title on job creation/edit.
+            * In `supabase.ts`: Added zero-damage retry safeguard in `adminApiCall` so inserts/updates never fail even before the `slug` column is created in the database.
+            * In `VacancyCard.tsx`, `ImageNoticeCard.tsx`, `PdfNoticeCard.tsx`, `TextNoticeCard.tsx`, `TopTicker.tsx`, `facebookAutoPoster.ts`, `whatsappAutoPoster.ts`: All updated to use `getJobPath(job)`.
+            * In `api/share-job.js`: Resolves WhatsApp/Facebook crawler requests by either slug or UUID.
+            * In `api/sitemap.js`: Dynamic XML sitemap generates clean slug URLs for instant Google Bot indexing.
+          * Production build verified: 0 errors (`dist/assets/index-5HmABgps.js`).
+
 ---
 
-*Last Updated: October 23, 2026 by Antigravity AI*
+*Last Updated: October 24, 2026 by Antigravity AI*

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2, Bold, Italic, List, ListOrdered, Heading } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
+import { generateJobSlug } from '../lib/slugUtils';
 
 interface AdminJobFormProps {
   job?: Job | null;
@@ -403,11 +404,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
     if (!validate()) return;
     
     const finalGalleryPdfs = galleryPdfs.filter((p) => p.url && p.url.trim() !== officialPdfUrl.trim());
+    const autoSlug = job?.slug || generateJobSlug(title, company);
 
     const data: Record<string, unknown> = {
       post_type: postType,
       title,
       company,
+      slug: autoSlug,
       salary: salary || null,
       location: location.trim(),
       description,

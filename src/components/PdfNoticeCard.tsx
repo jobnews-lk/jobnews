@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Calendar, Clock, Globe, Landmark, FileText, X, Eye, Download, ExternalLink, ChevronRight, Mail, Phone, MapPin as MapPinIcon, Share2, Briefcase, Building2 } from 'lucide-react';
 import { type Job, formatCleanCompany } from '../lib/supabase';
+import { getJobPath } from '../lib/slugUtils';
 import { Badge } from './NoticeBadge';
 import SaveJobButton from './SaveJobButton';
 
@@ -98,7 +99,7 @@ export default function PdfNoticeCard({ job }: PdfNoticeCardProps) {
           )}
 
           {/* Details Button */}
-          <Link to={`/jobs/${job.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 text-xs font-bold rounded-lg transition-colors shadow-sm shrink-0">
+          <Link to={getJobPath(job)} className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50 text-xs font-bold rounded-lg transition-colors shadow-sm shrink-0">
             Details <ChevronRight className="w-3.5 h-3.5" />
           </Link>
 
@@ -107,7 +108,7 @@ export default function PdfNoticeCard({ job }: PdfNoticeCardProps) {
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              const shareUrl = `${window.location.origin}/jobs/${job.id}`;
+              const shareUrl = `${window.location.origin}${getJobPath(job)}`;
               const shareText = `🔍 Job Notice: ${job.title}${job.company ? ' at ' + job.company : ''}\n\nApply now via JobNews.lk:`;
               if (navigator.share) {
                 navigator.share({ title: job.title, text: shareText, url: shareUrl }).catch(() => {});

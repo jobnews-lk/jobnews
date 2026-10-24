@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check, ShieldAlert } from 'lucide-react';
 import { supabase, parseRegisteredPostData, type Job } from '../lib/supabase';
+import { extractJobIdentifier, getJobPath, isUuid } from '../lib/slugUtils';
 import SaveJobButton from '../components/SaveJobButton';
 import ShareButtons from '../components/ShareButtons';
 import { useAuth } from '../context/AuthContext';
@@ -16,18 +17,19 @@ export default function JobDetail() {
   const [job, setJob] = useState<Job | null>(() => {
     if (!id) return null;
     try {
+      const identifier = extractJobIdentifier(id);
       // 1. Direct single job cache
       const singleCached = localStorage.getItem(`jn_job_${id}`);
       if (singleCached) {
         const parsed = JSON.parse(singleCached);
-        if (parsed && parsed.id === id) return parsed;
+        if (parsed && (parsed.id === identifier.value || parsed.slug === identifier.value)) return parsed;
       }
 
       // 2. Search in home jobs cache
       const homeCached = localStorage.getItem('jn_v3_home_jobs');
       if (homeCached) {
         const list = JSON.parse(homeCached);
-        const match = Array.isArray(list) ? list.find((j: any) => j.id === id) : null;
+        const match = Array.isArray(list) ? list.find((j: any) => j.id === identifier.value || j.slug === identifier.value) : null;
         if (match) return match;
       }
 
@@ -35,7 +37,7 @@ export default function JobDetail() {
       const allCached = localStorage.getItem('jn_v3_all_jobs') || localStorage.getItem('jn_all_jobs');
       if (allCached) {
         const list = JSON.parse(allCached);
-        const match = Array.isArray(list) ? list.find((j: any) => j.id === id) : null;
+        const match = Array.isArray(list) ? list.find((j: any) => j.id === identifier.value || j.slug === identifier.value) : null;
         if (match) return match;
       }
     } catch (e) {}
@@ -217,22 +219,50 @@ export default function JobDetail() {
       }
 
       try {
+        const identifier = extractJobIdentifier(id);
         let query = supabase
           .from('jobs')
-          .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
-          .eq('id', id);
+          .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)');
+
+        if (identifier.type === 'uuid') {
+          query = query.eq('id', identifier.value);
+        } else {
+          query = query.eq('slug', identifier.value);
+        }
 
         // Only filter by published status if NOT in admin preview mode
         if (!isAdmin && !isPreviewParam) {
           query = query.eq('status', 'published');
         }
 
-        const { data } = await query.maybeSingle();
+        let { data, error } = await query.maybeSingle();
+
+        // Fallback: If querying by slug returned nothing or errored, try querying by id if id is UUID
+        if (!data && identifier.type !== 'uuid' && isUuid(id)) {
+          let fallbackQuery = supabase
+            .from('jobs')
+            .select('*, countries(*), categories(*), job_images(*), job_pdfs(*)')
+            .eq('id', id);
+          if (!isAdmin && !isPreviewParam) {
+            fallbackQuery = fallbackQuery.eq('status', 'published');
+          }
+          const fallbackRes = await fallbackQuery.maybeSingle();
+          if (fallbackRes.data) {
+            data = fallbackRes.data;
+          }
+        }
+
         if (data) {
           setJob(data as Job);
           try {
             localStorage.setItem(`jn_job_${data.id}`, JSON.stringify(data));
           } catch (e) {}
+
+          // Canonical URL Smooth Upgrade: If visited via legacy UUID or hybrid, rewrite URL bar to clean slug!
+          if (data.slug && id !== data.slug && !isPreviewParam) {
+            navigate(`/jobs/${data.slug}`, { replace: true });
+          }
+
           const fullTitle = `${data.title} - ${data.company || 'JobNews.lk'} | Sri Lanka Job Vacancy`;
           document.title = fullTitle;
 
@@ -250,7 +280,7 @@ export default function JobDetail() {
 
             let canonicalLink = document.querySelector('link[rel="canonical"]');
             if (canonicalLink) {
-              canonicalLink.setAttribute('href', `https://jobnews.lk/jobs/${data.id}`);
+              canonicalLink.setAttribute('href', `https://jobnews.lk${getJobPath(data)}`);
             }
           } catch (e) {
             console.warn('Meta update error:', e);
@@ -277,7 +307,7 @@ export default function JobDetail() {
               "validThrough": data.closing_date ? new Date(data.closing_date).toISOString() : undefined,
               "employmentType": "FULL_TIME",
               "directApply": true,
-              "url": `https://jobnews.lk/jobs/${data.id}`,
+              "url": `https://jobnews.lk${getJobPath(data)}`,
               "image": imgUrl,
               "identifier": {
                 "@type": "PropertyValue",
@@ -412,7 +442,7 @@ export default function JobDetail() {
       }
     },
     "directApply": true,
-    "url": `https://jobnews.lk/jobs/${job.id}`
+    "url": `https://jobnews.lk${getJobPath(job)}`
   };
 
   return (

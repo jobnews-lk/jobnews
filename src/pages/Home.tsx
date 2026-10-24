@@ -45,7 +45,7 @@ export default function Home() {
         // Tier 1: Primary Supabase JS SDK fetch with job_images relation
         const { data: jobsData, error: jobsErr } = await supabase
           .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url, sort_order)')
+          .select('id, slug, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url, sort_order)')
           .eq('status', 'published')
           .order('created_at', { ascending: false })
           .limit(30);
@@ -64,7 +64,7 @@ export default function Home() {
         if (attempt <= 3 && isMounted) {
           console.warn(`Jobs query returned 0 rows or error on attempt ${attempt}. Retrying via direct HTTP...`, jobsErr);
           
-          const rawEndpoint = `${SUPABASE_URL}/rest/v1/jobs?select=id,title,company,post_type,is_government,is_overseas,closing_date,created_at,location,salary,thumbnail_url,job_images(id,url,sort_order)&status=eq.published&order=created_at.desc&limit=30`;
+          const rawEndpoint = `${SUPABASE_URL}/rest/v1/jobs?select=id,slug,title,company,post_type,is_government,is_overseas,closing_date,created_at,location,salary,thumbnail_url,job_images(id,url,sort_order)&status=eq.published&order=created_at.desc&limit=30`;
           
           const res = await fetch(rawEndpoint, {
             headers: {
@@ -151,7 +151,7 @@ export default function Home() {
 
         const { data } = await supabase
           .from('jobs')
-          .select('id, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url, sort_order)')
+          .select('id, slug, title, company, post_type, is_government, is_overseas, closing_date, created_at, location, salary, thumbnail_url, job_images(id, url, sort_order)')
           .eq('status', 'published')
           .gt('created_at', latestCreatedAt)
           .order('created_at', { ascending: false });

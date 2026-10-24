@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase, type Job } from '../lib/supabase';
 import { AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getJobPath } from '../lib/slugUtils';
 
 function getDaysRemaining(closingDateStr?: string): number {
   if (!closingDateStr) return 7;
@@ -40,7 +41,7 @@ export default function TopTicker() {
       try {
         let { data } = await supabase
           .from('jobs')
-          .select('id, title, company, closing_date, status')
+          .select('id, slug, title, company, closing_date, status')
           .eq('status', 'published')
           .order('created_at', { ascending: false })
           .limit(10);
@@ -88,7 +89,7 @@ export default function TopTicker() {
             const daysLeft = getDaysRemaining(job.closing_date);
             return (
               <span key={job.id} className="mx-4 md:mx-6">
-                <Link to={`/jobs/${job.id}`} className="hover:underline hover:text-yellow-200 transition-colors">
+                <Link to={getJobPath(job)} className="hover:underline hover:text-yellow-200 transition-colors">
                   <span className="font-semibold">{job.title}</span> {job.company ? `(${job.company})` : ''} 
                   <span className="ml-2 bg-white/20 text-white px-2 py-0.5 rounded-full text-[11px] font-bold">
                     {daysLeft <= 0 ? 'Closes Today!' : daysLeft === 1 ? 'Closing Tomorrow' : `in ${daysLeft} Days`}
@@ -104,7 +105,7 @@ export default function TopTicker() {
             const daysLeft = getDaysRemaining(job.closing_date);
             return (
               <span key={job.id + '_dup'} className="mx-4 md:mx-6">
-                <Link to={`/jobs/${job.id}`} className="hover:underline hover:text-yellow-200 transition-colors">
+                <Link to={getJobPath(job)} className="hover:underline hover:text-yellow-200 transition-colors">
                   <span className="font-semibold">{job.title}</span> {job.company ? `(${job.company})` : ''} 
                   <span className="ml-2 bg-white/20 text-white px-2 py-0.5 rounded-full text-[11px] font-bold">
                     {daysLeft <= 0 ? 'Closes Today!' : daysLeft === 1 ? 'Closing Tomorrow' : `in ${daysLeft} Days`}

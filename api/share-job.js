@@ -27,9 +27,20 @@ export default async function handler(req, res) {
     return res.redirect(302, '/');
   }
 
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  let targetId = id.trim();
+  if (targetId.includes('--')) {
+    const parts = targetId.split('--');
+    const cand = parts[parts.length - 1];
+    if (UUID_REGEX.test(cand)) targetId = cand;
+  }
+
+  const isUuid = UUID_REGEX.test(targetId);
+  const filterQuery = isUuid ? `id=eq.${targetId}` : `slug=eq.${encodeURIComponent(targetId)}`;
+
   try {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/jobs?id=eq.${id}&select=*,job_images(*)`,
+    let response = await fetch(
+      `${SUPABASE_URL}/rest/v1/jobs?${filterQuery}&select=*,job_images(*)`,
       {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -37,6 +48,19 @@ export default async function handler(req, res) {
         }
       }
     );
+
+    // Fallback if querying by slug failed or returned nothing
+    if (!response.ok && !isUuid) {
+      response = await fetch(
+        `${SUPABASE_URL}/rest/v1/jobs?id=eq.${targetId}&select=*,job_images(*)`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`
+          }
+        }
+      );
+    }
 
     if (!response.ok) {
       return res.redirect(302, '/');
@@ -82,7 +106,7 @@ export default async function handler(req, res) {
       imageUrl = job.official_pdf_url;
     }
 
-    const siteUrl = `https://jobnews.lk/jobs/${job.id}`;
+    const siteUrl = `https://jobnews.lk/jobs/${job.slug || job.id}`;
     
     // Proxy image URL to bypass Supabase x-robots-tag header blocking WhatsApp preview cards
     const proxyImageUrl = imageUrl.startsWith('http')

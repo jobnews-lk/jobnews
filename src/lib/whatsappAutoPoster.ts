@@ -1,4 +1,5 @@
 import type { Job } from './supabase';
+import { getJobPath } from './slugUtils';
 
 export interface WhatsAppPostResult {
   success: boolean;
@@ -23,7 +24,7 @@ export async function postJobToWhatsApp(job: Job): Promise<WhatsAppPostResult> {
   }
 
   const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://jobnews.lk';
-  const jobUrl = `${siteOrigin}/jobs/${job.id}`;
+  const jobUrl = `${siteOrigin}${getJobPath(job)}`;
 
   // Formatted WhatsApp Markdown Message
   let message = `*📢 NEW JOB VACANCY ALERT!* 🇱🇰\n\n`;

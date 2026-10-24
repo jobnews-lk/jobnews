@@ -8,6 +8,7 @@ import {
   Smartphone, Bell, Send, Copy, Check, RefreshCw
 } from 'lucide-react';
 import { supabase, adminApiCall, isBotDiscoveredJob, type Job, type ContactInquiry } from '../lib/supabase';
+import { getJobPath } from '../lib/slugUtils';
 import { parseGazettePdfText, type ExtractedGazetteJob } from '../lib/gazettePdfParser';
 import FileUpload from '../components/FileUpload';
 import { useAuth } from '../context/AuthContext';
@@ -240,7 +241,7 @@ export default function AdminDashboard() {
       if (job) {
         setPushTitle(`JobNews.lk: ${job.company || 'නව රැකියා ඇබෑර්තුවක්'}`);
         setPushBody(`නව රැකියා අවස්ථාවක්: ${job.title.substring(0, 48)}. දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
-        setPushUrl(`/jobs/${job.id}`);
+        setPushUrl(getJobPath(job));
         setPushBadgeCount(1);
       }
       return;
@@ -272,7 +273,7 @@ export default function AdminDashboard() {
             : `අයදුම් කිරීමට තව දින ${job.daysLeft}යි`;
         setPushTitle(`⏳ ${daysText}! ${job.company || 'රැකියා අවස්ථාව'}`);
         setPushBody(`අයදුම්පත් භාරගැනීමේ අවසන් දිනය ළඟා වේ (${job.title.substring(0, 45)}). දැන්ම JobNews.lk වෙතින් අයදුම් කරන්න.`);
-        setPushUrl(`/jobs/${job.id}`);
+        setPushUrl(getJobPath(job));
         setPushBadgeCount(1);
       }
       return;
@@ -576,7 +577,7 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
     setLoading(true);
     const { data, error: err } = await supabase
       .from('jobs')
-      .select('id, title, company, salary, location, closing_date, posted_date, post_type, apply_method, apply_url, apply_email, apply_phone, is_government, is_overseas, is_private_sector, status, official_pdf_url, created_at, category_id, country_id')
+      .select('id, slug, title, company, salary, location, closing_date, posted_date, post_type, apply_method, apply_url, apply_email, apply_phone, is_government, is_overseas, is_private_sector, status, official_pdf_url, created_at, category_id, country_id')
       .order('created_at', { ascending: false })
       .limit(1000);
     if (err) {
@@ -1017,7 +1018,7 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                             </div>
                             <div>
                               <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Link to={`/jobs/${job.id}`} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                <Link to={getJobPath(job)} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                   {job.title}
                                 </Link>
                               </div>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, ChevronRight, FileDown, Share2 } from 'lucide-react';
 import type { Job } from '../lib/supabase';
+import { getJobPath } from '../lib/slugUtils';
 
 interface VacancyCardProps {
   job: Job;
@@ -42,7 +43,7 @@ export default function VacancyCard({ job }: VacancyCardProps) {
   };
 
   return (
-    <Link to={`/jobs/${job.id}`} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col">
+    <Link to={getJobPath(job)} className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col">
       {/* Thumbnail */}
       {thumbnail ? (
         <div className="aspect-[16/9] bg-slate-900 overflow-hidden relative shrink-0">
@@ -140,7 +141,7 @@ export default function VacancyCard({ job }: VacancyCardProps) {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                const shareUrl = `${window.location.origin}/jobs/${job.id}`;
+                const shareUrl = `${window.location.origin}${getJobPath(job)}`;
                 const shareText = `🔍 Job Notice: ${job.title}${job.company ? ' at ' + job.company : ''}\n\nApply now via JobNews.lk:`;
                 if (navigator.share) {
                   navigator.share({ title: job.title, text: shareText, url: shareUrl }).catch(() => {});

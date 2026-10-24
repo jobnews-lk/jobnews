@@ -4,7 +4,7 @@ const SUPABASE_KEY = 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
 export default async function handler(req, res) {
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/jobs?status=eq.published&select=id,updated_at,created_at,closing_date&order=created_at.desc&limit=1000`,
+      `${SUPABASE_URL}/rest/v1/jobs?status=eq.published&select=id,slug,updated_at,created_at,closing_date&order=created_at.desc&limit=1000`,
       {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
           ? new Date(job.updated_at).toISOString().split('T')[0]
           : (job.created_at ? new Date(job.created_at).toISOString().split('T')[0] : todayIso);
         return `  <url>
-    <loc>https://jobnews.lk/jobs/${job.id}</loc>
+    <loc>https://jobnews.lk/jobs/${job.slug || job.id}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
