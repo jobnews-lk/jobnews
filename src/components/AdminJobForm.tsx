@@ -3,6 +3,7 @@ import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, T
 import FileUpload from './FileUpload';
 import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
 import { generateJobSlug } from '../lib/slugUtils';
+import { STATE_INSTITUTIONS, CORPORATE_COMPANIES } from '../data/institutionsData';
 
 interface AdminJobFormProps {
   job?: Job | null;
@@ -218,6 +219,8 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [countryId, setCountryId] = useState(job?.country_id || '');
   const [postToFacebook, setPostToFacebook] = useState(false);
   const [postToWhatsApp, setPostToWhatsApp] = useState(false);
+  const [companySuggestions, setCompanySuggestions] = useState<Array<{ name: string; icon: string; sector: string; isGov: boolean }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [countryList, setCountryList] = useState<Country[]>(countries || []);
   const [showAddCountry, setShowAddCountry] = useState(false);
   const [newCountryName, setNewCountryName] = useState('');
@@ -614,9 +617,86 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
           <label className="block text-sm font-medium text-slate-700 mb-1">Job Title *</label>
           <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
-        <div>
+        <div className="relative">
           <label className="block text-sm font-medium text-slate-700 mb-1">Company/Organization *</label>
-          <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} required className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input 
+            type="text" 
+            value={company} 
+            onChange={(e) => {
+              const val = e.target.value;
+              setCompany(val);
+              if (val.trim().length >= 2) {
+                const q = val.toLowerCase().trim();
+                const govMatches = STATE_INSTITUTIONS
+                  .filter(i => i.name_si.toLowerCase().includes(q) || i.name_en.toLowerCase().includes(q) || i.short_name.toLowerCase().includes(q) || i.keywords.toLowerCase().includes(q))
+                  .slice(0, 4)
+                  .map(i => ({ name: `${i.name_en} (${i.short_name})`, icon: i.icon, sector: i.sector_name, isGov: true }));
+
+                const pvtMatches = CORPORATE_COMPANIES
+                  .filter(c => c.name.toLowerCase().includes(q) || c.brand.toLowerCase().includes(q) || c.keywords.toLowerCase().includes(q))
+                  .slice(0, 4)
+                  .map(c => ({ name: `${c.name} (${c.brand})`, icon: c.icon, sector: c.sector_label, isGov: false }));
+
+                const combined = [...govMatches, ...pvtMatches].slice(0, 6);
+                setCompanySuggestions(combined);
+                setShowSuggestions(combined.length > 0);
+              } else {
+                setShowSuggestions(false);
+              }
+            }}
+            onFocus={() => {
+              if (companySuggestions.length > 0) setShowSuggestions(true);
+            }}
+            required 
+            placeholder="Type company or ministry name..."
+            className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+          />
+
+          {/* Smart Auto-Suggest Dropdown */}
+          {showSuggestions && companySuggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 max-h-56 overflow-y-auto">
+              <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider border-b border-slate-100 flex items-center justify-between">
+                <span>Smart Auto-Suggest</span>
+                <button 
+                  type="button" 
+                  onClick={() => setShowSuggestions(false)}
+                  className="text-slate-400 hover:text-slate-600 text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+              {companySuggestions.map((sug, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setCompany(sug.name);
+                    if (sug.isGov) {
+                      setIsGovernment(true);
+                      setIsPrivateSector(false);
+                    } else {
+                      setIsPrivateSector(true);
+                      setIsGovernment(false);
+                    }
+                    setShowSuggestions(false);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-blue-50 flex items-center justify-between gap-2 border-b border-slate-50 last:border-0 transition-colors"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-base">{sug.icon}</span>
+                    <span className="font-semibold text-xs text-slate-800 truncate">{sug.name}</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                    sug.isGov 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {sug.sector}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         {isOverseas ? (
           <div>

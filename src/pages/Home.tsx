@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, FolderOpen, ArrowRight, FileText, Landmark, Plane, Briefcase, TrendingUp, Loader2 } from 'lucide-react';
+import { Search, MapPin, FolderOpen, ArrowRight, FileText, Landmark, Plane, Briefcase, TrendingUp, Loader2, ChevronDown } from 'lucide-react';
 import { supabase, type Job, type Country, type Category } from '../lib/supabase';
 import { getCachedCategories, getCachedCountries, fetchFreshCategories, fetchFreshCountries } from '../lib/categoriesService';
 import LatestJobFeed from '../components/LatestJobFeed';
@@ -34,6 +34,18 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(() => latestJobs.length === 0);
   const [newJobsCount, setNewJobsCount] = useState<number>(0);
   const [pendingNewJobs, setPendingNewJobs] = useState<Job[]>([]);
+  const [openQuickDropdown, setOpenQuickDropdown] = useState<'gov' | 'pvt' | 'ovs' | null>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('.quick-stats-dropdown-container')) {
+        setOpenQuickDropdown(null);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -266,12 +278,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Quick Stats */}
-      <section className="py-10 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
+      {/* Quick Stats with Floating Sectors Dropdowns */}
+      <section className="py-10 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors relative z-20">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link to="/jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group">
+          
+          {/* Card 1: Latest Jobs */}
+          <Link to="/jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
@@ -280,39 +294,214 @@ export default function Home() {
               </div>
             </div>
           </Link>
-          <Link to="/government-jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                <Landmark className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Government</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Public sector</p>
-              </div>
+
+          {/* Card 2: Government (with Floating Dropdown) */}
+          <div className="relative quick-stats-dropdown-container">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
+              <Link to="/government-jobs" className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <Landmark className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate">Government</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Public sector</p>
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpenQuickDropdown(prev => prev === 'gov' ? null : 'gov');
+                }}
+                className={`p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
+                  openQuickDropdown === 'gov'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-200/70 dark:bg-slate-700/70 hover:bg-blue-600 hover:text-white text-slate-600 dark:text-slate-300'
+                }`}
+                title="View Government Sectors"
+                aria-label="View Government Sectors"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openQuickDropdown === 'gov' ? 'rotate-180' : ''}`} />
+              </button>
             </div>
-          </Link>
-          <Link to="/overseas-jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                <Plane className="w-5 h-5" />
+
+            {/* Floating Dropdown: Government Sectors */}
+            {openQuickDropdown === 'gov' && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
+                <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-800 flex items-center justify-between mb-1">
+                  <span>රාජ්‍ය අංශ (State Sectors)</span>
+                  <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">150+ Total</span>
+                </div>
+                <div className="space-y-0.5 text-xs font-medium">
+                  <Link to="/government-jobs?q=Bank" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🏦</span> <strong>රජයේ බැංකු</strong> (BOC, PB, NSB)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">9</span>
+                  </Link>
+                  <Link to="/government-jobs?q=Army" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🛡️</span> <strong>ආරක්ෂක අංශ</strong> (Army, Navy, Police)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">5</span>
+                  </Link>
+                  <Link to="/government-jobs?q=University" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🎓</span> <strong>විශ්වවිද්‍යාල</strong> (Colombo, Moratuwa)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">17</span>
+                  </Link>
+                  <Link to="/government-jobs?q=Ministry" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🏛️</span> <strong>අමාත්‍යාංශ</strong> (Ministries)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">25</span>
+                  </Link>
+                  <Link to="/government-jobs?q=Board" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>⚡</span> <strong>සංස්ථා & මණ්ඩල</strong> (CEB, CPC, Water)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">35+</span>
+                  </Link>
+                  <Link to="/government-jobs?q=Department" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>📑</span> <strong>දෙපාර්තමේන්තු</strong> (Customs, IRD, DMT)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">30+</span>
+                  </Link>
+                </div>
+                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <Link to="/government-jobs" onClick={() => setOpenQuickDropdown(null)} className="block text-center py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-xs transition-colors">
+                    🏛️ සියලු රජයේ රැකියා බලන්න ➔
+                  </Link>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Overseas</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">International</p>
-              </div>
+            )}
+          </div>
+
+          {/* Card 3: Overseas (with Floating Dropdown) */}
+          <div className="relative quick-stats-dropdown-container">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
+              <Link to="/overseas-jobs" className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <Plane className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate">Overseas</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">International</p>
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpenQuickDropdown(prev => prev === 'ovs' ? null : 'ovs');
+                }}
+                className={`p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
+                  openQuickDropdown === 'ovs'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-200/70 dark:bg-slate-700/70 hover:bg-blue-600 hover:text-white text-slate-600 dark:text-slate-300'
+                }`}
+                title="View Overseas Destinations"
+                aria-label="View Overseas Destinations"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openQuickDropdown === 'ovs' ? 'rotate-180' : ''}`} />
+              </button>
             </div>
-          </Link>
-          <Link to="/private-jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-                <Briefcase className="w-5 h-5" />
+
+            {/* Floating Dropdown: Overseas Destinations */}
+            {openQuickDropdown === 'ovs' && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
+                <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-800 flex items-center justify-between mb-1">
+                  <span>ප්‍රමුඛ රටවල් (Top Destinations)</span>
+                  <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">Global</span>
+                </div>
+                <div className="space-y-0.5 text-xs font-medium">
+                  <Link to="/overseas-jobs?country=united-arab-emirates" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🇦🇪</span> <strong>එක්සත් අරාබි එමීර්</strong> (UAE / Dubai)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">Gulf</span>
+                  </Link>
+                  <Link to="/overseas-jobs?country=maldives" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🇲🇻</span> <strong>මාලදිවයින</strong> (Maldives Resorts)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">Hotels</span>
+                  </Link>
+                  <Link to="/overseas-jobs?country=qatar" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🇶🇦</span> <strong>කටාර්</strong> (Qatar)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">Doha</span>
+                  </Link>
+                  <Link to="/overseas-jobs?country=saudi-arabia" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-800 dark:text-slate-200 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🇸🇦</span> <strong>සෞදි අරාබිය</strong> (Saudi Arabia)</span>
+                    <span className="text-[10px] bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">KSA</span>
+                  </Link>
+                </div>
+                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <Link to="/overseas-jobs" onClick={() => setOpenQuickDropdown(null)} className="block text-center py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-xs transition-colors">
+                    ✈️ සියලු විදේශ රැකියා බලන්න ➔
+                  </Link>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Private Sector</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Companies & NGOs</p>
-              </div>
+            )}
+          </div>
+
+          {/* Card 4: Private Sector (with Floating Dropdown) */}
+          <div className="relative quick-stats-dropdown-container">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 hover:shadow-md transition-all flex items-center justify-between group">
+              <Link to="/private-jobs" className="flex items-center gap-3 flex-1 min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Briefcase className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">Private Sector</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Companies & NGOs</p>
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpenQuickDropdown(prev => prev === 'pvt' ? null : 'pvt');
+                }}
+                className={`p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
+                  openQuickDropdown === 'pvt'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-200/70 dark:bg-slate-700/70 hover:bg-emerald-600 hover:text-white text-slate-600 dark:text-slate-300'
+                }`}
+                title="View Corporate Industries"
+                aria-label="View Corporate Industries"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openQuickDropdown === 'pvt' ? 'rotate-180' : ''}`} />
+              </button>
             </div>
-          </Link>
+
+            {/* Floating Dropdown: Private Corporate Industries */}
+            {openQuickDropdown === 'pvt' && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
+                <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-800 flex items-center justify-between mb-1">
+                  <span>පුද්ගලික අංශ (Corporate Industries)</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">Top Firms</span>
+                </div>
+                <div className="space-y-0.5 text-xs font-medium">
+                  <Link to="/private-jobs?q=Software" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>💻</span> <strong>IT & Software</strong> (WSO2, IFS)</span>
+                    <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Tech</span>
+                  </Link>
+                  <Link to="/private-jobs?q=Bank" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🏦</span> <strong>පුද්ගලික බැංකු</strong> (ComBank, Sampath)</span>
+                    <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Banks</span>
+                  </Link>
+                  <Link to="/private-jobs?q=Holdings" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🏢</span> <strong>Conglomerates</strong> (JKH, Hayleys)</span>
+                    <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Top 10</span>
+                  </Link>
+                  <Link to="/private-jobs?q=Apparel" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🧵</span> <strong>ඇඟලුම් & නිෂ්පාදන</strong> (MAS, Brandix)</span>
+                    <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Apparel</span>
+                  </Link>
+                  <Link to="/private-jobs?q=Hotels" onClick={() => setOpenQuickDropdown(null)} className="flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-800 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
+                    <span className="flex items-center gap-2"><span>🏨</span> <strong>හෝටල් & සංචාරක</strong> (Cinnamon, Jetwing)</span>
+                    <span className="text-[10px] bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded-full font-bold">Hotels</span>
+                  </Link>
+                </div>
+                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <Link to="/private-jobs" onClick={() => setOpenQuickDropdown(null)} className="block text-center py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs transition-colors">
+                    🏢 සියලු පුද්ගලික රැකියා බලන්න ➔
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
       </section>
 
