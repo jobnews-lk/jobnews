@@ -3,7 +3,7 @@ import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, T
 import FileUpload from './FileUpload';
 import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
 import { generateJobSlug } from '../lib/slugUtils';
-import { STATE_INSTITUTIONS, CORPORATE_COMPANIES } from '../data/institutionsData';
+import { STATE_SECTORS, STATE_INSTITUTIONS, CORPORATE_COMPANIES, type StateInstitution } from '../data/institutionsData';
 
 interface AdminJobFormProps {
   job?: Job | null;
@@ -216,6 +216,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
   const [isPrivateSector, setIsPrivateSector] = useState(job?.is_private_sector || false);
   const [categoryId, setCategoryId] = useState(job?.category_id || '');
+  const [selectedGovSector, setSelectedGovSector] = useState<string>('all');
   const [countryId, setCountryId] = useState(job?.country_id || '');
   const [postToFacebook, setPostToFacebook] = useState(false);
   const [postToWhatsApp, setPostToWhatsApp] = useState(false);
@@ -233,6 +234,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
 
   const safeCountryList = Array.isArray(countryList) ? countryList : (Array.isArray(countries) ? countries : []);
   const safeCategoryList = Array.isArray(categoryList) ? categoryList : (Array.isArray(categories) ? categories : []);
+  const govCategory = safeCategoryList.find(c => c.slug === 'government-public-sector' || c.name.toLowerCase().includes('government'));
 
   useEffect(() => {
     setCategoryList(categories || []);
@@ -551,8 +553,12 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               type="checkbox"
               checked={isGovernment}
               onChange={(e) => {
-                setIsGovernment(e.target.checked);
-                if (e.target.checked && !isOverseas) setCountryId(sriLankaId);
+                const checked = e.target.checked;
+                setIsGovernment(checked);
+                if (checked && !isOverseas) setCountryId(sriLankaId);
+                if (checked && !categoryId && govCategory) {
+                  setCategoryId(govCategory.id);
+                }
               }}
               className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
             />
@@ -586,7 +592,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
         </div>
 
         {isGovernment && (
-          <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200 dark:border-amber-900/50 space-y-2">
+          <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/40 rounded-lg border border-amber-200 dark:border-amber-900/50 space-y-3">
             <p className="text-xs text-amber-800 dark:text-amber-300 font-medium flex items-center gap-1.5">
               <span>🛡️</span>
               <span>Government Job ලෙස සලකුණු කර ඇති නිසා, Job Page එකෙහි <strong>"විශේෂ සටහන (Disclaimer)"</strong> Box එක ස්වයංක්‍රීයවම පෙනෙනු ඇත.</span>
@@ -606,6 +612,79 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               <p className="text-[11px] text-amber-700 dark:text-amber-300/80 mt-1 italic">
                 ℹ️ මෙහි Link එකක් දැමූ විට, Job Page එකෙහි Disclaimer Box එක තුළ <strong>"🌐 Visit Official Gazette Portal"</strong> Button එක ස්වයංක්‍රීයවම පෙනෙනු ඇත.
               </p>
+            </div>
+
+            {/* 🏛️ State Sector (රාජ්‍ය අංශය) Selector & Quick 1-Click Picker */}
+            <div className="pt-2.5 border-t border-amber-200/80 dark:border-amber-900/40">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
+                  🏛️ රාජ්‍ය අංශය (Government State Sector - Quick Select)
+                </label>
+                <span className="text-[10px] text-amber-700 dark:text-amber-300 font-medium">
+                  {selectedGovSector !== 'all' 
+                    ? `අංශය: ${STATE_SECTORS.find(s => s.id === selectedGovSector)?.name_si}`
+                    : 'ආයතන 150+ ක්ෂණික තේරීම'}
+                </span>
+              </div>
+
+              {/* Sector Pills */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {STATE_SECTORS.map((sec) => {
+                  const isSelected = selectedGovSector === sec.id;
+                  return (
+                    <button
+                      key={sec.id}
+                      type="button"
+                      onClick={() => setSelectedGovSector(sec.id)}
+                      className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-amber-600 text-white shadow-xs font-bold scale-[1.02]'
+                          : 'bg-white dark:bg-slate-900 text-amber-900 dark:text-amber-200 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100/70'
+                      }`}
+                    >
+                      <span>{sec.icon}</span>
+                      <span>{sec.name_si}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Quick 1-Click Institution Pills for Selected Sector */}
+              {selectedGovSector !== 'all' && (
+                <div className="bg-white/90 dark:bg-slate-900/90 p-2.5 rounded-lg border border-amber-200/60 dark:border-amber-800/40 mt-1">
+                  <div className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-300 mb-1.5 flex items-center justify-between">
+                    <span>⚡ 1-Click Company Fill ({STATE_SECTORS.find(s => s.id === selectedGovSector)?.name_si}):</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Click to set Company</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
+                    {STATE_INSTITUTIONS.filter(i => i.sector === selectedGovSector).slice(0, 18).map((inst) => {
+                      const fullName = `${inst.name_en} (${inst.short_name})`;
+                      const isChosen = company === fullName || (company && company.includes(inst.short_name));
+                      return (
+                        <button
+                          key={inst.id}
+                          type="button"
+                          onClick={() => {
+                            setCompany(fullName);
+                            if (!categoryId && govCategory) {
+                              setCategoryId(govCategory.id);
+                            }
+                          }}
+                          className={`text-xs px-2 py-1 rounded-md text-left transition-all flex items-center gap-1.5 ${
+                            isChosen
+                              ? 'bg-amber-600 text-white font-bold shadow-xs'
+                              : 'bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
+                          }`}
+                          title={`${inst.name_si} - ${inst.name_en}`}
+                        >
+                          <span>{inst.icon}</span>
+                          <span className="truncate max-w-[200px]">{inst.short_name || inst.name_en}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -674,6 +753,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
                     if (sug.isGov) {
                       setIsGovernment(true);
                       setIsPrivateSector(false);
+                      const matched = STATE_INSTITUTIONS.find(i => `${i.name_en} (${i.short_name})` === sug.name || sug.name.includes(i.short_name));
+                      if (matched && matched.sector) {
+                        setSelectedGovSector(matched.sector);
+                      }
+                      if (!categoryId && govCategory) {
+                        setCategoryId(govCategory.id);
+                      }
                     } else {
                       setIsPrivateSector(true);
                       setIsGovernment(false);
@@ -748,7 +834,14 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
         )}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-slate-700">Category</label>
+            <div className="flex items-center gap-1.5">
+              <label className="block text-sm font-medium text-slate-700">Category</label>
+              {isGovernment && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  🏛️ Gov Mode
+                </span>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => setShowAddCat(!showAddCat)}
@@ -777,10 +870,37 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               </button>
             </div>
           ) : null}
-          <select value={categoryId || ''} onChange={(e) => setCategoryId(e.target.value)} className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white">
+          <select 
+            value={categoryId || ''} 
+            onChange={(e) => setCategoryId(e.target.value)} 
+            className={`w-full px-3 py-2.5 rounded-lg border text-slate-900 focus:outline-none focus:ring-2 appearance-none bg-white ${
+              isGovernment 
+                ? 'border-amber-300 focus:ring-amber-500 font-medium' 
+                : 'border-slate-200 focus:ring-blue-500'
+            }`}
+          >
             <option value="">Select category</option>
-            {safeCategoryList.filter((c) => c && typeof c === 'object').map((c) => <option key={c.id || Math.random()} value={c.id || ''}>{c.name || 'Unknown'}</option>)}
+            {isGovernment && govCategory && (
+              <option value={govCategory.id} className="font-bold text-amber-800 bg-amber-50">
+                🏛️ {govCategory.name} (රජයේ සාමාන්‍ය පත්වීම් / Default)
+              </option>
+            )}
+            {isGovernment && (
+              <option disabled value="">────────── වෘත්තීය ක්ෂේත්‍ර (Specialized Fields) ──────────</option>
+            )}
+            {safeCategoryList
+              .filter((c) => c && typeof c === 'object' && (!isGovernment || c.id !== govCategory?.id))
+              .map((c) => (
+                <option key={c.id || Math.random()} value={c.id || ''}>
+                  {c.name || 'Unknown'}
+                </option>
+              ))}
           </select>
+          {isGovernment && (
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 italic">
+              💡 සාමාන්‍ය රජයේ පත්වීම් සඳහා <strong>Government & Public Sector</strong> ද, ඉංජිනේරු/IT/ගිණුම්කරණ සඳහා එම විශේෂිත වෘත්තියද තෝරන්න.
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>

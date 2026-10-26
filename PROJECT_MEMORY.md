@@ -309,6 +309,17 @@
               * **Mobile:** 3-Tab Drawer in `CategoriesDrawer.tsx` (`[ 📂 Fields ]`, `[ 🏛️ රාජ්‍ය ]`, `[ 🏢 පුද්ගලික ]`).
               * **Desktop:** Floating flyout dropdowns (`▼`) on the 4 Quick Stat Cards below the Hero search box (`Government ▼`, `Private Sector ▼`, `Overseas ▼`).
 
+        * **Admin Government Sector Selector & Dynamic Category Mode (COMPLETED - OCTOBER 26, 2026):**
+          * **Features Implemented in `AdminJobForm.tsx`:**
+            1. **Dedicated 8 State Sectors Bar:** Checking `[✔] Government` renders an intuitive State Sector selector bar (`🏦 රාජ්‍ය බැංකු & මූල්‍ය`, `🛡️ ආරක්ෂක අංශ & පොලීසිය`, `📑 රජයේ දෙපාර්තමේන්තු`, `⚡ මණ්ඩල & සංස්ථා`, `🎓 විශ්වවිද්‍යාල`, `🏛️ අමාත්‍යාංශ`, `⚖️ කොමිෂන් සභා`, `🏢 ප්‍රධාන කාර්යාල & අධිකරණ`).
+            2. **⚡ 1-Click Company Auto-Fill:** Selecting any State Sector immediately displays quick institution pills for that sector (e.g., clicking `State Banks` lists `BOC`, `People's Bank`, `NSB`, `RDB`, `SMIB`), allowing 1-click Company auto-fill without typing.
+            3. **Two-Way Synchronization:** Selecting an institution in the Company Auto-Suggest automatically syncs the State Sector and auto-selects `Government & Public Sector` in Category if unselected.
+            4. **Upgraded Category Mode for Government Jobs:**
+               * Badged with `🏛️ Gov Mode`.
+               * `🏛️ Government & Public Sector` is prioritized at the very top as the default/recommended category.
+               * Specialized professions (`IT & Software`, `Engineering`, `Banking & Insurance`, `Accounting`, etc.) are cleanly grouped below for cross-filtering.
+               * Informative Sinhala helper text guides the admin on choosing general vs specialized categories.
+
         * **Universal SEO Clean URL Slug Engine (COMPLETED - OCTOBER 24, 2026):**
           * **Feature Purpose:** Eliminates ugly, unindexed UUID links (`/jobs/4e286487...`) in favor of Google-optimized, human-readable semantic slugs (`/jobs/boc-management-trainee-vacancies-2026`).
           * **Zero-Damage & Backward Compatibility Guarantees:**
