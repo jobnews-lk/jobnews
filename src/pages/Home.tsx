@@ -283,22 +283,22 @@ export default function Home() {
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
           
           {/* Card 1: Latest Jobs */}
-          <Link to="/jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400">
+          <Link to="/jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group flex items-center justify-between">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                 <TrendingUp className="w-5 h-5" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">Latest Jobs</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">New announcements</p>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate">Latest Jobs</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">New announcements</p>
               </div>
             </div>
           </Link>
 
-          {/* Card 2: Government (with Floating Dropdown) */}
+          {/* Card 2: Government (with Floating Dropdown on Desktop) */}
           <div className="relative quick-stats-dropdown-container">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
-              <Link to="/government-jobs" className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
+              <Link to="/government-jobs" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                   <Landmark className="w-5 h-5" />
                 </div>
@@ -314,7 +314,7 @@ export default function Home() {
                   e.stopPropagation();
                   setOpenQuickDropdown(prev => prev === 'gov' ? null : 'gov');
                 }}
-                className={`p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
+                className={`hidden md:inline-flex items-center justify-center p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
                   openQuickDropdown === 'gov'
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-200/70 dark:bg-slate-700/70 hover:bg-blue-600 hover:text-white text-slate-600 dark:text-slate-300'
@@ -326,9 +326,9 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Floating Dropdown: Government Sectors */}
+            {/* Floating Dropdown: Government Sectors (Desktop Only) */}
             {openQuickDropdown === 'gov' && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
+              <div className="hidden md:block absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
                 <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-800 flex items-center justify-between mb-1">
                   <span>රාජ්‍ය අංශ (State Sectors)</span>
                   <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">150+ Total</span>
@@ -368,10 +368,10 @@ export default function Home() {
             )}
           </div>
 
-          {/* Card 3: Overseas (with Floating Dropdown) */}
+          {/* Card 3: Overseas (with Floating Dropdown on Desktop) */}
           <div className="relative quick-stats-dropdown-container">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
-              <Link to="/overseas-jobs" className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
+              <Link to="/overseas-jobs" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                   <Plane className="w-5 h-5" />
                 </div>
@@ -387,7 +387,7 @@ export default function Home() {
                   e.stopPropagation();
                   setOpenQuickDropdown(prev => prev === 'ovs' ? null : 'ovs');
                 }}
-                className={`p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
+                className={`hidden md:inline-flex items-center justify-center p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
                   openQuickDropdown === 'ovs'
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-200/70 dark:bg-slate-700/70 hover:bg-blue-600 hover:text-white text-slate-600 dark:text-slate-300'
@@ -399,9 +399,9 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Floating Dropdown: Overseas Destinations */}
+            {/* Floating Dropdown: Overseas Destinations (Desktop Only) */}
             {openQuickDropdown === 'ovs' && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
+              <div className="hidden md:block absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
                 <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-800 flex items-center justify-between mb-1">
                   <span>ප්‍රමුඛ රටවල් (Top Destinations)</span>
                   <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">Global</span>
@@ -433,10 +433,10 @@ export default function Home() {
             )}
           </div>
 
-          {/* Card 4: Private Sector (with Floating Dropdown) */}
+          {/* Card 4: Private Sector (with Floating Dropdown on Desktop) */}
           <div className="relative quick-stats-dropdown-container">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 hover:shadow-md transition-all flex items-center justify-between group">
-              <Link to="/private-jobs" className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 hover:shadow-md transition-all flex items-center justify-between group">
+              <Link to="/private-jobs" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
                 <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
                   <Briefcase className="w-5 h-5" />
                 </div>
@@ -452,7 +452,7 @@ export default function Home() {
                   e.stopPropagation();
                   setOpenQuickDropdown(prev => prev === 'pvt' ? null : 'pvt');
                 }}
-                className={`p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
+                className={`hidden md:inline-flex items-center justify-center p-1.5 rounded-lg transition-all ml-1 shrink-0 ${
                   openQuickDropdown === 'pvt'
                     ? 'bg-emerald-600 text-white'
                     : 'bg-slate-200/70 dark:bg-slate-700/70 hover:bg-emerald-600 hover:text-white text-slate-600 dark:text-slate-300'
@@ -464,9 +464,9 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Floating Dropdown: Private Corporate Industries */}
+            {/* Floating Dropdown: Private Corporate Industries (Desktop Only) */}
             {openQuickDropdown === 'pvt' && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
+              <div className="hidden md:block absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-2.5 z-40 min-w-[280px]">
                 <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider border-b border-slate-100 dark:border-slate-800 flex items-center justify-between mb-1">
                   <span>පුද්ගලික අංශ (Corporate Industries)</span>
                   <span className="text-emerald-600 dark:text-emerald-400 font-mono font-bold">Top Firms</span>
