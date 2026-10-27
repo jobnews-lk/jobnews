@@ -279,32 +279,32 @@ export default function Home() {
       </section>
 
       {/* Quick Stats with Floating Sectors Dropdowns */}
-      <section className="py-10 px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors relative z-20">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+      <section className="py-6 sm:py-10 px-3 sm:px-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors relative z-20">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
           
           {/* Card 1: Latest Jobs */}
-          <Link to="/jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group flex items-center justify-between">
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                <TrendingUp className="w-5 h-5" />
+          <Link to="/jobs" className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 hover:shadow-md transition-all group flex items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate">Latest Jobs</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">New announcements</p>
+                <p className="text-xs sm:text-sm font-bold sm:font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors leading-tight">Latest Jobs</p>
+                <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">New announcements</p>
               </div>
             </div>
           </Link>
 
           {/* Card 2: Government (with Floating Dropdown on Desktop) */}
           <div className="relative quick-stats-dropdown-container">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
-              <Link to="/government-jobs" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                  <Landmark className="w-5 h-5" />
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
+              <Link to="/government-jobs" className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <Landmark className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate">Government</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Public sector</p>
+                  <p className="text-xs sm:text-sm font-bold sm:font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors leading-tight">Government</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">Public sector</p>
                 </div>
               </Link>
               <button
@@ -370,14 +370,14 @@ export default function Home() {
 
           {/* Card 3: Overseas (with Floating Dropdown on Desktop) */}
           <div className="relative quick-stats-dropdown-container">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition-all flex items-center justify-between group">
               <Link to="/overseas-jobs" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                  <Plane className="w-5 h-5" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100 dark:bg-blue-950/60 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <Plane className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate">Overseas</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">International</p>
+                  <p className="text-xs sm:text-sm font-bold sm:font-semibold text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors leading-tight">Overseas</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">International</p>
                 </div>
               </Link>
               <button
@@ -435,14 +435,14 @@ export default function Home() {
 
           {/* Card 4: Private Sector (with Floating Dropdown on Desktop) */}
           <div className="relative quick-stats-dropdown-container">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 hover:shadow-md transition-all flex items-center justify-between group">
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-2.5 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500 hover:shadow-md transition-all flex items-center justify-between group">
               <Link to="/private-jobs" className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
-                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-                  <Briefcase className="w-5 h-5" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">Private Sector</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Companies & NGOs</p>
+                  <p className="text-xs sm:text-sm font-bold sm:font-semibold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight">Private Sector</p>
+                  <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">Companies & NGOs</p>
                 </div>
               </Link>
               <button
