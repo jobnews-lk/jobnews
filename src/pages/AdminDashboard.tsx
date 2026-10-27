@@ -1341,7 +1341,19 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                           {s.url}
                         </a>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            setShowSourcesModal(false);
+                            handleRunScraper(s.url);
+                          }}
+                          disabled={runningScraper}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-md text-[11px] shadow-sm transition-all disabled:opacity-50"
+                          title={`Scan only ${s.name} right now`}
+                        >
+                          <Bot className={`w-3.5 h-3.5 ${runningScraper ? 'animate-spin' : ''}`} />
+                          <span>Scan</span>
+                        </button>
                         <button
                           onClick={() => handleStartEditSource(s)}
                           className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
@@ -1376,7 +1388,19 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                           {s.url}
                         </a>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            setShowSourcesModal(false);
+                            handleRunScraper(s.url);
+                          }}
+                          disabled={runningScraper}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-md text-[11px] shadow-sm transition-all disabled:opacity-50"
+                          title={`Scan only ${s.name} right now`}
+                        >
+                          <Bot className={`w-3.5 h-3.5 ${runningScraper ? 'animate-spin' : ''}`} />
+                          <span>Scan</span>
+                        </button>
                         <button
                           onClick={() => handleStartEditSource(s)}
                           className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
@@ -1411,7 +1435,19 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                           {s.url}
                         </a>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            setShowSourcesModal(false);
+                            handleRunScraper(s.url);
+                          }}
+                          disabled={runningScraper}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-md text-[11px] shadow-sm transition-all disabled:opacity-50"
+                          title={`Scan only ${s.name} right now`}
+                        >
+                          <Bot className={`w-3.5 h-3.5 ${runningScraper ? 'animate-spin' : ''}`} />
+                          <span>Scan</span>
+                        </button>
                         <button
                           onClick={() => handleStartEditSource(s)}
                           className="p-1.5 text-slate-400 hover:text-amber-600 rounded-lg transition-colors"
