@@ -84,7 +84,7 @@ const DEFAULT_SOURCES: CustomScraperSource[] = [
   // ⚖️ Commissions & Regulators (3)
   { id: '44', name: 'Telecommunications Regulatory Commission (TRCSL)', url: 'http://www.trc.gov.lk/vacancies.html', category: 'government' },
   { id: '45', name: 'Public Utilities Commission (PUCSL)', url: 'https://www.pucsl.gov.lk/careers/', category: 'government' },
-  { id: '46', name: 'ශ්‍රී ලංකා විදේශ සේවා නියුක්ති කාර්යාංශය (SLBFE Careers)', url: 'https://www.slbfe.lk/announcement/', category: 'government' },
+  { id: '46', name: 'ශ්‍රී ලංකා විදේශ සේවා නියුක්ති කාර්යාංශය (SLBFE)', url: 'https://www.slbfe.lk/recruitments-by-slbfe/', category: 'government' },
 
   // 🏢 Private Corporate Sector (11)
   { id: '47', name: 'Commercial Bank of Ceylon Careers', url: 'https://careers.combank.lk', category: 'private' },
