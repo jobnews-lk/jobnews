@@ -28,7 +28,7 @@ export interface CustomScraperSource {
 }
 
 const DEFAULT_SOURCES: CustomScraperSource[] = [
-  // 🏦 State Banks & Finance
+  // 🏦 State Banks & Finance (7)
   { id: '1', name: 'Bank of Ceylon (BOC) Careers', url: 'https://www.boc.lk/careers', category: 'government' },
   { id: '2', name: "People's Bank Careers", url: 'https://www.peoplesbank.lk/careers/', category: 'government' },
   { id: '3', name: 'National Savings Bank (NSB)', url: 'https://www.nsb.lk/careers/', category: 'government' },
@@ -37,49 +37,71 @@ const DEFAULT_SOURCES: CustomScraperSource[] = [
   { id: '6', name: 'HDFC Bank Sri Lanka', url: 'https://www.hdfc.lk/careers/', category: 'government' },
   { id: '7', name: 'Central Bank of Sri Lanka (CBSL)', url: 'https://www.cbsl.gov.lk/en/careers', category: 'government' },
 
-  // ⚡ State Corporations & Boards
+  // ⚡ State Corporations, Airlines & Engineering (15)
   { id: '8', name: 'Ceylon Electricity Board (CEB)', url: 'https://www.ceb.lk/careers', category: 'government' },
   { id: '9', name: 'National Water Supply & Drainage Board (NWSDB)', url: 'https://www.waterboard.lk/vacancies/', category: 'government' },
   { id: '10', name: 'Ceylon Petroleum Corporation (CPC)', url: 'https://ceypetco.gov.lk/vacancies/', category: 'government' },
   { id: '11', name: 'Sri Lanka Ports Authority (SLPA)', url: 'https://www.slpa.lk/port-colombo/opportunities', category: 'government' },
   { id: '12', name: 'Airport and Aviation Services (AASL)', url: 'https://www.airport.lk/careers', category: 'government' },
-  { id: '13', name: 'Sri Lanka Telecom (SLT-Mobitel)', url: 'https://www.slt.lk/en/careers', category: 'government' },
-  { id: '14', name: 'Sri Lanka Transport Board (SLTB)', url: 'http://sltb.lk/vacancies', category: 'government' },
-  { id: '15', name: 'Road Development Authority (RDA)', url: 'http://www.rda.gov.lk/source/vacancies.htm', category: 'government' },
+  { id: '13', name: 'SriLankan Airlines Official Careers', url: 'https://careers.srilankan.com/', category: 'government' },
+  { id: '14', name: 'Sri Lanka Telecom (SLT-Mobitel)', url: 'https://www.slt.lk/en/careers', category: 'government' },
+  { id: '15', name: 'Sri Lanka Insurance Corporation (SLIC)', url: 'https://www.srilankainsurance.com/en/careers', category: 'government' },
+  { id: '16', name: 'Sri Lanka Transport Board (SLTB)', url: 'http://sltb.lk/vacancies', category: 'government' },
+  { id: '17', name: 'Road Development Authority (RDA)', url: 'http://www.rda.gov.lk/source/vacancies.htm', category: 'government' },
+  { id: '18', name: 'Central Engineering Consultancy Bureau (CECB)', url: 'http://www.cecb.lk/careers.html', category: 'government' },
+  { id: '19', name: 'Sri Lanka State Engineering Corporation (SEC)', url: 'http://sec.gov.lk/vacancies', category: 'government' },
+  { id: '20', name: 'State Pharmaceuticals Corporation (SPC)', url: 'https://www.spc.lk/careers/', category: 'government' },
+  { id: '21', name: 'Urban Development Authority (UDA)', url: 'https://www.uda.gov.lk', category: 'government' },
+  { id: '22', name: 'National Housing Development Authority (NHDA)', url: 'http://www.nhda.lk/vacancies', category: 'government' },
 
-  // 🎓 State Universities
-  { id: '16', name: 'University of Moratuwa Vacancies', url: 'https://uom.lk/vacancies', category: 'government' },
-  { id: '17', name: 'University of Colombo Vacancies', url: 'https://cmb.ac.lk/vacancies', category: 'government' },
-  { id: '18', name: 'University of Peradeniya Vacancies', url: 'https://www.pdn.ac.lk/vacancies/', category: 'government' },
-  { id: '19', name: 'University of Sri Jayewardenepura', url: 'https://www.sjp.ac.lk/vacancies/', category: 'government' },
-  { id: '20', name: 'University of Kelaniya Vacancies', url: 'https://www.kln.ac.lk/vacancies/', category: 'government' },
-  { id: '21', name: 'University of Ruhuna Vacancies', url: 'https://www.ruh.ac.lk/index.php/en/vacancies', category: 'government' },
-  { id: '22', name: 'University of Jaffna Vacancies', url: 'https://www.jfn.ac.lk/vacancies/', category: 'government' },
-  { id: '23', name: 'The Open University of Sri Lanka (OUSL)', url: 'https://ou.ac.lk/vacancies/', category: 'government' },
-  { id: '24', name: 'Kotelawala Defence University (KDU)', url: 'https://www.kdu.ac.lk/vacancies/', category: 'government' },
-  { id: '25', name: 'SLIIT Official Careers', url: 'https://www.sliit.lk/careers/', category: 'government' },
+  // 📺 Media & National Boards (5)
+  { id: '23', name: 'Sri Lanka Rupavahini Corporation (SLRC)', url: 'http://www.rupavahini.lk/vacancies', category: 'government' },
+  { id: '24', name: 'Sri Lanka Broadcasting Corporation (SLBC)', url: 'https://www.slbc.lk/vacancies', category: 'government' },
+  { id: '25', name: 'National Lotteries Board (NLB)', url: 'https://www.nlb.lk/vacancies', category: 'government' },
+  { id: '26', name: 'Development Lotteries Board (DLB)', url: 'https://www.dlb.lk/vacancies', category: 'government' },
+  { id: '27', name: 'Export Development Board (EDB)', url: 'https://www.srilankabusiness.com/careers/', category: 'government' },
 
-  // ⚖️ Commissions & Regulators
-  { id: '26', name: 'Telecommunications Regulatory Commission (TRCSL)', url: 'http://www.trc.gov.lk/vacancies.html', category: 'government' },
-  { id: '27', name: 'Public Utilities Commission (PUCSL)', url: 'https://www.pucsl.gov.lk/careers/', category: 'government' },
+  // 🛠️ Vocational, Standards & Training Authorities (5)
+  { id: '28', name: 'Sri Lanka Standards Institution (SLSI)', url: 'https://www.slsi.lk/index.php/en/vacancies', category: 'government' },
+  { id: '29', name: 'Industrial Technology Institute (ITI)', url: 'https://iti.lk/vacancies/', category: 'government' },
+  { id: '30', name: 'National Institute of Business Management (NIBM)', url: 'https://careers.nibmworldwide.com', category: 'government' },
+  { id: '31', name: 'Vocational Training Authority (VTA)', url: 'http://www.vtasl.gov.lk/careers', category: 'government' },
+  { id: '32', name: 'National Apprentice and Industrial Training Authority (NAITA)', url: 'http://www.naita.gov.lk/vacancies', category: 'government' },
 
-  // 🏢 Private Corporate Sector
-  { id: '28', name: 'Commercial Bank of Ceylon Careers', url: 'https://careers.combank.lk', category: 'private' },
-  { id: '29', name: 'Sampath Bank Careers', url: 'https://careers.sampath.lk', category: 'private' },
-  { id: '30', name: 'Hatton National Bank (HNB) Careers', url: 'https://www.hnb.net/careers', category: 'private' },
-  { id: '31', name: 'Dialog Axiata Careers', url: 'https://careers.dialog.lk', category: 'private' },
-  { id: '32', name: 'John Keells Holdings Careers', url: 'https://careers.keells.com', category: 'private' },
-  { id: '33', name: 'Hayleys Group Careers', url: 'https://www.hayleys.com/careers', category: 'private' },
-  { id: '34', name: 'WSO2 Global Careers', url: 'https://wso2.com/careers', category: 'private' },
-  { id: '35', name: 'IFS Software Careers', url: 'https://www.ifs.com/about/careers-at-ifs', category: 'private' },
-  { id: '36', name: 'Virtusa Tech Careers', url: 'https://www.virtusa.com/careers', category: 'private' },
-  { id: '37', name: 'MAS Holdings Careers', url: 'https://www.masholdings.com/careers', category: 'private' },
-  { id: '38', name: 'Brandix Apparel Careers', url: 'https://brandix.com/careers', category: 'private' },
+  // 🎓 State Universities & Higher Education (11)
+  { id: '33', name: 'University of Moratuwa Vacancies', url: 'https://uom.lk/vacancies', category: 'government' },
+  { id: '34', name: 'University of Colombo Vacancies', url: 'https://cmb.ac.lk/vacancies', category: 'government' },
+  { id: '35', name: 'University of Peradeniya Vacancies', url: 'https://www.pdn.ac.lk/vacancies/', category: 'government' },
+  { id: '36', name: 'University of Sri Jayewardenepura', url: 'https://www.sjp.ac.lk/vacancies/', category: 'government' },
+  { id: '37', name: 'University of Kelaniya Vacancies', url: 'https://www.kln.ac.lk/vacancies/', category: 'government' },
+  { id: '38', name: 'University of Ruhuna Vacancies', url: 'https://www.ruh.ac.lk/index.php/en/vacancies', category: 'government' },
+  { id: '39', name: 'University of Jaffna Vacancies', url: 'https://www.jfn.ac.lk/vacancies/', category: 'government' },
+  { id: '40', name: 'The Open University of Sri Lanka (OUSL)', url: 'https://ou.ac.lk/vacancies/', category: 'government' },
+  { id: '41', name: 'Kotelawala Defence University (KDU)', url: 'https://www.kdu.ac.lk/vacancies/', category: 'government' },
+  { id: '42', name: 'SLIIT Official Careers', url: 'https://www.sliit.lk/careers/', category: 'government' },
+  { id: '43', name: 'Sri Lanka Tourism Development Authority (SLTDA)', url: 'https://www.sltda.gov.lk/en/careers', category: 'government' },
 
-  // ✈️ Overseas & Hospitality
-  { id: '39', name: 'Minor Hotels Workday (Overseas & Resorts)', url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', category: 'overseas' },
-  { id: '40', name: 'Hilton Worldwide Careers', url: 'https://careers.hilton.com', category: 'overseas' },
-  { id: '41', name: 'Foreign Employment Bureau (SLBFE)', url: 'http://www.slbfe.lk', category: 'overseas' },
+  // ⚖️ Commissions & Regulators (2)
+  { id: '44', name: 'Telecommunications Regulatory Commission (TRCSL)', url: 'http://www.trc.gov.lk/vacancies.html', category: 'government' },
+  { id: '45', name: 'Public Utilities Commission (PUCSL)', url: 'https://www.pucsl.gov.lk/careers/', category: 'government' },
+
+  // 🏢 Private Corporate Sector (11)
+  { id: '46', name: 'Commercial Bank of Ceylon Careers', url: 'https://careers.combank.lk', category: 'private' },
+  { id: '47', name: 'Sampath Bank Careers', url: 'https://careers.sampath.lk', category: 'private' },
+  { id: '48', name: 'Hatton National Bank (HNB) Careers', url: 'https://www.hnb.net/careers', category: 'private' },
+  { id: '49', name: 'Dialog Axiata Careers', url: 'https://careers.dialog.lk', category: 'private' },
+  { id: '50', name: 'John Keells Holdings Careers', url: 'https://careers.keells.com', category: 'private' },
+  { id: '51', name: 'Hayleys Group Careers', url: 'https://www.hayleys.com/careers', category: 'private' },
+  { id: '52', name: 'WSO2 Global Careers', url: 'https://wso2.com/careers', category: 'private' },
+  { id: '53', name: 'IFS Software Careers', url: 'https://www.ifs.com/about/careers-at-ifs', category: 'private' },
+  { id: '54', name: 'Virtusa Tech Careers', url: 'https://www.virtusa.com/careers', category: 'private' },
+  { id: '55', name: 'MAS Holdings Careers', url: 'https://www.masholdings.com/careers', category: 'private' },
+  { id: '56', name: 'Brandix Apparel Careers', url: 'https://brandix.com/careers', category: 'private' },
+
+  // ✈️ Overseas & Hospitality (3)
+  { id: '57', name: 'Minor Hotels Workday (Overseas & Resorts)', url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', category: 'overseas' },
+  { id: '58', name: 'Hilton Worldwide Careers', url: 'https://careers.hilton.com', category: 'overseas' },
+  { id: '59', name: 'Foreign Employment Bureau (SLBFE)', url: 'http://www.slbfe.lk', category: 'overseas' },
 ];
 
 export default function AdminDashboard() {
@@ -522,7 +544,7 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length >= 25) {
+        if (Array.isArray(parsed) && parsed.length >= 50) {
           return parsed;
         }
       } catch (e) {}
