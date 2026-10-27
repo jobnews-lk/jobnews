@@ -81,27 +81,30 @@ const DEFAULT_SOURCES: CustomScraperSource[] = [
   { id: '42', name: 'SLIIT Official Careers', url: 'https://www.sliit.lk/careers/', category: 'government' },
   { id: '43', name: 'Sri Lanka Tourism Development Authority (SLTDA)', url: 'https://www.sltda.gov.lk/en/careers', category: 'government' },
 
-  // ⚖️ Commissions & Regulators (2)
+  // ⚖️ Commissions & Regulators (3)
   { id: '44', name: 'Telecommunications Regulatory Commission (TRCSL)', url: 'http://www.trc.gov.lk/vacancies.html', category: 'government' },
   { id: '45', name: 'Public Utilities Commission (PUCSL)', url: 'https://www.pucsl.gov.lk/careers/', category: 'government' },
+  { id: '46', name: 'ශ්‍රී ලංකා විදේශ සේවා නියුක්ති කාර්යාංශය (SLBFE Careers)', url: 'https://www.slbfe.lk/announcement/', category: 'government' },
 
   // 🏢 Private Corporate Sector (11)
-  { id: '46', name: 'Commercial Bank of Ceylon Careers', url: 'https://careers.combank.lk', category: 'private' },
-  { id: '47', name: 'Sampath Bank Careers', url: 'https://careers.sampath.lk', category: 'private' },
-  { id: '48', name: 'Hatton National Bank (HNB) Careers', url: 'https://www.hnb.net/careers', category: 'private' },
-  { id: '49', name: 'Dialog Axiata Careers', url: 'https://careers.dialog.lk', category: 'private' },
-  { id: '50', name: 'John Keells Holdings Careers', url: 'https://careers.keells.com', category: 'private' },
-  { id: '51', name: 'Hayleys Group Careers', url: 'https://www.hayleys.com/careers', category: 'private' },
-  { id: '52', name: 'WSO2 Global Careers', url: 'https://wso2.com/careers', category: 'private' },
-  { id: '53', name: 'IFS Software Careers', url: 'https://www.ifs.com/about/careers-at-ifs', category: 'private' },
-  { id: '54', name: 'Virtusa Tech Careers', url: 'https://www.virtusa.com/careers', category: 'private' },
-  { id: '55', name: 'MAS Holdings Careers', url: 'https://www.masholdings.com/careers', category: 'private' },
-  { id: '56', name: 'Brandix Apparel Careers', url: 'https://brandix.com/careers', category: 'private' },
+  { id: '47', name: 'Commercial Bank of Ceylon Careers', url: 'https://careers.combank.lk', category: 'private' },
+  { id: '48', name: 'Sampath Bank Careers', url: 'https://careers.sampath.lk', category: 'private' },
+  { id: '49', name: 'Hatton National Bank (HNB) Careers', url: 'https://www.hnb.net/careers', category: 'private' },
+  { id: '50', name: 'Dialog Axiata Careers', url: 'https://careers.dialog.lk', category: 'private' },
+  { id: '51', name: 'John Keells Holdings Careers', url: 'https://careers.keells.com', category: 'private' },
+  { id: '52', name: 'Hayleys Group Careers', url: 'https://www.hayleys.com/careers', category: 'private' },
+  { id: '53', name: 'WSO2 Global Careers', url: 'https://wso2.com/careers', category: 'private' },
+  { id: '54', name: 'IFS Software Careers', url: 'https://www.ifs.com/about/careers-at-ifs', category: 'private' },
+  { id: '55', name: 'Virtusa Tech Careers', url: 'https://www.virtusa.com/careers', category: 'private' },
+  { id: '56', name: 'MAS Holdings Careers', url: 'https://www.masholdings.com/careers', category: 'private' },
+  { id: '57', name: 'Brandix Apparel Careers', url: 'https://brandix.com/careers', category: 'private' },
 
-  // ✈️ Overseas & Hospitality (3)
-  { id: '57', name: 'Minor Hotels Workday (Overseas & Resorts)', url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', category: 'overseas' },
-  { id: '58', name: 'Hilton Worldwide Careers', url: 'https://careers.hilton.com', category: 'overseas' },
-  { id: '59', name: 'Foreign Employment Bureau (SLBFE)', url: 'http://www.slbfe.lk', category: 'overseas' },
+  // ✈️ Overseas & Global Portals (5)
+  { id: '58', name: 'Minor Hotels Workday (Overseas & Resorts)', url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', category: 'overseas' },
+  { id: '59', name: 'Hilton Worldwide Careers', url: 'https://careers.hilton.com', category: 'overseas' },
+  { id: '60', name: 'Marriott International Careers', url: 'https://careers.marriott.com', category: 'overseas' },
+  { id: '61', name: 'Qatar Airways Official Careers', url: 'https://careers.qatarairways.com', category: 'overseas' },
+  { id: '62', name: 'Emirates Group Careers', url: 'https://www.emiratesgroupcareers.com', category: 'overseas' },
 ];
 
 export default function AdminDashboard() {

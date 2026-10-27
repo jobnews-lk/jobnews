@@ -527,6 +527,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '✈️',
     website: 'https://www.slbfe.lk',
+    careers_url: 'https://www.slbfe.lk/announcement/',
     keywords: 'slbfe foreign employment widesha sewa විදේශ සේවා'
   },
   {
