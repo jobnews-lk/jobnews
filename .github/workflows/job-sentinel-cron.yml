@@ -6,7 +6,10 @@ on:
     - cron: '30 1 * * *'
     # 5:30 PM Sri Lanka Time (12:00 UTC)
     - cron: '0 12 * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub anytime
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   run-watcher:
@@ -25,6 +28,6 @@ jobs:
 
       - name: Run Job Sentinel Watcher
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://njrkhpsbbpszvyzosxwf.supabase.co' }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc' }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: node scripts/jobSentinelWatcher.js
