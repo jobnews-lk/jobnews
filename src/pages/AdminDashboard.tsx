@@ -28,16 +28,12 @@ export interface CustomScraperSource {
 }
 
 const DEFAULT_SOURCES: CustomScraperSource[] = [
-  { id: '1', name: 'Official Govt Gazette Portal', url: 'https://documents.gov.lk/gazette', category: 'government' },
-  { id: '2', name: 'Gazette LK Repository', url: 'https://gazette.lk', category: 'government' },
-  { id: '3', name: 'Public Service Commission', url: 'https://psc.gov.lk', category: 'government' },
-  { id: '4', name: 'Commercial Bank Careers', url: 'https://careers.combank.lk', category: 'private' },
-  { id: '5', name: 'Dialog Axiata Careers', url: 'https://careers.dialog.lk', category: 'private' },
-  { id: '6', name: 'Sampath Bank Careers', url: 'https://careers.sampath.lk', category: 'private' },
-  { id: '7', name: 'John Keells Holdings', url: 'https://careers.keells.com', category: 'private' },
-  { id: '8', name: 'Foreign Employment Bureau (SLBFE)', url: 'http://www.slbfe.lk', category: 'overseas' },
-  { id: '9', name: 'Hilton Worldwide Careers', url: 'https://careers.hilton.com', category: 'overseas' },
-  { id: '10', name: 'Minor International (Anantara & Avani Careers)', url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', category: 'overseas' },
+  { id: '1', name: 'Bank of Ceylon (BOC) Careers', url: 'https://www.boc.lk/careers', category: 'government' },
+  { id: '2', name: 'University of Moratuwa Vacancies', url: 'https://uom.lk/vacancies', category: 'government' },
+  { id: '3', name: 'Ceylon Electricity Board (CEB)', url: 'https://www.ceb.lk/careers', category: 'government' },
+  { id: '4', name: 'Water Supply & Drainage Board', url: 'https://www.waterboard.lk/vacancies/', category: 'government' },
+  { id: '5', name: 'Sri Lanka Telecom (SLT-Mobitel)', url: 'https://www.slt.lk/en/careers', category: 'government' },
+  { id: '6', name: 'Minor Hotels Workday (Overseas)', url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', category: 'overseas' },
 ];
 
 export default function AdminDashboard() {

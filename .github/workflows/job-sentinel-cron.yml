@@ -1,0 +1,30 @@
+name: JobSentinel 24/7 Watcher Bot
+
+on:
+  schedule:
+    # 7:00 AM Sri Lanka Time (01:30 UTC)
+    - cron: '30 1 * * *'
+    # 5:30 PM Sri Lanka Time (12:00 UTC)
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub anytime
+
+jobs:
+  run-watcher:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Job Sentinel Watcher
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://njrkhpsbbpszvyzosxwf.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc' }}
+        run: node scripts/jobSentinelWatcher.js

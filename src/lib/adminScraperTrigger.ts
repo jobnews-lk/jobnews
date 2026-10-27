@@ -218,13 +218,11 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
       // Single custom URL string passed
       targetUrls = [{ url: customInput }];
     } else {
-      // Default: Check all configured target sources
+      // Default: Check verified live target sources
       targetUrls = [
-        { url: 'https://documents.gov.lk/gazette', name: 'Official Govt Gazette Portal', category: 'government' },
-        { url: 'https://careers.combank.lk', name: 'Commercial Bank Careers', category: 'private' },
-        { url: 'https://careers.dialog.lk', name: 'Dialog Axiata Careers', category: 'private' },
-        { url: 'https://careers.hilton.com', name: 'Hilton Worldwide Careers', category: 'overseas' },
-        { url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', name: 'Minor Hotels Workday', category: 'overseas' }
+        { url: 'https://www.boc.lk/careers', name: 'Bank of Ceylon Official Careers', category: 'government' },
+        { url: 'https://uom.lk/vacancies', name: 'University of Moratuwa Vacancies', category: 'government' },
+        { url: 'https://minor.wd102.myworkdayjobs.com/en-US/Careers', name: 'Minor Hotels Workday (Maldives/Dubai)', category: 'overseas' }
       ];
     }
 
@@ -262,109 +260,95 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
             });
           });
         }
-      } else if (domain.includes('gov.lk') || domain.includes('gazette')) {
-        // Government Gazette Scraper
-        candidateJobs.push(
-          {
-            title: `ශ්‍රී ලංකා පාලන සේවයේ (SLAS) ශ්‍රේණිය III සඳහා නිලධාරීන් බඳවා ගැනීම - ${new Date().getFullYear()}`,
-            company: 'රාජ්‍ය පරිපාලන, පළාත් සභා හා පාලන අමාත්‍යාංශය',
-            country_name: 'Sri Lanka',
-            location: 'Colombo, Sri Lanka',
-            salary: 'රු. 60,000 - 85,000 / මාසික',
-            closing_date: closeDateStr,
-            post_type: 'image',
-            is_government: true,
-            is_overseas: false,
-            is_private_sector: false,
-            apply_method: 'online',
-            apply_url: url,
-            description: `ශ්‍රී ලංකා පාලන සේවයේ (SLAS) 3-III ශ්‍රේණිය සඳහා නිලධාරීන් බඳවා ගැනීමේ තරඟ විභාගය. රාජ්‍ය පරිපාලන අමාත්‍යාංශය.`
-          },
-          {
-            title: `තොරතුරු හා සන්නිවේදන තාක්ෂණ (ICT) සහකාර නිලධාරී - රාජ්‍ය සේවා කොමිෂන් සභාව`,
-            company: 'රාජ්‍ය සේවා කොමිෂන් සභාව (Public Service Commission)',
-            country_name: 'Sri Lanka',
-            location: 'Sri Lanka',
-            salary: 'රු. 45,000 - 62,000 / මාසික',
-            closing_date: closeDateStr,
-            post_type: 'image',
-            is_government: true,
-            is_overseas: false,
-            is_private_sector: false,
-            apply_method: 'online',
-            apply_url: url,
-            description: `රාජ්‍ය සේවා කොමිෂන් සභාව සඳහා ICT Assistant Executive Officer බඳවා ගැනීම.`
+      } else if (domain.includes('boc.lk')) {
+        // Real Bank of Ceylon Scraper (Zero Fake Data)
+        try {
+          const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
+          if (res.ok) {
+            const html = await res.text();
+            const linkRegex = /<a[^>]*class="expand-link"[^>]*>([\s\S]*?)<\/a>/gi;
+            let linkMatch;
+            while ((linkMatch = linkRegex.exec(html)) !== null) {
+              const rawTitle = linkMatch[1].replace(/<[^>]+>/g, '').trim();
+              if (!rawTitle || rawTitle.toLowerCase().includes('result') || rawTitle.toLowerCase().includes('interview')) {
+                continue;
+              }
+              const afterText = html.substring(linkMatch.index, linkMatch.index + 1200);
+              const dateMatch = afterText.match(/Notice available till:<\/span>\s*([0-9\-\/]+)/i);
+              const urlMatch = afterText.match(/<a[^>]*href="([^"]+)"[^>]*>More Details/i);
+              let applyUrl = url;
+              if (urlMatch && urlMatch[1]) {
+                applyUrl = urlMatch[1].startsWith('http') ? urlMatch[1] : `https://www.boc.lk${urlMatch[1]}`;
+              }
+              candidateJobs.push({
+                title: `${rawTitle} - Bank of Ceylon`,
+                company: 'Bank of Ceylon',
+                country_name: 'Sri Lanka',
+                location: 'Colombo, Sri Lanka',
+                salary: 'As per State Bank Salary Scale & Benefits',
+                closing_date: dateMatch ? dateMatch[1] : closeDateStr,
+                post_type: 'image',
+                is_government: true,
+                is_overseas: false,
+                is_private_sector: false,
+                apply_method: 'online',
+                apply_url: applyUrl,
+                description: `Official job vacancy for ${rawTitle} at Bank of Ceylon (BOC).\nNotice available till: ${dateMatch ? dateMatch[1] : 'Official Closing Date'}.\nApply online directly via the official BOC portal.`
+              });
+            }
           }
-        );
-      } else if (domain.includes('combank') || domain.includes('bank')) {
-        // Banking Sector Scraper
-        candidateJobs.push({
-          title: `Management Trainee - Retail & Digital Banking (Commercial Bank)`,
-          company: 'Commercial Bank of Ceylon PLC',
-          country_name: 'Sri Lanka',
-          location: 'Colombo 01, Sri Lanka',
-          salary: 'LKR 85,000 - 120,000 / Month + Allowances',
-          closing_date: closeDateStr,
-          post_type: 'image',
-          is_government: false,
-          is_overseas: false,
-          is_private_sector: true,
-          apply_method: 'online',
-          apply_url: url,
-          description: `Career Opportunity for Management Trainees at Commercial Bank of Ceylon PLC. Fast-track leadership program in retail & digital banking.`
-        });
-      } else if (domain.includes('dialog') || domain.includes('keells') || domain.includes('telecom')) {
-        // Private Corporate Scraper
-        candidateJobs.push({
-          title: `Senior Software Engineer (Cloud & DevOps) - Dialog Axiata`,
-          company: 'Dialog Axiata PLC',
-          country_name: 'Sri Lanka',
-          location: 'Colombo 02, Sri Lanka',
-          salary: 'LKR 280,000 - 420,000 / Month',
-          closing_date: closeDateStr,
-          post_type: 'image',
-          is_government: false,
-          is_overseas: false,
-          is_private_sector: true,
-          apply_method: 'online',
-          apply_url: url,
-          description: `Senior Cloud & DevOps Engineer vacancy at Dialog Axiata PLC. Lead cloud infrastructure & enterprise software platforms.`
-        });
-      } else if (domain.includes('hilton') || domain.includes('slbfe')) {
-        // Overseas Hospitality & SLBFE Scraper
-        candidateJobs.push({
-          title: `Guest Relations Executive (Hilton International)`,
-          company: 'Hilton Worldwide',
-          country_name: 'United Arab Emirates',
-          location: 'Dubai, United Arab Emirates',
-          salary: 'AED 6,500 - 8,500 / Month + Housing',
-          closing_date: closeDateStr,
-          post_type: 'image',
-          is_government: false,
-          is_overseas: true,
-          is_private_sector: false,
-          apply_method: 'online',
-          apply_url: url,
-          description: `Guest Relations Executive position at Hilton International Dubai. VIP guest management & luxury hospitality service.`
-        });
+        } catch (bocErr) {
+          console.warn('[BOC Scraper] Network fetch:', bocErr);
+        }
+      } else if (domain.includes('uom.lk')) {
+        // Real University of Moratuwa Scraper (Zero Fake Data)
+        try {
+          const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
+          if (res.ok) {
+            const html = await res.text();
+            const regex = /<a[^>]*href="([^"]*vacancy[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
+            let match;
+            const todayStr = getLocalDateString();
+            while ((match = regex.exec(html)) !== null) {
+              const text = match[2].replace(/<[^>]+>/g, '').trim();
+              if (text.length > 5 && (text.toLowerCase().includes('post') || text.toLowerCase().includes('lecturer') || text.toLowerCase().includes('officer') || text.toLowerCase().includes('analyst'))) {
+                const cleanTitle = text.split('\n')[0].trim();
+                const dateMatch = text.match(/Closing Date:\s*(?:On or Before\s*)?([0-9\/\-]+)/i);
+                let formattedDate = closeDateStr;
+                if (dateMatch && dateMatch[1]) {
+                  const parts = dateMatch[1].split('/');
+                  if (parts.length === 3) {
+                    formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                  }
+                }
+                // Skip expired
+                if (formattedDate < todayStr) continue;
+
+                const href = match[1].startsWith('http') ? match[1] : `https://uom.lk/${match[1].replace(/^\//, '')}`;
+                candidateJobs.push({
+                  title: `${cleanTitle} - University of Moratuwa`,
+                  company: 'University of Moratuwa',
+                  country_name: 'Sri Lanka',
+                  location: 'Moratuwa, Sri Lanka',
+                  salary: 'As per UGC & University Salary Structure',
+                  closing_date: formattedDate,
+                  post_type: 'image',
+                  is_government: true,
+                  is_overseas: false,
+                  is_private_sector: false,
+                  apply_method: 'online',
+                  apply_url: href,
+                  description: `Official academic / administrative vacancy notice at University of Moratuwa: ${cleanTitle}.\nClosing Date: ${formattedDate}.\nApply directly via the official university portal.`
+                });
+              }
+            }
+          }
+        } catch (uomErr) {
+          console.warn('[UOM Scraper] Network fetch:', uomErr);
+        }
       } else {
-        // Custom URL Scraper fallback for any generic link entered by admin
-        const hostName = new URL(url).hostname.replace('www.', '');
-        candidateJobs.push({
-          title: `Career Opportunity (${hostName.toUpperCase()})`,
-          company: hostName.charAt(0).toUpperCase() + hostName.slice(1),
-          country_name: 'Sri Lanka',
-          location: 'Sri Lanka',
-          salary: 'Attractive Salary & Benefits Package',
-          closing_date: closeDateStr,
-          post_type: 'image',
-          is_government: false,
-          is_overseas: false,
-          is_private_sector: true,
-          apply_method: 'online',
-          apply_url: url,
-          description: `Official career opportunity discovered from ${url}. Apply online directly on employer portal.`
-        });
+        // Zero Fake Data: If site has no custom parser yet, we do NOT inject dummy mock jobs.
+        // It skips safely, keeping database 100% clean and authentic.
       }
     }
 

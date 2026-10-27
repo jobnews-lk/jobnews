@@ -14,6 +14,7 @@ export interface StateInstitution {
   sector_name: string;
   icon: string;
   website: string;
+  careers_url?: string;
   keywords: string;
 }
 
@@ -74,6 +75,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'රාජ්‍ය බැංකු & මූල්‍ය',
     icon: '🏦',
     website: 'https://www.cbsl.gov.lk',
+    careers_url: 'https://www.cbsl.gov.lk/en/careers',
     keywords: 'cbsl central bank maha bankuwa මහ බැංකුව'
   },
   {
@@ -85,6 +87,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'රාජ්‍ය බැංකු & මූල්‍ය',
     icon: '🏦',
     website: 'https://www.boc.lk',
+    careers_url: 'https://www.boc.lk/careers',
     keywords: 'boc bank of ceylon lanka bankuwa ලංකා බැංකුව'
   },
   {
@@ -96,6 +99,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'රාජ්‍ය බැංකු & මූල්‍ය',
     icon: '🏦',
     website: 'https://www.peoplesbank.lk',
+    careers_url: 'https://www.peoplesbank.lk/careers/',
     keywords: 'peoples bank mahajana bankuwa මහජන බැංකුව'
   },
   {
@@ -107,6 +111,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'රාජ්‍ය බැංකු & මූල්‍ය',
     icon: '🏦',
     website: 'https://www.nsb.lk',
+    careers_url: 'https://www.nsb.lk/careers/',
     keywords: 'nsb national savings bank ithiri kireeme ජාතික ඉතිරි කිරීමේ'
   },
   {
@@ -118,6 +123,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'රාජ්‍ය බැංකු & මූල්‍ය',
     icon: '🏦',
     website: 'https://www.rdb.lk',
+    careers_url: 'https://www.rdb.lk/careers/',
     keywords: 'rdb regional development bank pradeshieya sanwardhana'
   },
   {
@@ -129,6 +135,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'රාජ්‍ය බැංකු & මූල්‍ය',
     icon: '🏦',
     website: 'https://www.smib.lk',
+    careers_url: 'https://www.smib.lk/careers/',
     keywords: 'smib state mortgage investment bank'
   },
   {
@@ -140,6 +147,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'රාජ්‍ය බැංකු & මූල්‍ය',
     icon: '🏦',
     website: 'https://www.hdfc.lk',
+    careers_url: 'https://www.hdfc.lk/careers/',
     keywords: 'hdfc bank housing development finance'
   },
   {
@@ -399,6 +407,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '⚡',
     website: 'https://www.ceb.lk',
+    careers_url: 'https://www.ceb.lk/careers',
     keywords: 'ceb ceylon electricity board vidulibala විදුලිබල මණ්ඩලය'
   },
   {
@@ -410,6 +419,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '⛽',
     website: 'https://ceypetco.gov.lk',
+    careers_url: 'https://ceypetco.gov.lk/vacancies/',
     keywords: 'cpc ceypetco khanija thel ඛනිජ තෙල් සංස්ථාව'
   },
   {
@@ -421,6 +431,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '💧',
     website: 'https://www.waterboard.lk',
+    careers_url: 'https://www.waterboard.lk/vacancies/',
     keywords: 'nwsdb water board jalasampadana ජල සම්පාදන'
   },
   {
@@ -432,6 +443,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '🚌',
     website: 'http://sltb.lk',
+    careers_url: 'http://sltb.lk/vacancies',
     keywords: 'sltb transport ctb bus ලංගම ගමනාගමන මණ්ඩලය'
   },
   {
@@ -443,6 +455,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '🚢',
     website: 'https://www.slpa.lk',
+    careers_url: 'https://www.slpa.lk/port-colombo/opportunities',
     keywords: 'slpa ports authority waraya වරාය අධිකාරිය colombo port'
   },
   {
@@ -454,6 +467,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '🚆',
     website: 'http://www.railway.gov.lk',
+    careers_url: 'http://www.railway.gov.lk',
     keywords: 'slr railway railways dumriya දුම්රිය station master'
   },
   {
@@ -465,6 +479,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '📞',
     website: 'https://www.slt.lk',
+    careers_url: 'https://www.slt.lk/en/careers',
     keywords: 'slt telecom mobitel ටෙලිකොම්'
   },
   {
@@ -476,6 +491,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '🛣️',
     website: 'https://www.rda.gov.lk',
+    careers_url: 'http://www.rda.gov.lk/source/vacancies.htm',
     keywords: 'rda road development marga sanwardhana මාර්ග සංවර්ධන'
   },
   {
@@ -487,6 +503,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '🏖️',
     website: 'https://www.sltda.gov.lk',
+    careers_url: 'https://www.sltda.gov.lk/en/careers',
     keywords: 'sltda tourism sancharaka සංචාරක සංවර්ධන'
   },
   {
@@ -498,6 +515,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'මණ්ඩල & සංස්ථා',
     icon: '🛫',
     website: 'https://www.airport.lk',
+    careers_url: 'https://www.airport.lk/careers',
     keywords: 'aasl airport aviation guwan thotupala ගුවන්තොටුපළ katunayake'
   },
   {
@@ -566,6 +584,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://cmb.ac.lk',
+    careers_url: 'https://cmb.ac.lk/vacancies',
     keywords: 'uoc colombo university kolamba colombo campus කොළඹ'
   },
   {
@@ -577,6 +596,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://uom.lk',
+    careers_url: 'https://uom.lk/vacancies',
     keywords: 'uom moratuwa university engineering architecture මොරටුව'
   },
   {
@@ -588,6 +608,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://www.pdn.ac.lk',
+    careers_url: 'https://www.pdn.ac.lk/vacancies/',
     keywords: 'uop peradeniya university kandy පේරාදෙණිය'
   },
   {
@@ -599,6 +620,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://www.sjp.ac.lk',
+    careers_url: 'https://www.sjp.ac.lk/vacancies/',
     keywords: 'usjp jpura jayawardanapura management ජයවර්ධනපුර'
   },
   {
@@ -610,6 +632,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://www.kln.ac.lk',
+    careers_url: 'https://www.kln.ac.lk/vacancies/',
     keywords: 'uok kelaniya university කැලණිය'
   },
   {
@@ -621,6 +644,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://www.ruh.ac.lk',
+    careers_url: 'https://www.ruh.ac.lk/index.php/en/vacancies',
     keywords: 'uor ruhuna university matara රුහුණ'
   },
   {
@@ -632,6 +656,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://www.jfn.ac.lk',
+    careers_url: 'https://www.jfn.ac.lk/vacancies/',
     keywords: 'uoj jaffna university යාපනය'
   },
   {
@@ -643,6 +668,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://ou.ac.lk',
+    careers_url: 'https://ou.ac.lk/vacancies/',
     keywords: 'ousl open university nawala wiwrutha විවෘත'
   },
   {
@@ -654,6 +680,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://www.kdu.ac.lk',
+    careers_url: 'https://www.kdu.ac.lk/vacancies/',
     keywords: 'kdu kotelawala defence university කොතලාවල'
   },
   {
@@ -665,6 +692,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🎓',
     website: 'https://www.sliit.lk',
+    careers_url: 'https://www.sliit.lk/careers/',
     keywords: 'sliit it malabe institute information technology'
   },
   {
@@ -676,6 +704,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'විශ්වවිද්‍යාල & උසස් අධ්‍යාපන',
     icon: '🏛️',
     website: 'https://www.ugc.ac.lk',
+    careers_url: 'https://www.ugc.ac.lk',
     keywords: 'ugc university grants commission prathipadana'
   },
 
@@ -834,6 +863,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'කොමිෂන් සභා',
     icon: '⚖️',
     website: 'https://www.pucsl.gov.lk',
+    careers_url: 'https://www.pucsl.gov.lk/careers/',
     keywords: 'pucsl public utilities upayogitha උපයෝගිතා electricity tariff'
   },
   {
@@ -845,6 +875,7 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     sector_name: 'කොමිෂන් සභා',
     icon: '📶',
     website: 'http://www.trc.gov.lk',
+    careers_url: 'http://www.trc.gov.lk/vacancies.html',
     keywords: 'trcsl telecom regulatory widuli sandesha විදුලි සංදේශ'
   },
   {
