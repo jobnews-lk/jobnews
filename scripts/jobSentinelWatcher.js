@@ -12,7 +12,7 @@ import path from 'path';
 
 // Supabase credentials
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://njrkhpsbbpszvyzosxwf.supabase.co';
-const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_fGLK6NAxQXIaZnOnp3JzpA_chFpHIxc';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -176,6 +176,23 @@ async function runSentinel() {
   console.log(`🤖 JobNews.lk Sentinel Watcher Running at ${new Date().toISOString()}`);
   console.log(`======================================================\n`);
 
+  // Optional: Authenticate as admin if credentials provided
+  if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+    try {
+      const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      });
+      if (!authErr && authData?.user) {
+        console.log(`🔐 Logged in as Admin: ${authData.user.email}`);
+      } else if (authErr) {
+        console.warn(`⚠️ Admin login warning:`, authErr.message);
+      }
+    } catch (e) {
+      console.warn(`⚠️ Auth check note:`, e.message);
+    }
+  }
+
   const { data: existingJobs } = await supabase.from('jobs').select('title');
   const existingTitleSet = new Set((existingJobs || []).map(j => j.title.toLowerCase().trim()));
 
@@ -241,7 +258,10 @@ async function runSentinel() {
     });
 
     if (error) {
-      console.error(`   ❌ Failed to insert "${job.title}":`, error.message);
+      console.warn(`   ❌ Failed to insert "${job.title}":`, error.message);
+      if (error.message && error.message.includes('row-level security')) {
+        console.warn(`   💡 Tip: Add SUPABASE_SERVICE_ROLE_KEY or ADMIN_EMAIL/ADMIN_PASSWORD in GitHub Secrets to allow the bot to bypass RLS and save Drafts.`);
+      }
     } else {
       console.log(`   ✅ Successfully saved as Draft!`);
     }
