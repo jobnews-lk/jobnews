@@ -193,6 +193,52 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
 }
 
 /**
+ * Safely fetches external career page HTML without CORS blocks.
+ * Uses our own serverless proxy (/api/scrape-proxy), falling back to public CORS gateway.
+ */
+async function fetchCareerPageHtml(targetUrl: string): Promise<string> {
+  // Strategy 1: Serverless proxy on jobnews.lk
+  try {
+    const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const proxyEndpoint = isLocalhost ? 'https://www.jobnews.lk/api/scrape-proxy' : '/api/scrape-proxy';
+    const res = await fetch(`${proxyEndpoint}?url=${encodeURIComponent(targetUrl)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.html && data.html.length > 200) {
+        return data.html;
+      }
+    }
+  } catch (e) {
+    // try fallback
+  }
+
+  // Strategy 2: Allorigins raw proxy fallback
+  try {
+    const res = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`);
+    if (res.ok) {
+      const text = await res.text();
+      if (text && text.length > 200) {
+        return text;
+      }
+    }
+  } catch (e) {
+    // try direct
+  }
+
+  // Strategy 3: Direct fetch
+  try {
+    const res = await fetch(targetUrl);
+    if (res.ok) {
+      return await res.text();
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  return '';
+}
+
+/**
  * Universal Multi-Source Smart Scraper Engine
  * Ingests vacancies from Government Gazettes, Corporate Portals, Overseas Sites, or Custom Links.
  */
@@ -263,9 +309,8 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
       } else if (domain.includes('boc.lk')) {
         // Real Bank of Ceylon Scraper (Zero Fake Data)
         try {
-          const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
-          if (res.ok) {
-            const html = await res.text();
+          const html = await fetchCareerPageHtml(url);
+          if (html) {
             const linkRegex = /<a[^>]*class="expand-link"[^>]*>([\s\S]*?)<\/a>/gi;
             let linkMatch;
             while ((linkMatch = linkRegex.exec(html)) !== null) {
@@ -303,9 +348,8 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
       } else if (domain.includes('uom.lk')) {
         // Real University of Moratuwa Scraper (Zero Fake Data)
         try {
-          const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } });
-          if (res.ok) {
-            const html = await res.text();
+          const html = await fetchCareerPageHtml(url);
+          if (html) {
             const regex = /<a[^>]*href="([^"]*vacancy[^"]*)"[^>]*>([\s\S]*?)<\/a>/gi;
             let match;
             const todayStr = getLocalDateString();
