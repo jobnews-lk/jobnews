@@ -13,7 +13,6 @@ interface Particle {
   size: number;
   speedY: number;
   opacity: number;
-  // Dynamic multi-directional rotation & 3D flutter
   rotation: number;
   baseRotationSpeed: number;
   spinType: 'clockwise' | 'counterClockwise' | 'flutter';
@@ -53,16 +52,28 @@ function SnowCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    // Use desynchronized & alpha for optimal GPU pipeline
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animationFrameId: number;
     let particles: Particle[] = [];
     let isPaused = false;
+    let lastTime = performance.now();
 
-    // Load optimized crystalline snowflake image
+    // Pre-rendered offscreen sprite texture for 60fps hardware performance
+    let spriteCanvas: HTMLCanvasElement | null = null;
     const flakeImg = new Image();
     flakeImg.src = '/snowflake.png';
+    flakeImg.onload = () => {
+      spriteCanvas = document.createElement('canvas');
+      spriteCanvas.width = 40;
+      spriteCanvas.height = 40;
+      const sCtx = spriteCanvas.getContext('2d');
+      if (sCtx) {
+        sCtx.drawImage(flakeImg, 0, 0, 40, 40);
+      }
+    };
 
     const resize = () => {
       if (!canvas) return;
@@ -80,16 +91,15 @@ function SnowCanvas({
     const initParticles = () => {
       particles = [];
       const isMobile = window.innerWidth < 768;
-      const count = mode === 'hero' ? (isMobile ? 24 : 45) : (isMobile ? 32 : 68);
+      // High-performance particle counts tuned for smooth 60fps
+      const count = mode === 'hero' ? (isMobile ? 22 : 42) : (isMobile ? 28 : 55);
 
       for (let i = 0; i < count; i++) {
-        const isCrystal = Math.random() > 0.3; // 70% crystals, 30% background powder dots
-        // Crystalline flakes: 11px to 22px on desktop (9px to 17px on mobile)
+        const isCrystal = Math.random() > 0.28;
         const size = isCrystal
-          ? (isMobile ? Math.random() * 8 + 9 : Math.random() * 11 + 11)
+          ? (isMobile ? Math.random() * 7 + 9 : Math.random() * 10 + 11)
           : (Math.random() * 1.5 + 1.2);
 
-        // Spin type: 40% Clockwise, 35% CounterClockwise, 25% Swaying pendulum flutter
         const rand = Math.random();
         const spinType: 'clockwise' | 'counterClockwise' | 'flutter' =
           rand < 0.4 ? 'clockwise' : rand < 0.75 ? 'counterClockwise' : 'flutter';
@@ -102,8 +112,8 @@ function SnowCanvas({
           y: Math.random() * canvas.height,
           isCrystal,
           size,
-          speedY: isCrystal ? Math.random() * 0.7 + 0.45 : Math.random() * 0.5 + 0.3,
-          opacity: Math.random() * 0.45 + 0.55,
+          speedY: isCrystal ? Math.random() * 0.65 + 0.45 : Math.random() * 0.45 + 0.3,
+          opacity: Math.random() * 0.4 + 0.6,
           rotation: Math.random() * Math.PI * 2,
           baseRotationSpeed,
           spinType,
@@ -112,7 +122,7 @@ function SnowCanvas({
           tiltAngle: Math.random() * Math.PI * 2,
           tiltSpeed: Math.random() * 0.025 + 0.015,
           swayAngle: Math.random() * Math.PI * 2,
-          swaySpeed: Math.random() * 0.025 + 0.012,
+          swaySpeed: Math.random() * 0.022 + 0.012,
           swayAmp: Math.random() * 0.5 + 0.4
         });
       }
@@ -120,31 +130,39 @@ function SnowCanvas({
 
     const handleVisibilityChange = () => {
       isPaused = document.hidden;
+      if (!isPaused) lastTime = performance.now();
     };
 
-    const render = () => {
+    const render = (currentTime: number) => {
       if (isPaused) {
         animationFrameId = requestAnimationFrame(render);
         return;
       }
 
+      // Delta time normalized to 60fps (16.67ms) to prevent stutters
+      const dt = Math.min((currentTime - lastTime) / 16.67, 2.0) || 1.0;
+      lastTime = currentTime;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      const sourceDrawable = spriteCanvas || (flakeImg.complete ? flakeImg : null);
+      const srcW = spriteCanvas ? 40 : 180;
+      const srcH = spriteCanvas ? 40 : 198;
+
       for (let p of particles) {
-        p.swayAngle += p.swaySpeed;
-        p.tiltAngle += p.tiltSpeed;
-        p.y += p.speedY;
-        p.x += Math.sin(p.swayAngle) * p.swayAmp;
+        p.swayAngle += p.swaySpeed * dt;
+        p.tiltAngle += p.tiltSpeed * dt;
+        p.y += p.speedY * dt;
+        p.x += Math.sin(p.swayAngle) * p.swayAmp * dt;
 
         if (p.spinType === 'flutter') {
-          p.flutterAngle += p.flutterSpeed;
+          p.flutterAngle += p.flutterSpeed * dt;
           p.rotation = Math.sin(p.flutterAngle) * 0.75;
         } else {
-          // Smooth continuous spin in its designated direction with slight natural aerodynamic wave
-          p.rotation += p.baseRotationSpeed + Math.sin(p.swayAngle) * 0.004;
+          p.rotation += (p.baseRotationSpeed + Math.sin(p.swayAngle) * 0.004) * dt;
         }
 
-        // Reset particle when it reaches bottom or edges
+        // Loop boundaries
         if (p.y > canvas.height + 20) {
           p.y = -20;
           p.x = Math.random() * canvas.width;
@@ -152,37 +170,33 @@ function SnowCanvas({
         if (p.x > canvas.width + 20) p.x = -20;
         if (p.x < -20) p.x = canvas.width + 20;
 
-        ctx.save();
         ctx.globalAlpha = p.opacity;
 
-        if (p.isCrystal && flakeImg.complete) {
+        if (p.isCrystal && sourceDrawable) {
+          const tiltScale = Math.abs(Math.cos(p.tiltAngle)) * 0.35 + 0.65;
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
-          // 3D perspective tumbling (gives depth as it spins through air)
-          const tiltScale = Math.abs(Math.cos(p.tiltAngle)) * 0.35 + 0.65;
           ctx.scale(tiltScale, 1);
-          ctx.drawImage(flakeImg, -p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.drawImage(sourceDrawable, 0, 0, srcW, srcH, -p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.setTransform(1, 0, 0, 1, 0, 0); // Fast reset without save/restore overhead
         } else {
-          // Circular powder dots for realistic depth of field
+          // Zero-blur crisp powder dot
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-          ctx.shadowBlur = 2;
           ctx.fill();
         }
-
-        ctx.restore();
       }
 
       animationFrameId = requestAnimationFrame(render);
     };
 
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     resize();
-    render();
+    lastTime = performance.now();
+    animationFrameId = requestAnimationFrame(render);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -195,7 +209,8 @@ function SnowCanvas({
     return (
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none z-10"
+        className="absolute inset-0 w-full h-full pointer-events-none z-10 transform-gpu"
+        style={{ willChange: 'transform', transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}
         aria-hidden="true"
       />
     );
@@ -204,7 +219,8 @@ function SnowCanvas({
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full pointer-events-none z-30"
+      className="fixed inset-0 w-full h-full pointer-events-none z-30 transform-gpu"
+      style={{ willChange: 'transform', transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}
       aria-hidden="true"
     />
   );
