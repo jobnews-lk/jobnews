@@ -259,8 +259,8 @@ function extractUniversalJobsFromHtml(
   let match: RegExpExecArray | null;
 
   const jobKeywordRegex = /\b(post of|recruitment of|vacancy for|job vacancy|vacancies|trainee|officer|manager|executive|engineer|assistant|director|clerk|driver|operator|technician|accountant|lecturer|instructor|analyst|specialist|demonstrator|consultant|examiner|auditor|administrator|curator|surveyor|attendant|counsel|registrar|programmer|developer|medical|nurse|pharmacist|chemist|scientist)\b/i;
-  const junkRegex = /^(click here|download|view more|read more|apply now|careers?|home|about us|contact us|more details|view|details|link|pdf|here|login|register|search)$/i;
-  const navExcludeRegex = /\b(agency|agencies|licence|license|rules|guidelines|act|procurement|tender|policy|terms|condition|privacy|feedback|sitemap)\b/i;
+  const junkRegex = /^(click here|download|view more|read more|apply now|careers?|home|about us|contact us|more details|view|details|link|pdf|here|login|register|search|view all vacancies)$/i;
+  const navExcludeRegex = /\b(agency|agencies|licence|license|rules|guidelines|guide|act|procurement|tender|policy|terms|condition|privacy|feedback|sitemap|discipline|constitution|establishment|welfare|insurance|syllabus|bylaw|by-law|faq|annual report|financial statement|code of conduct|right to work|e-verify|pay transparency)\b/i;
 
   while ((match = aTagRegex.exec(html)) !== null) {
     const rawHref = match[1].trim();
@@ -320,33 +320,53 @@ function extractUniversalJobsFromHtml(
       continue;
     }
 
+    // ZERO FAKE DATES: If the government page does not explicitly state a future closing date,
+    // DO NOT assign an artificial fallback date that revives expired archive notices.
     if (!closingDate) {
-      closingDate = defaultCloseDate;
+      continue;
     }
 
-    let fullUrl = rawHref;
-    if (!fullUrl.startsWith('http')) {
+    let fullDocUrl = rawHref;
+    if (!fullDocUrl.startsWith('http')) {
       try {
-        fullUrl = new URL(rawHref, targetUrl).href;
+        fullDocUrl = new URL(rawHref, targetUrl).href;
       } catch (e) {
-        fullUrl = targetUrl;
+        fullDocUrl = targetUrl;
       }
     }
+
+    const isPdfOrDoc = /\.(pdf|docx?|zip)$/i.test(fullDocUrl);
+
+    // If the link is a downloadable PDF/Document, DO NOT hijack apply_url with a file download!
+    // Instead:
+    // - apply_url points to the official organizational career portal
+    // - official_pdf_url holds the circular document so JobNews built-in PDF viewer renders it cleanly
+    // - apply_method is set to 'post' or 'online' with clear instructions
+    const portalApplyUrl = isPdfOrDoc ? targetUrl : fullDocUrl;
+    const officialDoc = isPdfOrDoc ? fullDocUrl : undefined;
 
     jobs.push({
       title: `${titleCandidate} - ${orgName}`,
       company: orgName,
       country_name: isOverseas ? 'Overseas' : 'Sri Lanka',
       location: isOverseas ? 'Overseas / Global' : 'Sri Lanka',
-      salary: isGov ? 'As per Government Salary Circular & Benefits' : 'Attractive Salary & Benefits',
+      salary: isGov ? 'As per Government Circular Salary Scale & Allowances' : 'Attractive Salary & Benefits',
       closing_date: closingDate,
-      post_type: 'image',
+      post_type: isPdfOrDoc ? 'pdf' : 'image',
+      official_pdf_url: officialDoc,
       is_government: isGov,
       is_overseas: isOverseas,
       is_private_sector: isPrivate,
-      apply_method: 'online',
-      apply_url: fullUrl,
-      description: `Official vacancy for ${titleCandidate} at ${orgName}.\nClosing Date: ${closingDate}.\nApply directly through the official career portal.`
+      apply_method: isGov ? (isPdfOrDoc ? 'post' : 'online') : 'online',
+      apply_url: portalApplyUrl,
+      description: `### Official Vacancy Notice: ${titleCandidate}\n\n` +
+        `**Organization:** ${orgName}\n` +
+        `**Sector:** ${isGov ? 'Government / Public Sector' : (isOverseas ? 'Overseas Career' : 'Private Sector')}\n` +
+        `**Official Closing Date:** ${closingDate}\n\n` +
+        `#### Application Instructions:\n` +
+        (isPdfOrDoc 
+          ? `• Please inspect the attached official gazette notice / circular for qualifications, age limits, and required documents.\n• Duly filled applications along with certified copies of certificates should be forwarded as specified in the notice before ${closingDate}.`
+          : `• Submit your application online directly through the official career portal (${targetUrl}) before ${closingDate}.`)
     });
   }
 
@@ -436,24 +456,33 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
               const afterText = html.substring(linkMatch.index, linkMatch.index + 1200);
               const dateMatch = afterText.match(/Notice available till:<\/span>\s*([0-9\-\/]+)/i);
               const urlMatch = afterText.match(/<a[^>]*href="([^"]+)"[^>]*>More Details/i);
-              let applyUrl = url;
+              let docUrl = url;
               if (urlMatch && urlMatch[1]) {
-                applyUrl = urlMatch[1].startsWith('http') ? urlMatch[1] : `https://www.boc.lk${urlMatch[1]}`;
+                docUrl = urlMatch[1].startsWith('http') ? urlMatch[1] : `https://www.boc.lk${urlMatch[1]}`;
               }
+              const isPdfDoc = /\.(pdf|docx?)$/i.test(docUrl);
+
               candidateJobs.push({
                 title: `${rawTitle} - Bank of Ceylon`,
                 company: 'Bank of Ceylon',
                 country_name: 'Sri Lanka',
                 location: 'Colombo, Sri Lanka',
-                salary: 'As per State Bank Salary Scale & Benefits',
+                salary: 'As per State Bank Executive Salary Scale & Allowances',
                 closing_date: dateMatch ? dateMatch[1] : closeDateStr,
-                post_type: 'image',
+                post_type: isPdfDoc ? 'pdf' : 'image',
+                official_pdf_url: isPdfDoc ? docUrl : undefined,
                 is_government: true,
                 is_overseas: false,
                 is_private_sector: false,
                 apply_method: 'online',
-                apply_url: applyUrl,
-                description: `Official job vacancy for ${rawTitle} at Bank of Ceylon (BOC).\nNotice available till: ${dateMatch ? dateMatch[1] : 'Official Closing Date'}.\nApply online directly via the official BOC portal.`
+                apply_url: 'https://www.boc.lk/careers',
+                description: `### Official Vacancy: ${rawTitle}\n\n` +
+                  `**Organization:** Bank of Ceylon (BOC)\n` +
+                  `**Sector:** State Bank / Banking & Finance\n` +
+                  `**Closing Date:** ${dateMatch ? dateMatch[1] : 'As per official advertisement'}\n\n` +
+                  `#### Application Guidelines:\n` +
+                  `• Review the attached official circular for complete eligibility criteria and qualifications.\n` +
+                  `• Apply online through the official Bank of Ceylon portal before the closing deadline.`
               });
             }
           }
@@ -473,17 +502,22 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
               if (text.length > 5 && (text.toLowerCase().includes('post') || text.toLowerCase().includes('lecturer') || text.toLowerCase().includes('officer') || text.toLowerCase().includes('analyst'))) {
                 const cleanTitle = text.split('\n')[0].trim();
                 const dateMatch = text.match(/Closing Date:\s*(?:On or Before\s*)?([0-9\/\-]+)/i);
-                let formattedDate = closeDateStr;
-                if (dateMatch && dateMatch[1]) {
-                  const parts = dateMatch[1].split('/');
-                  if (parts.length === 3) {
-                    formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                  }
+                if (!dateMatch || !dateMatch[1]) continue;
+
+                let formattedDate = '';
+                const parts = dateMatch[1].split('/');
+                if (parts.length === 3) {
+                  formattedDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                } else {
+                  continue;
                 }
+
                 // Skip expired
                 if (formattedDate < todayStr) continue;
 
                 const href = match[1].startsWith('http') ? match[1] : `https://uom.lk/${match[1].replace(/^\//, '')}`;
+                const isPdfNotice = /\.pdf$/i.test(href);
+
                 candidateJobs.push({
                   title: `${cleanTitle} - University of Moratuwa`,
                   company: 'University of Moratuwa',
@@ -491,13 +525,20 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
                   location: 'Moratuwa, Sri Lanka',
                   salary: 'As per UGC & University Salary Structure',
                   closing_date: formattedDate,
-                  post_type: 'image',
+                  post_type: isPdfNotice ? 'pdf' : 'image',
+                  official_pdf_url: isPdfNotice ? href : undefined,
                   is_government: true,
                   is_overseas: false,
                   is_private_sector: false,
-                  apply_method: 'online',
-                  apply_url: href,
-                  description: `Official academic / administrative vacancy notice at University of Moratuwa: ${cleanTitle}.\nClosing Date: ${formattedDate}.\nApply directly via the official university portal.`
+                  apply_method: 'post',
+                  apply_url: 'https://uom.lk/vacancies',
+                  description: `### Official Vacancy Notice: ${cleanTitle}\n\n` +
+                    `**Organization:** University of Moratuwa\n` +
+                    `**Sector:** State University / Academic & Administrative\n` +
+                    `**Closing Date:** ${formattedDate}\n\n` +
+                    `#### Application Instructions:\n` +
+                    `• Refer to the official vacancy circular on the University of Moratuwa portal.\n` +
+                    `• Applications should be prepared according to prescribed UGC specifications and submitted before ${formattedDate}.`
                 });
               }
             }
