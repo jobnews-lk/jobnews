@@ -258,7 +258,7 @@ function extractUniversalJobsFromHtml(
   const aTagRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let match: RegExpExecArray | null;
 
-  const jobKeywordRegex = /\b(post of|recruitment of|vacancy for|job vacancy|vacancies|trainee|officer|manager|executive|engineer|assistant|director|clerk|driver|operator|technician|accountant|lecturer|instructor|analyst|specialist|demonstrator|consultant)\b/i;
+  const jobKeywordRegex = /\b(post of|recruitment of|vacancy for|job vacancy|vacancies|trainee|officer|manager|executive|engineer|assistant|director|clerk|driver|operator|technician|accountant|lecturer|instructor|analyst|specialist|demonstrator|consultant|examiner|auditor|administrator|curator|surveyor|attendant|counsel|registrar|programmer|developer|medical|nurse|pharmacist|chemist|scientist)\b/i;
   const junkRegex = /^(click here|download|view more|read more|apply now|careers?|home|about us|contact us|more details|view|details|link|pdf|here|login|register|search)$/i;
   const navExcludeRegex = /\b(agency|agencies|licence|license|rules|guidelines|act|procurement|tender|policy|terms|condition|privacy|feedback|sitemap)\b/i;
 
@@ -275,7 +275,9 @@ function extractUniversalJobsFromHtml(
       fullContext = html.substring(startIdx, endIdx).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     }
 
-    if (!jobKeywordRegex.test(fullContext)) continue;
+    const isVacancyDocLink = /\.pdf$/i.test(rawHref) || /careers?_/i.test(rawHref) || /\/vacancy\//i.test(rawHref);
+    const matchesJob = jobKeywordRegex.test(fullContext) || (isVacancyDocLink && text.length >= 8);
+    if (!matchesJob) continue;
     if (navExcludeRegex.test(text)) continue;
 
     let titleCandidate = text;
