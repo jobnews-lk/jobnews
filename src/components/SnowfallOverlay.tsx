@@ -13,10 +13,17 @@ interface Particle {
   size: number;
   speedY: number;
   opacity: number;
+  // Dynamic multi-directional rotation & 3D flutter
   rotation: number;
-  rotationSpeed: number;
+  baseRotationSpeed: number;
+  spinType: 'clockwise' | 'counterClockwise' | 'flutter';
+  flutterAngle: number;
+  flutterSpeed: number;
+  tiltAngle: number;
+  tiltSpeed: number;
   swayAngle: number;
   swaySpeed: number;
+  swayAmp: number;
 }
 
 export default function SnowfallOverlay({ mode = 'fullscreen' }: SnowfallOverlayProps) {
@@ -82,6 +89,14 @@ function SnowCanvas({
           ? (isMobile ? Math.random() * 8 + 9 : Math.random() * 11 + 11)
           : (Math.random() * 1.5 + 1.2);
 
+        // Spin type: 40% Clockwise, 35% CounterClockwise, 25% Swaying pendulum flutter
+        const rand = Math.random();
+        const spinType: 'clockwise' | 'counterClockwise' | 'flutter' =
+          rand < 0.4 ? 'clockwise' : rand < 0.75 ? 'counterClockwise' : 'flutter';
+
+        const baseRotationSpeed =
+          (Math.random() * 0.016 + 0.012) * (spinType === 'counterClockwise' ? -1 : 1);
+
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
@@ -90,9 +105,15 @@ function SnowCanvas({
           speedY: isCrystal ? Math.random() * 0.7 + 0.45 : Math.random() * 0.5 + 0.3,
           opacity: Math.random() * 0.45 + 0.55,
           rotation: Math.random() * Math.PI * 2,
-          rotationSpeed: Math.random() * 0.015 - 0.0075, // Slow, elegant spin
+          baseRotationSpeed,
+          spinType,
+          flutterAngle: Math.random() * Math.PI * 2,
+          flutterSpeed: Math.random() * 0.03 + 0.02,
+          tiltAngle: Math.random() * Math.PI * 2,
+          tiltSpeed: Math.random() * 0.025 + 0.015,
           swayAngle: Math.random() * Math.PI * 2,
-          swaySpeed: Math.random() * 0.02 + 0.01
+          swaySpeed: Math.random() * 0.025 + 0.012,
+          swayAmp: Math.random() * 0.5 + 0.4
         });
       }
     };
@@ -111,17 +132,25 @@ function SnowCanvas({
 
       for (let p of particles) {
         p.swayAngle += p.swaySpeed;
+        p.tiltAngle += p.tiltSpeed;
         p.y += p.speedY;
-        p.x += Math.sin(p.swayAngle) * 0.4;
-        p.rotation += p.rotationSpeed;
+        p.x += Math.sin(p.swayAngle) * p.swayAmp;
+
+        if (p.spinType === 'flutter') {
+          p.flutterAngle += p.flutterSpeed;
+          p.rotation = Math.sin(p.flutterAngle) * 0.75;
+        } else {
+          // Smooth continuous spin in its designated direction with slight natural aerodynamic wave
+          p.rotation += p.baseRotationSpeed + Math.sin(p.swayAngle) * 0.004;
+        }
 
         // Reset particle when it reaches bottom or edges
-        if (p.y > canvas.height + 15) {
-          p.y = -15;
+        if (p.y > canvas.height + 20) {
+          p.y = -20;
           p.x = Math.random() * canvas.width;
         }
-        if (p.x > canvas.width + 15) p.x = -15;
-        if (p.x < -15) p.x = canvas.width + 15;
+        if (p.x > canvas.width + 20) p.x = -20;
+        if (p.x < -20) p.x = canvas.width + 20;
 
         ctx.save();
         ctx.globalAlpha = p.opacity;
@@ -129,6 +158,9 @@ function SnowCanvas({
         if (p.isCrystal && flakeImg.complete) {
           ctx.translate(p.x, p.y);
           ctx.rotate(p.rotation);
+          // 3D perspective tumbling (gives depth as it spins through air)
+          const tiltScale = Math.abs(Math.cos(p.tiltAngle)) * 0.35 + 0.65;
+          ctx.scale(tiltScale, 1);
           ctx.drawImage(flakeImg, -p.size / 2, -p.size / 2, p.size, p.size);
         } else {
           // Circular powder dots for realistic depth of field
