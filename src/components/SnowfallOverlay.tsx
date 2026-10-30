@@ -9,9 +9,12 @@ interface SnowfallOverlayProps {
 interface Particle {
   x: number;
   y: number;
-  radius: number;
+  isCrystal: boolean;
+  size: number;
   speedY: number;
   opacity: number;
+  rotation: number;
+  rotationSpeed: number;
   swayAngle: number;
   swaySpeed: number;
 }
@@ -50,6 +53,10 @@ function SnowCanvas({
     let particles: Particle[] = [];
     let isPaused = false;
 
+    // Load optimized crystalline snowflake image
+    const flakeImg = new Image();
+    flakeImg.src = '/snowflake.png';
+
     const resize = () => {
       if (!canvas) return;
       if (mode === 'hero') {
@@ -66,15 +73,24 @@ function SnowCanvas({
     const initParticles = () => {
       particles = [];
       const isMobile = window.innerWidth < 768;
-      const count = mode === 'hero' ? (isMobile ? 25 : 50) : (isMobile ? 35 : 75);
+      const count = mode === 'hero' ? (isMobile ? 24 : 45) : (isMobile ? 32 : 68);
 
       for (let i = 0; i < count; i++) {
+        const isCrystal = Math.random() > 0.3; // 70% crystals, 30% background powder dots
+        // Crystalline flakes: 11px to 22px on desktop (9px to 17px on mobile)
+        const size = isCrystal
+          ? (isMobile ? Math.random() * 8 + 9 : Math.random() * 11 + 11)
+          : (Math.random() * 1.5 + 1.2);
+
         particles.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          radius: Math.random() * 1.5 + 1.2, // Tiny delicate micro-dots (1.2px - 2.7px)
-          speedY: Math.random() * 0.75 + 0.35, // Gentle, calm snowfall
-          opacity: Math.random() * 0.55 + 0.4,
+          isCrystal,
+          size,
+          speedY: isCrystal ? Math.random() * 0.7 + 0.45 : Math.random() * 0.5 + 0.3,
+          opacity: Math.random() * 0.45 + 0.55,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: Math.random() * 0.015 - 0.0075, // Slow, elegant spin
           swayAngle: Math.random() * Math.PI * 2,
           swaySpeed: Math.random() * 0.02 + 0.01
         });
@@ -96,24 +112,35 @@ function SnowCanvas({
       for (let p of particles) {
         p.swayAngle += p.swaySpeed;
         p.y += p.speedY;
-        p.x += Math.sin(p.swayAngle) * 0.35;
+        p.x += Math.sin(p.swayAngle) * 0.4;
+        p.rotation += p.rotationSpeed;
 
         // Reset particle when it reaches bottom or edges
-        if (p.y > canvas.height + 4) {
-          p.y = -4;
+        if (p.y > canvas.height + 15) {
+          p.y = -15;
           p.x = Math.random() * canvas.width;
         }
-        if (p.x > canvas.width + 4) p.x = -4;
-        if (p.x < -4) p.x = canvas.width + 4;
+        if (p.x > canvas.width + 15) p.x = -15;
+        if (p.x < -15) p.x = canvas.width + 15;
 
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.save();
+        ctx.globalAlpha = p.opacity;
 
-        // 100% Pure white snow with natural alpha depth
-        ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.85)';
-        ctx.shadowBlur = p.radius > 2 ? 2.5 : 1;
-        ctx.fill();
+        if (p.isCrystal && flakeImg.complete) {
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation);
+          ctx.drawImage(flakeImg, -p.size / 2, -p.size / 2, p.size, p.size);
+        } else {
+          // Circular powder dots for realistic depth of field
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+          ctx.shadowBlur = 2;
+          ctx.fill();
+        }
+
+        ctx.restore();
       }
 
       animationFrameId = requestAnimationFrame(render);
