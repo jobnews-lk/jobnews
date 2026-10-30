@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useFestiveActive } from '../lib/festiveTheme';
 import { useTheme } from '../context/ThemeContext';
 
@@ -29,9 +30,13 @@ export default function SnowfallOverlay({ mode = 'fullscreen' }: SnowfallOverlay
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const isFestive = useFestiveActive();
   const { theme } = useTheme();
+  const location = useLocation();
+
+  // Exclude all administrative portal routes completely (zero CPU/GPU overhead, distraction-free management)
+  if (location.pathname.startsWith('/admin')) return null;
 
   // Light Mode: Only render in Hero banner (strictly confined to royal blue section)
-  // Dark Mode: Render fullscreen across the whole site
+  // Dark Mode: Render fullscreen across the public visitor pages
   if (!isFestive) return null;
   if (theme === 'light' && mode === 'fullscreen') return null;
   if (theme === 'dark' && mode === 'hero') return null;
