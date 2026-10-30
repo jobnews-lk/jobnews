@@ -238,6 +238,120 @@ async function fetchCareerPageHtml(targetUrl: string): Promise<string> {
 }
 
 /**
+ * Universal Intelligent HTML Job Extractor
+ * Automatically extracts real vacancies and closing dates from ANY career portal in the sources list.
+ */
+function extractUniversalJobsFromHtml(
+  html: string,
+  targetUrl: string,
+  orgName: string,
+  category: string,
+  defaultCloseDate: string
+): any[] {
+  const jobs: any[] = [];
+  const seenTitles = new Set<string>();
+  const todayStr = getLocalDateString();
+  const isGov = category === 'government';
+  const isOverseas = category === 'overseas';
+  const isPrivate = category === 'private' || (!isGov && !isOverseas);
+
+  const aTagRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match: RegExpExecArray | null;
+
+  const jobKeywordRegex = /\b(post of|recruitment of|vacancy for|job vacancy|vacancies|trainee|officer|manager|executive|engineer|assistant|director|clerk|driver|operator|technician|accountant|lecturer|instructor|analyst|specialist|demonstrator|consultant)\b/i;
+  const junkRegex = /^(click here|download|view more|read more|apply now|careers?|home|about us|contact us|more details|view|details|link|pdf|here|login|register|search)$/i;
+  const navExcludeRegex = /\b(agency|agencies|licence|license|rules|guidelines|act|procurement|tender|policy|terms|condition|privacy|feedback|sitemap)\b/i;
+
+  while ((match = aTagRegex.exec(html)) !== null) {
+    const rawHref = match[1].trim();
+    if (!rawHref || rawHref === '#' || rawHref.startsWith('javascript:')) continue;
+
+    let text = match[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+
+    let fullContext = text;
+    if (text.length < 10) {
+      const startIdx = Math.max(0, match.index - 250);
+      const endIdx = Math.min(html.length, match.index + 250);
+      fullContext = html.substring(startIdx, endIdx).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    if (!jobKeywordRegex.test(fullContext)) continue;
+    if (navExcludeRegex.test(text)) continue;
+
+    let titleCandidate = text;
+    if (junkRegex.test(titleCandidate) || titleCandidate.length < 10) {
+      const m = fullContext.match(/(?:post of|recruitment of|vacancy for|post:\s*|post\s+)([A-Za-z0-9\s,\-\/\(\)]+)/i);
+      if (m && m[1]) {
+        titleCandidate = m[1].trim();
+      } else {
+        continue;
+      }
+    }
+
+    titleCandidate = titleCandidate.replace(/^[-:•\s]+/, '').replace(/[-:•\s]+$/, '');
+    if (titleCandidate.length < 8 || titleCandidate.length > 130) continue;
+    if (titleCandidate.toLowerCase().includes('interview') || titleCandidate.toLowerCase().includes('result')) continue;
+    if (navExcludeRegex.test(titleCandidate)) continue;
+
+    const normKey = titleCandidate.toLowerCase();
+    if (seenTitles.has(normKey)) continue;
+    seenTitles.add(normKey);
+
+    // Look for closing date in surrounding context
+    const surrounding = html.substring(Math.max(0, match.index - 250), Math.min(html.length, match.index + 500));
+    let closingDate: string | null = null;
+    
+    // YYYY-MM-DD
+    const d1 = surrounding.match(/\b(202[4-9][\-\/.](?:0[1-9]|1[0-2])[\-\/.](?:0[1-9]|[12]\d|3[01]))\b/);
+    // DD-MM-YYYY
+    const d2 = surrounding.match(/\b((?:0[1-9]|[12]\d|3[01])[\-\/.](?:0[1-9]|1[0-2])[\-\/.](202[4-9]))\b/);
+
+    if (d1) {
+      closingDate = d1[1].replace(/\//g, '-').replace(/\./g, '-');
+    } else if (d2) {
+      const parts = d2[0].split(/[\-\/.]/);
+      closingDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+
+    // Skip if closing date has already passed
+    if (closingDate && closingDate < todayStr) {
+      continue;
+    }
+
+    if (!closingDate) {
+      closingDate = defaultCloseDate;
+    }
+
+    let fullUrl = rawHref;
+    if (!fullUrl.startsWith('http')) {
+      try {
+        fullUrl = new URL(rawHref, targetUrl).href;
+      } catch (e) {
+        fullUrl = targetUrl;
+      }
+    }
+
+    jobs.push({
+      title: `${titleCandidate} - ${orgName}`,
+      company: orgName,
+      country_name: isOverseas ? 'Overseas' : 'Sri Lanka',
+      location: isOverseas ? 'Overseas / Global' : 'Sri Lanka',
+      salary: isGov ? 'As per Government Salary Circular & Benefits' : 'Attractive Salary & Benefits',
+      closing_date: closingDate,
+      post_type: 'image',
+      is_government: isGov,
+      is_overseas: isOverseas,
+      is_private_sector: isPrivate,
+      apply_method: 'online',
+      apply_url: fullUrl,
+      description: `Official vacancy for ${titleCandidate} at ${orgName}.\nClosing Date: ${closingDate}.\nApply directly through the official career portal.`
+    });
+  }
+
+  return jobs;
+}
+
+/**
  * Universal Multi-Source Smart Scraper Engine
  * Ingests vacancies from Government Gazettes, Corporate Portals, Overseas Sites, or Custom Links.
  */
@@ -390,8 +504,20 @@ export async function triggerJobHunterBot(customInput?: any): Promise<{ success:
           console.warn('[UOM Scraper] Network fetch:', uomErr);
         }
       } else {
-        // Zero Fake Data: If site has no custom parser yet, we do NOT inject dummy mock jobs.
-        // It skips safely, keeping database 100% clean and authentic.
+        // Universal Smart Extractor for all 60+ verified source links
+        try {
+          const html = await fetchCareerPageHtml(url);
+          if (html && html.length > 200) {
+            const orgName = target.name || new URL(url).hostname.replace('www.', '');
+            const category = target.category || 'government';
+            const universalJobs = extractUniversalJobsFromHtml(html, url, orgName, category, closeDateStr);
+            if (universalJobs.length > 0) {
+              candidateJobs.push(...universalJobs);
+            }
+          }
+        } catch (genErr) {
+          console.warn(`[Universal Scraper] Error scanning ${target.name || url}:`, genErr);
+        }
       }
     }
 

@@ -28,6 +28,20 @@ const TARGET_INSTITUTIONS = [
     type: 'boc'
   },
   {
+    id: 'cbsl',
+    name: 'Central Bank of Sri Lanka (CBSL)',
+    url: 'https://www.cbsl.gov.lk/en/careers',
+    sector: 'banks',
+    type: 'generic'
+  },
+  {
+    id: 'ousl',
+    name: 'Open University of Sri Lanka (OUSL)',
+    url: 'https://ou.ac.lk/vacancies/',
+    sector: 'unis',
+    type: 'generic'
+  },
+  {
     id: 'uom',
     name: 'University of Moratuwa',
     url: 'https://uom.lk/vacancies',
@@ -171,6 +185,100 @@ async function scanMoratuwa(inst) {
   }
 }
 
+async function scanGeneric(inst) {
+  try {
+    const res = await fetch(inst.url, { headers: { 'User-Agent': USER_AGENT } });
+    if (!res.ok) return [];
+    const html = await res.text();
+    const jobs = [];
+    const seenTitles = new Set();
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const aTagRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+    let match;
+    const jobKeywordRegex = /\b(post of|recruitment of|vacancy for|job vacancy|vacancies|trainee|officer|manager|executive|engineer|assistant|director|clerk|driver|operator|technician|accountant|lecturer|instructor|analyst|specialist|demonstrator|consultant)\b/i;
+    const junkRegex = /^(click here|download|view more|read more|apply now|careers?|home|about us|contact us|more details|view|details|link|pdf|here|login|register|search)$/i;
+    const navExcludeRegex = /\b(agency|agencies|licence|license|rules|guidelines|act|procurement|tender|policy|terms|condition|privacy|feedback|sitemap)\b/i;
+
+    while ((match = aTagRegex.exec(html)) !== null) {
+      const rawHref = match[1].trim();
+      if (!rawHref || rawHref === '#' || rawHref.startsWith('javascript:')) continue;
+
+      let text = match[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      let fullContext = text;
+      if (text.length < 10) {
+        const startIdx = Math.max(0, match.index - 250);
+        const endIdx = Math.min(html.length, match.index + 250);
+        fullContext = html.substring(startIdx, endIdx).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      }
+
+      if (!jobKeywordRegex.test(fullContext)) continue;
+      if (navExcludeRegex.test(text)) continue;
+
+      let titleCandidate = text;
+      if (junkRegex.test(titleCandidate) || titleCandidate.length < 10) {
+        const m = fullContext.match(/(?:post of|recruitment of|vacancy for|post:\s*|post\s+)([A-Za-z0-9\s,\-\/\(\)]+)/i);
+        if (m && m[1]) {
+          titleCandidate = m[1].trim();
+        } else {
+          continue;
+        }
+      }
+
+      titleCandidate = titleCandidate.replace(/^[-:•\s]+/, '').replace(/[-:•\s]+$/, '');
+      if (titleCandidate.length < 8 || titleCandidate.length > 130) continue;
+      if (titleCandidate.toLowerCase().includes('interview') || titleCandidate.toLowerCase().includes('result')) continue;
+      if (navExcludeRegex.test(titleCandidate)) continue;
+
+      const normKey = titleCandidate.toLowerCase();
+      if (seenTitles.has(normKey)) continue;
+      seenTitles.add(normKey);
+
+      const surrounding = html.substring(Math.max(0, match.index - 250), Math.min(html.length, match.index + 500));
+      let closingDate = null;
+      const d1 = surrounding.match(/\b(202[4-9][\-\/.](?:0[1-9]|1[0-2])[\-\/.](?:0[1-9]|[12]\d|3[01]))\b/);
+      const d2 = surrounding.match(/\b((?:0[1-9]|[12]\d|3[01])[\-\/.](?:0[1-9]|1[0-2])[\-\/.](202[4-9]))\b/);
+
+      if (d1) {
+        closingDate = d1[1].replace(/\//g, '-').replace(/\./g, '-');
+      } else if (d2) {
+        const parts = d2[0].split(/[\-\/.]/);
+        closingDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+
+      if (closingDate && closingDate < todayStr) continue;
+      if (!closingDate) {
+        const d = new Date();
+        d.setDate(d.getDate() + 21);
+        closingDate = d.toISOString().split('T')[0];
+      }
+
+      let fullUrl = rawHref;
+      if (!fullUrl.startsWith('http')) {
+        try {
+          fullUrl = new URL(rawHref, inst.url).href;
+        } catch (e) {
+          fullUrl = inst.url;
+        }
+      }
+
+      jobs.push({
+        title: `${titleCandidate} - ${inst.name}`,
+        company: inst.name,
+        location: 'Sri Lanka',
+        closing_date: closingDate,
+        apply_url: fullUrl,
+        description: `Official vacancy for ${titleCandidate} at ${inst.name}.\nClosing Date: ${closingDate}.\nApply directly through the official career portal.`
+      });
+    }
+
+    return jobs;
+  } catch (err) {
+    console.warn(`[Sentinel] ${inst.name} scan error:`, err.message);
+    return [];
+  }
+}
+
 async function runSentinel() {
   console.log(`\n======================================================`);
   console.log(`🤖 JobNews.lk Sentinel Watcher Running at ${new Date().toISOString()}`);
@@ -205,6 +313,8 @@ async function runSentinel() {
       jobs = await scanBoc(inst);
     } else if (inst.type === 'uom') {
       jobs = await scanMoratuwa(inst);
+    } else {
+      jobs = await scanGeneric(inst);
     }
     
     // Polite 2-second pause between targets
