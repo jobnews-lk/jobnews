@@ -5,6 +5,7 @@ import { supabase, type Job, type Country, type Category } from '../lib/supabase
 import { getCachedCategories, getCachedCountries, fetchFreshCategories, fetchFreshCountries } from '../lib/categoriesService';
 import LatestJobFeed from '../components/LatestJobFeed';
 import VacancyCardSkeleton from '../components/VacancyCardSkeleton';
+import SnowfallOverlay from '../components/SnowfallOverlay';
 import { syncUnreadJobsCount, setNativeAppBadge, markJobsAsSeen } from '../lib/appBadgeService';
 
 const SUPABASE_URL = 'https://njrkhpsbbpszvyzosxwf.supabase.co';
@@ -221,6 +222,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 text-white py-12 md:py-20 px-4 relative overflow-hidden">
+        <SnowfallOverlay mode="hero" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:24px_24px]" />
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-blue-100 text-xs font-semibold mb-4 backdrop-blur-sm border border-white/10">

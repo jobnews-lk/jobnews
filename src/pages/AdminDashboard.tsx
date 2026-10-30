@@ -16,6 +16,7 @@ import { runJobScraperEngine } from '../lib/jobScraperEngine';
 import { triggerJobHunterBot } from '../lib/adminScraperTrigger';
 import { fetchPwaStats, type PwaStatsSummary } from '../lib/pwaInstallTracker';
 import { showJobAlertNotification } from '../lib/pushNotificationService';
+import { getFestiveMode, setFestiveMode, type FestiveMode } from '../lib/festiveTheme';
 
 type FilterStatus = 'all' | 'published' | 'draft' | 'expired';
 type FilterSector = 'all' | 'government' | 'private' | 'overseas';
@@ -166,6 +167,19 @@ export default function AdminDashboard() {
   const [copiedSql, setCopiedSql] = useState(false);
   const [pushBadgeCount, setPushBadgeCount] = useState<number>(1);
   const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [festiveMode, setFestiveModeState] = useState<FestiveMode>(() => getFestiveMode());
+
+  const handleSetFestiveMode = (mode: FestiveMode) => {
+    setFestiveMode(mode);
+    setFestiveModeState(mode);
+    if (mode === 'enabled') {
+      setInfoMessage('❄️ Festive Snowfall is now Forced ON! (Snow drifts inside the blue Hero banner in Light mode, full screen in Dark mode).');
+    } else if (mode === 'auto') {
+      setInfoMessage('⏰ Festive Snowfall set to Auto Schedule (Automatically active Nov 01 to Dec 31 night).');
+    } else {
+      setInfoMessage('🔴 Festive Snowfall turned OFF.');
+    }
+  };
 
   const loadPwaStats = async () => {
     setLoadingPwaStats(true);
@@ -765,6 +779,45 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
             >
               <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Sources List
             </button>
+            {/* Festive Season Snow Mode Switcher */}
+            <div className="inline-flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 shadow-sm">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 px-2 flex items-center gap-1.5">
+                <span>❄️</span> Snow:
+              </span>
+              <button
+                onClick={() => handleSetFestiveMode('auto')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+                  festiveMode === 'auto'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Automatically active from November 01 to December 31 night"
+              >
+                ⏰ Auto (Nov 1 - Dec 31)
+              </button>
+              <button
+                onClick={() => handleSetFestiveMode('enabled')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+                  festiveMode === 'enabled'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Force ON right now for live testing"
+              >
+                🟢 Forced ON
+              </button>
+              <button
+                onClick={() => handleSetFestiveMode('disabled')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${
+                  festiveMode === 'disabled'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="Turn OFF snowfall"
+              >
+                🔴 OFF
+              </button>
+            </div>
             <button
               onClick={handleRunScraper}
               disabled={runningScraper}

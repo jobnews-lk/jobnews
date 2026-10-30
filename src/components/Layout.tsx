@@ -5,10 +5,12 @@ import TopTicker from './TopTicker';
 import MobileBottomNav from './MobileBottomNav';
 import WhatsAppFloatingButton from './WhatsAppFloatingButton';
 import PwaBottomBanner from './PwaBottomBanner';
+import SnowfallOverlay from './SnowfallOverlay';
 
 export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+      <SnowfallOverlay mode="fullscreen" />
       <header className="sticky top-0 z-50 w-full flex flex-col shadow-sm">
         <TopTicker />
         <Navbar />
