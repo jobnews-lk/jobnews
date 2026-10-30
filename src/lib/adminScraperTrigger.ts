@@ -197,10 +197,9 @@ export async function scrapeWorkdayJobsApi(workdayUrl: string): Promise<any[]> {
  * Uses our own serverless proxy (/api/scrape-proxy), falling back to public CORS gateway.
  */
 async function fetchCareerPageHtml(targetUrl: string): Promise<string> {
-  // Strategy 1: Serverless proxy on jobnews.lk
+  // Strategy 1: Canonical Serverless proxy on www.jobnews.lk (Avoids 308 redirect CORS issue on apex domain)
   try {
-    const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    const proxyEndpoint = isLocalhost ? 'https://www.jobnews.lk/api/scrape-proxy' : '/api/scrape-proxy';
+    const proxyEndpoint = 'https://www.jobnews.lk/api/scrape-proxy';
     const res = await fetch(`${proxyEndpoint}?url=${encodeURIComponent(targetUrl)}`);
     if (res.ok) {
       const data = await res.json();
