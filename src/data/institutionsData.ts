@@ -396,6 +396,18 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     website: 'http://www.slpost.gov.lk',
     keywords: 'post postal thapal තැපැල් postman'
   },
+  {
+    id: 'social-services',
+    name_si: 'සමාජ සේවා දෙපාර්තමේන්තුව',
+    name_en: 'Department of Social Services',
+    short_name: 'Social Services',
+    sector: 'departments',
+    sector_name: 'දෙපාර්තමේන්තු',
+    icon: '🤝',
+    website: 'http://www.socialservices.gov.lk',
+    careers_url: 'http://www.socialservices.gov.lk',
+    keywords: 'social services samaja sewa දෙපාර්තමේන්තුව සමාජ සේවා vocational counselor වෘත්තීය උපදේශක ග්‍රාමීය සංවර්ධන සමාජ ආරක්ෂණ සහ ප්‍රජා සවිබල ගැන්වීම් අමාත්‍යාංශය'
+  },
 
   // Boards & Corporations
   {
@@ -808,6 +820,18 @@ export const STATE_INSTITUTIONS: StateInstitution[] = [
     icon: '🏛️',
     website: 'http://www.transport.gov.lk',
     keywords: 'ministry transport highways prawahana ප්‍රවාහන'
+  },
+  {
+    id: 'rural-development',
+    name_si: 'ග්‍රාමීය සංවර්ධන, සමාජ ආරක්ෂණ සහ ප්‍රජා සවිබල ගැන්වීම් අමාත්‍යාංශය',
+    name_en: 'Ministry of Rural Development, Social Security and Community Empowerment',
+    short_name: 'Rural Dev & Social Security',
+    sector: 'ministries',
+    sector_name: 'අමාත්‍යාංශ',
+    icon: '🏛️',
+    website: 'http://www.socialwelfare.gov.lk',
+    careers_url: 'http://www.socialwelfare.gov.lk',
+    keywords: 'rural development social security community empowerment gramiya sanwardhana samaja arakshana praja sawibala ganweem ග්‍රාමීය සංවර්ධන සමාජ ආරක්ෂණ සහ ප්‍රජා සවිබල ගැන්වීම් අමාත්‍යාංශය සමාජ සේවා'
   },
 
   // Commissions & Key Offices

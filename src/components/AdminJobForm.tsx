@@ -649,42 +649,60 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
                 })}
               </div>
 
-              {/* Quick 1-Click Institution Pills for Selected Sector */}
-              {selectedGovSector !== 'all' && (
-                <div className="bg-white/90 dark:bg-slate-900/90 p-2.5 rounded-lg border border-amber-200/60 dark:border-amber-800/40 mt-1">
-                  <div className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-300 mb-1.5 flex items-center justify-between">
-                    <span>⚡ 1-Click Company Fill ({STATE_SECTORS.find(s => s.id === selectedGovSector)?.name_si}):</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Click to set Company</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1">
-                    {STATE_INSTITUTIONS.filter(i => i.sector === selectedGovSector).slice(0, 18).map((inst) => {
-                      const fullName = `${inst.name_en} (${inst.short_name})`;
-                      const isChosen = company === fullName || (company && company.includes(inst.short_name));
-                      return (
-                        <button
-                          key={inst.id}
-                          type="button"
-                          onClick={() => {
-                            setCompany(fullName);
-                            if (!categoryId && govCategory) {
-                              setCategoryId(govCategory.id);
-                            }
-                          }}
-                          className={`text-xs px-2 py-1 rounded-md text-left transition-all flex items-center gap-1.5 ${
-                            isChosen
-                              ? 'bg-amber-600 text-white font-bold shadow-xs'
-                              : 'bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
-                          }`}
-                          title={`${inst.name_si} - ${inst.name_en}`}
-                        >
-                          <span>{inst.icon}</span>
-                          <span className="truncate max-w-[200px]">{inst.short_name || inst.name_en}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+              {/* Quick 1-Click Institution Pills */}
+              <div className="bg-white/90 dark:bg-slate-900/90 p-2.5 rounded-lg border border-amber-200/60 dark:border-amber-800/40 mt-1">
+                <div className="text-[10px] uppercase font-bold text-amber-800 dark:text-amber-300 mb-1.5 flex items-center justify-between">
+                  <span>
+                    ⚡ 1-Click Company Fill ({selectedGovSector === 'all' ? 'සියලුම ආයතන (All Institutions)' : STATE_SECTORS.find(s => s.id === selectedGovSector)?.name_si}):
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-normal">Click to set Company</span>
                 </div>
-              )}
+                <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-1">
+                  {STATE_INSTITUTIONS.filter(i => selectedGovSector === 'all' || i.sector === selectedGovSector).map((inst) => {
+                    const englishName = `${inst.name_en} (${inst.short_name})`;
+                    const sinhalaName = inst.name_si ? `${inst.name_si} (${inst.short_name})` : '';
+                    const isChosen = company === englishName || 
+                      (Boolean(sinhalaName) && company === sinhalaName) || 
+                      company === inst.name_si || 
+                      company === inst.name_en || 
+                      (Boolean(company) && (
+                        company.includes(inst.short_name) || 
+                        (Boolean(inst.name_si) && company.includes(inst.name_si))
+                      ));
+                    return (
+                      <button
+                        key={inst.id}
+                        type="button"
+                        onClick={() => {
+                          if (selectedGovSector === 'all' && inst.sector) {
+                            setSelectedGovSector(inst.sector);
+                          }
+                          // Smart fill: if title contains Sinhala characters, prefer Sinhala name
+                          const isSinhalaTitle = /[\u0D80-\u0DFF]/.test(title);
+                          let targetVal = isSinhalaTitle && inst.name_si ? sinhalaName : englishName;
+                          // If clicked again, toggle between Sinhala and English
+                          if (company === targetVal && sinhalaName) {
+                            targetVal = targetVal === sinhalaName ? englishName : sinhalaName;
+                          }
+                          setCompany(targetVal);
+                          if (!categoryId && govCategory) {
+                            setCategoryId(govCategory.id);
+                          }
+                        }}
+                        className={`text-xs px-2 py-1 rounded-md text-left transition-all flex items-center gap-1.5 ${
+                          isChosen
+                            ? 'bg-amber-600 text-white font-bold shadow-xs'
+                            : 'bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
+                        }`}
+                        title={`${inst.name_si} - ${inst.name_en}`}
+                      >
+                        <span>{inst.icon}</span>
+                        <span className="truncate max-w-[200px]">{inst.short_name || inst.name_en}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -706,10 +724,16 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               setCompany(val);
               if (val.trim().length >= 2) {
                 const q = val.toLowerCase().trim();
+                const isSinhalaQuery = /[\u0D80-\u0DFF]/.test(q);
                 const govMatches = STATE_INSTITUTIONS
                   .filter(i => i.name_si.toLowerCase().includes(q) || i.name_en.toLowerCase().includes(q) || i.short_name.toLowerCase().includes(q) || i.keywords.toLowerCase().includes(q))
-                  .slice(0, 4)
-                  .map(i => ({ name: `${i.name_en} (${i.short_name})`, icon: i.icon, sector: i.sector_name, isGov: true }));
+                  .slice(0, 5)
+                  .map(i => ({ 
+                    name: isSinhalaQuery && i.name_si ? `${i.name_si} (${i.short_name})` : `${i.name_en} (${i.short_name})`, 
+                    icon: i.icon, 
+                    sector: i.sector_name, 
+                    isGov: true 
+                  }));
 
                 const pvtMatches = CORPORATE_COMPANIES
                   .filter(c => c.name.toLowerCase().includes(q) || c.brand.toLowerCase().includes(q) || c.keywords.toLowerCase().includes(q))
