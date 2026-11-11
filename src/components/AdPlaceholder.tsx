@@ -15,7 +15,7 @@ export default function AdPlaceholder({ className = '' }: AdPlaceholderProps) {
         Advertisement Space
       </span>
       <span className="text-[10px] mt-1.5 opacity-50 max-w-[250px] text-center hidden sm:block leading-relaxed">
-        Reserved for future sponsors or Google AdSense banners
+        Official Partner & Sponsored Career Announcements
       </span>
     </div>
   );

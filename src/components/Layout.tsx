@@ -6,6 +6,7 @@ import MobileBottomNav from './MobileBottomNav';
 import WhatsAppFloatingButton from './WhatsAppFloatingButton';
 import PwaBottomBanner from './PwaBottomBanner';
 import SnowfallOverlay from './SnowfallOverlay';
+import CookieConsent from './CookieConsent';
 
 export default function Layout() {
   return (
@@ -23,6 +24,7 @@ export default function Layout() {
       <MobileBottomNav />
       <WhatsAppFloatingButton />
       <PwaBottomBanner />
+      <CookieConsent />
     </div>
   );
 }

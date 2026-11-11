@@ -58,6 +58,7 @@ export default function Footer() {
               <Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Home</Link>
               <Link to="/jobs" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Latest Jobs</Link>
               <Link to="/government-jobs" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Government Jobs</Link>
+              <Link to="/private-jobs" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Private Sector Jobs</Link>
               <Link to="/overseas-jobs" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Overseas Jobs</Link>
               <Link to="/about" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">About Us</Link>
               <Link to="/contact" className="text-sm text-slate-400 hover:text-white transition-colors flex items-center gap-1">Contact Support</Link>
@@ -75,7 +76,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-slate-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-          <p>JobNews. All rights reserved. Independent job vacancy announcements portal.</p>
+          <p>© {new Date().getFullYear()} JobNews.lk. All rights reserved. Independent job vacancy announcements portal.</p>
           <div className="flex items-center gap-6 text-xs">
             <Link to="/privacy-policy" className="hover:text-slate-400 transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-slate-400 transition-colors">Terms of Service</Link>
