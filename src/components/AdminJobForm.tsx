@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2, Bold, Italic, List, ListOrdered, Heading } from 'lucide-react';
+import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2, Bold, Italic, List, ListOrdered, Heading, Link as LinkIcon } from 'lucide-react';
 import FileUpload from './FileUpload';
 import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
-import { generateJobSlug } from '../lib/slugUtils';
+import { generateJobSlug, slugify, sanitizeCustomSlug } from '../lib/slugUtils';
 import { STATE_SECTORS, STATE_INSTITUTIONS, CORPORATE_COMPANIES, type StateInstitution } from '../data/institutionsData';
 
 interface AdminJobFormProps {
@@ -26,6 +26,28 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [location, setLocation] = useState(job?.location || '');
   const [description, setDescription] = useState(job?.description || '');
   const [requirements, setRequirements] = useState(job?.requirements || '');
+
+  const [customSlug, setCustomSlug] = useState(job?.slug || '');
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(Boolean(job?.slug));
+
+  useEffect(() => {
+    if (job?.slug) {
+      setCustomSlug(job.slug);
+      setSlugManuallyEdited(true);
+    }
+  }, [job?.slug]);
+
+  const handleAutoGenerateSlug = () => {
+    const generated = generateJobSlug(title, company);
+    setCustomSlug(generated);
+    setSlugManuallyEdited(true);
+  };
+
+  const handleSlugChange = (val: string) => {
+    const sanitized = sanitizeCustomSlug(val);
+    setCustomSlug(sanitized);
+    setSlugManuallyEdited(true);
+  };
 
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const requirementsRef = useRef<HTMLTextAreaElement>(null);
@@ -409,13 +431,15 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
     if (!validate()) return;
     
     const finalGalleryPdfs = galleryPdfs.filter((p) => p.url && p.url.trim() !== officialPdfUrl.trim());
-    const autoSlug = job?.slug || generateJobSlug(title, company);
+    const finalSlug = (customSlug && customSlug.trim())
+      ? slugify(customSlug.trim())
+      : (job?.slug || generateJobSlug(title, company));
 
     const data: Record<string, unknown> = {
       post_type: postType,
       title,
       company,
-      slug: autoSlug,
+      slug: finalSlug,
       salary: salary || null,
       location: location.trim(),
       description,
@@ -808,6 +832,62 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             </div>
           )}
         </div>
+
+        {/* 🔗 Custom URL Slug (SEO Link) */}
+        <div className="md:col-span-2 bg-blue-50/50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-blue-100 dark:border-slate-700">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+              <LinkIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Custom URL Slug (SEO Link)</span>
+              <span className="text-[11px] font-normal text-slate-500 hidden sm:inline">(Google & Social Media Link)</span>
+            </label>
+            <button
+              type="button"
+              onClick={handleAutoGenerateSlug}
+              title="Generate clean English URL slug from title & company"
+              className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1 bg-white dark:bg-slate-800 px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-700/60 hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
+            >
+              ⚡ Auto-Generate
+            </button>
+          </div>
+
+          <div className="flex items-stretch rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 shadow-xs">
+            <span className="inline-flex items-center px-3 text-xs md:text-sm font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 select-none shrink-0">
+              https://jobnews.lk/jobs/
+            </span>
+            <input
+              type="text"
+              value={customSlug}
+              onChange={(e) => handleSlugChange(e.target.value)}
+              placeholder="e.g. lecturer-sri-lanka-planetarium"
+              className="flex-1 px-3 py-2 text-xs md:text-sm font-mono text-slate-900 dark:text-white bg-transparent focus:outline-none min-w-0"
+            />
+            {customSlug && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomSlug('');
+                  setSlugManuallyEdited(false);
+                }}
+                className="px-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs"
+                title="Clear custom slug"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="mt-2 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-1">
+            <div className="truncate">
+              <span className="text-slate-400">Live URL: </span>
+              <span className="font-mono text-blue-600 dark:text-blue-400 font-medium">
+                https://jobnews.lk/jobs/{customSlug || (title ? generateJobSlug(title, company) : 'your-job-link')}
+              </span>
+            </div>
+            <span className="text-[11px] text-slate-400 shrink-0">English letters, numbers & hyphens</span>
+          </div>
+        </div>
+
         {isOverseas ? (
           <div>
             <div className="flex items-center justify-between mb-1">
