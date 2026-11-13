@@ -224,16 +224,28 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
 
   const initialPostData = job?.apply_method === 'post'
     ? parseRegisteredPostData(job?.apply_url)
-    : { instructions: '', address: '', sourceUrl: '' };
+    : { instructions: '', address: '', sourceUrl: '', onlineUrl: '', govType: null };
 
   const [applyAddress, setApplyAddress] = useState(job?.apply_address || initialPostData.address);
   const [applyInstructions, setApplyInstructions] = useState(initialPostData.instructions);
+  const [postOnlineUrl, setPostOnlineUrl] = useState(initialPostData.onlineUrl || '');
 
   const [gazetteUrl, setGazetteUrl] = useState(
     isExternalWebUrl(job?.official_pdf_url)
       ? job!.official_pdf_url!
-      : (initialPostData.sourceUrl || (isExternalWebUrl(job?.apply_url) ? job!.apply_url! : ''))
+      : (initialPostData.sourceUrl || '')
   );
+
+  const [govNoticeType, setGovNoticeType] = useState<'gazette' | 'institutional'>(() => {
+    if (initialPostData.govType) return initialPostData.govType;
+    if (job?.official_pdf_url && (job.official_pdf_url.includes('documents.gov.lk') || job.official_pdf_url.includes('/gz/'))) {
+      return 'gazette';
+    }
+    if (job?.is_government && !isExternalWebUrl(job.official_pdf_url) && !initialPostData.sourceUrl) {
+      return 'institutional';
+    }
+    return 'gazette';
+  });
   const [isGovernment, setIsGovernment] = useState(job?.is_government || false);
   const [isOverseas, setIsOverseas] = useState(job?.is_overseas || false);
   const [isPrivateSector, setIsPrivateSector] = useState(job?.is_private_sector || false);
@@ -372,14 +384,23 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setApplyPhone(job.apply_phone || '');
       const postData = job.apply_method === 'post'
         ? parseRegisteredPostData(job.apply_url)
-        : { instructions: '', address: '', sourceUrl: '' };
+        : { instructions: '', address: '', sourceUrl: '', onlineUrl: '', govType: null };
       setApplyAddress(job.apply_address || postData.address);
       setApplyInstructions(postData.instructions);
-      setGazetteUrl(
-        isExternalWebUrl(job.official_pdf_url)
-          ? job.official_pdf_url!
-          : (postData.sourceUrl || (isExternalWebUrl(job.apply_url) ? job.apply_url! : ''))
-      );
+      setPostOnlineUrl(postData.onlineUrl || '');
+
+      const gUrl = isExternalWebUrl(job.official_pdf_url)
+        ? job.official_pdf_url!
+        : (postData.sourceUrl || '');
+      setGazetteUrl(gUrl);
+
+      if (postData.govType) {
+        setGovNoticeType(postData.govType);
+      } else if (job.official_pdf_url && (job.official_pdf_url.includes('documents.gov.lk') || job.official_pdf_url.includes('/gz/'))) {
+        setGovNoticeType('gazette');
+      } else if (job.is_government && !isExternalWebUrl(job.official_pdf_url) && !postData.sourceUrl) {
+        setGovNoticeType('institutional');
+      }
       setIsGovernment(job.is_government);
       setIsOverseas(job.is_overseas);
       setIsPrivateSector(job.is_private_sector);
@@ -448,7 +469,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       posted_date: postedDate,
       apply_method: applyMethod,
       apply_url: applyMethod === 'post'
-        ? formatRegisteredPostApplyUrl(applyInstructions, applyAddress, gazetteUrl)
+        ? formatRegisteredPostApplyUrl(
+            applyInstructions, 
+            applyAddress, 
+            gazetteUrl, 
+            postOnlineUrl, 
+            isGovernment ? govNoticeType : undefined
+          )
         : (applyMethod === 'online'
             ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null)
             : null),
@@ -463,9 +490,11 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       thumbnail_url: thumbnailUrl || null,
       official_pdf_url: officialPdfUrl.trim()
         ? officialPdfUrl.trim()
-        : (gazetteUrl.trim()
-            ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
-            : null),
+        : (isGovernment && govNoticeType === 'institutional'
+            ? null
+            : (gazetteUrl.trim()
+                ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
+                : null)),
       gallery_images: galleryImages,
       gallery_pdfs: finalGalleryPdfs,
       replaceImages: true,
@@ -622,20 +651,69 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               <span>Government Job ලෙස සලකුණු කර ඇති නිසා, Job Page එකෙහි <strong>"විශේෂ සටහන (Disclaimer)"</strong> Box එක ස්වයංක්‍රීයවම පෙනෙනු ඇත.</span>
             </p>
 
+            {/* Method 2: Notice Source Selection (ගැසට් පත්‍රය ද? නැතහොත් ආයතනික නිවේදනයක් ද?) */}
             <div className="pt-2 border-t border-amber-200/80 dark:border-amber-900/40">
-              <label className="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1">
-                🔗 Official Gazette / Source Web Link (රාජ්‍ය ගැසට් / මූලාශ්‍ර Web Link - optional)
+              <label className="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-2">
+                📜 දැන්වීමේ මූලාශ්‍රය (Notice Source) *
               </label>
-              <input
-                type="url"
-                value={gazetteUrl}
-                onChange={(e) => setGazetteUrl(e.target.value)}
-                placeholder="e.g. https://documents.gov.lk/files/gz/2026/8/2026-08-01(I-I)S.pdf"
-                className="w-full px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium"
-              />
-              <p className="text-[11px] text-amber-700 dark:text-amber-300/80 mt-1 italic">
-                ℹ️ මෙහි Link එකක් දැමූ විට, Job Page එකෙහි Disclaimer Box එක තුළ <strong>"🌐 Visit Official Gazette Portal"</strong> Button එක ස්වයංක්‍රීයවම පෙනෙනු ඇත.
-              </p>
+              <div className="flex flex-wrap gap-4 p-2.5 bg-white/80 dark:bg-slate-900/80 rounded-lg border border-amber-200 dark:border-amber-800">
+                <label className="flex items-center gap-2 text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="govNoticeType"
+                    value="gazette"
+                    checked={govNoticeType === 'gazette'}
+                    onChange={() => setGovNoticeType('gazette')}
+                    className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-slate-300"
+                  />
+                  <span>🏛️ රජයේ නිල ගැසට් පත්‍රය (Official Gazette)</span>
+                </label>
+                <label className="flex items-center gap-2 text-xs md:text-sm font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="govNoticeType"
+                    value="institutional"
+                    checked={govNoticeType === 'institutional'}
+                    onChange={() => setGovNoticeType('institutional')}
+                    className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-slate-300"
+                  />
+                  <span>📑 රජයේ / අර්ධ රාජ්‍ය නිල නිවේදනය (Institutional Notice / Circular / Newspaper)</span>
+                </label>
+              </div>
+
+              {govNoticeType === 'gazette' ? (
+                <div className="mt-3">
+                  <label className="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1">
+                    🏛️ Official Gazette Web Link (රාජ්‍ය ගැසට් Web Link - optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={gazetteUrl}
+                    onChange={(e) => setGazetteUrl(e.target.value)}
+                    placeholder="e.g. https://documents.gov.lk/files/gz/2026/8/2026-08-01(I-I)S.pdf"
+                    className="w-full px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium"
+                  />
+                  <p className="text-[11px] text-amber-700 dark:text-amber-300/80 mt-1 italic">
+                    ℹ️ මෙහි Link එකක් දැමූ විට, Job Page එකෙහි Disclaimer Box එක තුළ <strong>"🌐 Visit Official Gazette Portal"</strong> Button එක පෙනෙනු ඇත.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <label className="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1">
+                    📑 Official Source / Institution Web Link (නිල ආයතනික වෙබ් අඩවිය / මූලාශ්‍ර Link - optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={gazetteUrl}
+                    onChange={(e) => setGazetteUrl(e.target.value)}
+                    placeholder="e.g. ආයතනයේ නිල වෙබ් අඩවිය හෝ නිවේදන ලින්ක් එක (optional)"
+                    className="w-full px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-800 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium"
+                  />
+                  <p className="text-[11px] text-amber-700 dark:text-amber-300/80 mt-1 italic">
+                    ℹ️ ගැසට් නොවන නිවේදන සඳහා Job Page එකෙහි <strong>"නිල රැකියා නිවේදනය (Official Job Notice PDF)"</strong> ලෙස පෙන්වනු ඇත.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* 🏛️ State Sector (රාජ්‍ය අංශය) Selector & Quick 1-Click Picker */}
@@ -1031,7 +1109,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
           {(['online', 'email', 'in_person', 'phone', 'post'] as const).map((m) => (
             <label key={m} className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="applyMethod" value={m} checked={applyMethod === m} onChange={() => setApplyMethod(m)} className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500" />
-              <span className="text-sm text-slate-700">{m === 'online' ? 'Apply Online' : m === 'email' ? 'Apply by Email' : m === 'in_person' ? 'Apply In Person' : m === 'phone' ? 'Phone Number' : '📮 Registered Post (ලියාපදිංචි තැපෑලෙන්)'}</span>
+              <span className="text-sm text-slate-700">{m === 'online' ? 'Apply Online' : m === 'email' ? 'Apply by Email' : m === 'in_person' ? 'Apply In Person' : m === 'phone' ? 'Phone Number' : '📮 Registered Post (ලියාපදිංචි තැපෑලෙන් / Online සහිතව)'}</span>
             </label>
           ))}
         </div>
@@ -1081,6 +1159,24 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               />
               <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
                 ✅ පරිශීලකයා "Copy Address" Button එක ක්ලික් කළ විට Copy වන්නේ මෙහි ඇති ලිපිනය පමණි!
+              </p>
+            </div>
+
+            {/* 🌐 3. Online Application Form / Portal Link (Optional) */}
+            <div className="space-y-1 pt-3 border-t border-blue-200 dark:border-slate-700">
+              <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🌐</span>
+                <span>3. Online Application Form / Portal Link (Optional - මාර්ගගතවද අයදුම් කිරීමට Link එකක් ඇත්නම් මෙහි දමන්න)</span>
+              </label>
+              <input
+                type="url"
+                value={postOnlineUrl}
+                onChange={(e) => setPostOnlineUrl(e.target.value)}
+                placeholder="e.g. https://script.google.com/... හෝ ආයතනික Online Application Form Link එක"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+              />
+              <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium italic">
+                ℹ️ මෙහි Link එකක් දැමූ විට, Job Page එකෙහි "පියවර 01: මාර්ගගතව අයදුම් කරන්න (Online Form)" සහ "පියවර 02: ලියාපදිංචි තැපෑලෙන් ලේඛන යොමු කරන්න" ලෙස පියවර දෙකම පැහැදිලිව පෙනෙනු ඇත.
               </p>
             </div>
           </div>

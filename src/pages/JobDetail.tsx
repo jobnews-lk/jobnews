@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check, ShieldAlert } from 'lucide-react';
-import { supabase, parseRegisteredPostData, type Job } from '../lib/supabase';
+import { supabase, parseRegisteredPostData, isGazetteJob, type Job } from '../lib/supabase';
 import { extractJobIdentifier, getJobPath, isUuid } from '../lib/slugUtils';
 import SaveJobButton from '../components/SaveJobButton';
 import ShareButtons from '../components/ShareButtons';
@@ -744,9 +744,13 @@ export default function JobDetail() {
                   !!url && (url.toLowerCase().endsWith('.pdf') || url.includes('supabase.co/storage/') || url.includes('/job-pdfs/'));
 
                 const allPdfs: { url: string; filename: string; isNotice: boolean }[] = [];
+                const isGazette = isGazetteJob(job);
+                const defaultNoticeName = isGazette
+                  ? 'නිල රජයේ ගැසට් නිවේදනය (Official Gazette Notice PDF)'
+                  : 'නිල රැකියා නිවේදනය (Official Job Notice PDF)';
 
                 if (isPdf(job.official_pdf_url)) {
-                  allPdfs.push({ url: job.official_pdf_url!, filename: 'නිල රජයේ ගැසට් නිවේදනය (Official Gazette Notice PDF)', isNotice: true });
+                  allPdfs.push({ url: job.official_pdf_url!, filename: defaultNoticeName, isNotice: true });
                 }
 
                 if (pdfs && pdfs.length > 0) {
@@ -755,7 +759,7 @@ export default function JobDetail() {
                       const isNoticeItem = p.filename === 'Official Notice PDF' || p.url.includes('/notices/');
                       allPdfs.push({
                         url: p.url,
-                        filename: isNoticeItem ? 'නිල රජයේ ගැසට් නිවේදනය (Official Gazette Notice PDF)' : (p.filename || 'ආදර්ශ ඉල්ලුම් පත්‍රය / අතිරේක ලේඛනය'),
+                        filename: isNoticeItem ? defaultNoticeName : (p.filename || 'ආදර්ශ ඉල්ලුම් පත්‍රය / අතිරේක ලේඛනය'),
                         isNotice: isNoticeItem
                       });
                     }
@@ -945,58 +949,158 @@ export default function JobDetail() {
               const parsedPostData = parseRegisteredPostData(job.apply_url);
               const displayAddress = job.apply_address || parsedPostData.address;
               const displayInstructions = parsedPostData.instructions;
+              const onlineApplyUrl = parsedPostData.onlineUrl;
 
               return (
                 <div className="space-y-4">
-                  <p className="text-slate-700 dark:text-slate-300 font-medium text-sm">
-                    අයදුම්පත ලියාපදිංචි තැපෑලෙන් යැවිය යුතු ආකාරය (Send application by Registered Post):
-                  </p>
+                  {onlineApplyUrl ? (
+                    <div className="space-y-4">
+                      {/* Dual-Application Steps Header Banner */}
+                      <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-xl p-4 text-slate-800 dark:text-slate-200 shadow-xs">
+                        <span className="font-bold text-blue-900 dark:text-blue-300 text-sm flex items-center gap-2 mb-1">
+                          💡 මෙම රැකියාව සඳහා අයදුම් කිරීමේ පියවර 02ක් ඇත (Two-Step Application Process):
+                        </span>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                          කරුණාකර මුලින්ම මාර්ගගත ක්‍රමයට (Online) අයදුම් කර, අනතුරුව අයදුම්පත සහ අදාළ ලේඛන ලියාපදිංචි තැපෑලෙන්ද යොමු කරන්න.
+                        </p>
+                      </div>
 
-                  {/* Application Instructions / Notes Banner */}
-                  {displayInstructions && (
-                    <div className="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-xl p-4 text-sm text-slate-700 dark:text-slate-300 space-y-1">
-                      <span className="font-bold text-blue-800 dark:text-blue-300 text-xs uppercase tracking-wider flex items-center gap-1.5 mb-1">
-                        💡 අයදුම්කිරීමේ විශේෂ උපදෙස් (Application Instructions):
-                      </span>
-                      <p className="whitespace-pre-line leading-relaxed font-medium">{displayInstructions}</p>
-                    </div>
-                  )}
-
-                  {/* Exact Postal Address Card */}
-                  {displayAddress && (
-                    <div className="bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-700/60 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/60 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 text-xl">
-                          📮
+                      {/* Step 1: Apply Online via Form / Portal */}
+                      <div className="bg-white dark:bg-slate-900 border-2 border-blue-400 dark:border-blue-600/70 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                          <div className="flex items-center gap-3">
+                            <span className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+                              1
+                            </span>
+                            <div>
+                              <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block">
+                                Step 01 (පියවර 01)
+                              </span>
+                              <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                                මාර්ගගතව අයදුම් කරන්න (Apply Online via Portal / Google Form)
+                              </span>
+                            </div>
+                          </div>
+                          <a
+                            href={onlineApplyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                            Open Application Form (අයදුම්පත විවෘත කරන්න)
+                          </a>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block mb-1">
-                            Registered Post Address (තැපැල් ලිපිනය පමණයි)
+                      </div>
+
+                      {/* Step 2: Send Documents via Registered Post */}
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="w-8 h-8 rounded-full bg-slate-700 dark:bg-slate-700 text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+                            2
                           </span>
-                          <p className="text-slate-900 dark:text-white font-semibold text-base whitespace-pre-wrap leading-relaxed">
-                            {displayAddress}
-                          </p>
+                          <div>
+                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                              Step 02 (පියවර 02)
+                            </span>
+                            <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                              අයදුම්පත සහ ලේඛන ලියාපදිංචි තැපෑලෙන් යවන්න (Send by Registered Post)
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(displayAddress);
-                            setCopiedAddress(true);
-                            setTimeout(() => setCopiedAddress(false), 2500);
-                          }}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
-                        >
-                          {copiedAddress ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
-                          {copiedAddress ? 'Address Copied!' : 'Copy Address (ලිපිනය Copy කරන්න)'}
-                        </button>
+
+                        {/* Instructions */}
+                        {displayInstructions && (
+                          <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
+                            <span className="font-bold text-slate-900 dark:text-white block mb-1">
+                              📋 විශේෂ උපදෙස් (Instructions):
+                            </span>
+                            <p className="whitespace-pre-line leading-relaxed font-medium">{displayInstructions}</p>
+                          </div>
+                        )}
+
+                        {/* Postal Address */}
+                        {displayAddress && (
+                          <div className="bg-blue-50/50 dark:bg-slate-800/40 border border-blue-200 dark:border-blue-900/60 rounded-xl p-4 space-y-2.5">
+                            <div className="flex items-start gap-3">
+                              <span className="text-2xl shrink-0">📮</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block mb-1">
+                                  Registered Post Address (තැපැල් ලිපිනය)
+                                </span>
+                                <p className="text-slate-900 dark:text-white font-semibold text-sm sm:text-base whitespace-pre-wrap leading-relaxed">
+                                  {displayAddress}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="pt-2 border-t border-blue-100 dark:border-slate-700 flex justify-end">
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(displayAddress);
+                                  setCopiedAddress(true);
+                                  setTimeout(() => setCopiedAddress(false), 2500);
+                                }}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-xs"
+                              >
+                                {copiedAddress ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
+                                {copiedAddress ? 'Address Copied!' : 'Copy Address (ලිපිනය Copy කරන්න)'}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
+                  ) : (
+                    <>
+                      <p className="text-slate-700 dark:text-slate-300 font-medium text-sm">
+                        අයදුම්පත ලියාපදිංචි තැපෑලෙන් යැවිය යුතු ආකාරය (Send application by Registered Post):
+                      </p>
 
-                  <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-                    ℹ️ කරුණාකර හොඳින් තොරතුරු කියවා අවසාන දිනයට පෙර ඔබගේ අයදුම්පත ලියාපදිංචි තැපෑලෙන් යොමු කරන්න.
-                  </p>
+                      {displayInstructions && (
+                        <div className="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 rounded-xl p-4 text-sm text-slate-700 dark:text-slate-300 space-y-1">
+                          <span className="font-bold text-blue-800 dark:text-blue-300 text-xs uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                            💡 අයදුම්කිරීමේ විශේෂ උපදෙස් (Application Instructions):
+                          </span>
+                          <p className="whitespace-pre-line leading-relaxed font-medium">{displayInstructions}</p>
+                        </div>
+                      )}
+
+                      {displayAddress && (
+                        <div className="bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-700/60 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/60 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 text-xl">
+                              📮
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block mb-1">
+                                Registered Post Address (තැපැල් ලිපිනය පමණයි)
+                              </span>
+                              <p className="text-slate-900 dark:text-white font-semibold text-base whitespace-pre-wrap leading-relaxed">
+                                {displayAddress}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(displayAddress);
+                                setCopiedAddress(true);
+                                setTimeout(() => setCopiedAddress(false), 2500);
+                              }}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                            >
+                              {copiedAddress ? <Check className="w-4 h-4 text-green-300" /> : <Copy className="w-4 h-4" />}
+                              {copiedAddress ? 'Address Copied!' : 'Copy Address (ලිපිනය Copy කරන්න)'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                        ℹ️ කරුණාකර හොඳින් තොරතුරු කියවා අවසාන දිනයට පෙර ඔබගේ අයදුම්පත ලියාපදිංචි තැපෑලෙන් යොමු කරන්න.
+                      </p>
+                    </>
+                  )}
                 </div>
               );
             })()}
@@ -1006,32 +1110,32 @@ export default function JobDetail() {
           </div>
         </div>
 
-        {/* Automatic Government Gazette Disclaimer Box */}
-        {job.is_government && (
-          <div className="mt-6 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl p-5 shadow-sm space-y-3 text-slate-800 dark:text-amber-100 transition-colors">
-            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-sm uppercase tracking-wider">
-              <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
-              <span>විශේෂ සටහන (Disclaimer)</span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-amber-200/90 leading-relaxed font-medium">
-              මෙම රැකියා දැන්වීමේ අඩංගු සියලුම තොරතුරු ශ්‍රී ලංකා රජයේ නිල ගැසට් පත්‍රයෙන් උපුටා ගන්නා ලද ඒවා වේ. අපගේ වෙබ් අඩවිය (<strong className="font-semibold text-slate-900 dark:text-white">jobnews.lk</strong>) මඟින් සිදු කරන්නේ එම තොරතුරු ඔබ වෙත පහසුවෙන් ගෙන ඒම පමණි. අයදුම් කිරීමට පෙර අදාළ රජයේ ගැසට් නිවේදනය සම්පූර්ණයෙන් කියවා තොරතුරු තහවුරු කරගන්නා ලෙස අපි කාරුණිකව දන්වා සිටිමු.
-            </p>
-            {(() => {
-              const parsedPostData = parseRegisteredPostData(job.apply_url);
-              const isWebUrl = (url?: string | null) => 
-                !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
+        {/* Automatic Government / Public Sector Disclaimer Box */}
+        {job.is_government && (() => {
+          const isGazette = isGazetteJob(job);
+          const parsedPostData = parseRegisteredPostData(job.apply_url);
+          const isWebUrl = (url?: string | null) => 
+            !!url && (url.startsWith('http://') || url.startsWith('https://')) && !url.includes('supabase.co/storage/');
 
-              let targetWebLink: string | null = null;
-              if (isWebUrl(job.official_pdf_url)) {
-                targetWebLink = job.official_pdf_url!;
-              } else if (parsedPostData.sourceUrl && isWebUrl(parsedPostData.sourceUrl)) {
-                targetWebLink = parsedPostData.sourceUrl;
-              } else if (isWebUrl(job.apply_url)) {
-                targetWebLink = job.apply_url!;
-              }
+          let targetWebLink: string | null = null;
+          if (isWebUrl(job.official_pdf_url)) {
+            targetWebLink = job.official_pdf_url!;
+          } else if (parsedPostData.sourceUrl && isWebUrl(parsedPostData.sourceUrl)) {
+            targetWebLink = parsedPostData.sourceUrl;
+          }
 
-              if (!targetWebLink) return null;
-              return (
+          return (
+            <div className="mt-6 bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl p-5 shadow-sm space-y-3 text-slate-800 dark:text-amber-100 transition-colors">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-sm uppercase tracking-wider">
+                <ShieldAlert className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>විශේෂ සටහන (Disclaimer)</span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-amber-200/90 leading-relaxed font-medium">
+                {isGazette
+                  ? 'මෙම රැකියා දැන්වීමේ අඩංගු සියලුම තොරතුරු ශ්‍රී ලංකා රජයේ නිල ගැසට් පත්‍රයෙන් උපුටා ගන්නා ලද ඒවා වේ. අපගේ වෙබ් අඩවිය (jobnews.lk) මඟින් සිදු කරන්නේ එම තොරතුරු ඔබ වෙත පහසුවෙන් ගෙන ඒම පමණි. අයදුම් කිරීමට පෙර අදාළ රජයේ ගැසට් නිවේදනය සම්පූර්ණයෙන් කියවා තොරතුරු තහවුරු කරගන්නා ලෙස අපි කාරුණිකව දන්වා සිටිමු.'
+                  : 'මෙම රැකියා දැන්වීමේ අඩංගු සියලුම තොරතුරු අදාළ ආයතනයේ නිල චක්‍රලේඛ / පුවත්පත් නිවේදනයෙන් උපුටා ගන්නා ලද ඒවා වේ. අපගේ වෙබ් අඩවිය (jobnews.lk) මඟින් සිදු කරන්නේ එම තොරතුරු ඔබ වෙත පහසුවෙන් ගෙන ඒම පමණි. අයදුම් කිරීමට පෙර අදාළ නිල නිවේදනය සම්පූර්ණයෙන් කියවා තොරතුරු තහවුරු කරගන්නා ලෙස අපි කාරුණිකව දන්වා සිටිමු.'}
+              </p>
+              {targetWebLink && (
                 <div className="pt-2 flex flex-wrap gap-3">
                   <a
                     href={targetWebLink}
@@ -1040,13 +1144,15 @@ export default function JobDetail() {
                     className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Visit Official Gazette / Source Portal (නිල රාජ්‍ය ගැසට් / මූලාශ්‍ර WEB LINK එකට පිවිසෙන්න)
+                    {isGazette
+                      ? 'Visit Official Gazette Portal (නිල රාජ්‍ය ගැසට් වෙබ් අඩවියට පිවිසෙන්න)'
+                      : 'Visit Official Source / Institution Portal (නිල මූලාශ්‍රය / ආයතනික වෙබ් අඩවියට පිවිසෙන්න)'}
                   </a>
                 </div>
-              );
-            })()}
-          </div>
-        )}
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Lightbox */}

@@ -359,15 +359,23 @@ export function formatCleanCompany(company?: string | null): string {
 }
 
 /**
- * Parses Registered Post instructions vs postal address vs sourceUrl from apply_url text.
+ * Parses Registered Post instructions vs postal address vs sourceUrl vs onlineUrl vs govType from apply_url text.
  */
-export function parseRegisteredPostData(applyUrl?: string | null): { instructions: string; address: string; sourceUrl: string } {
-  if (!applyUrl) return { instructions: '', address: '', sourceUrl: '' };
+export function parseRegisteredPostData(applyUrl?: string | null): { 
+  instructions: string; 
+  address: string; 
+  sourceUrl: string; 
+  onlineUrl: string; 
+  govType: 'gazette' | 'institutional' | null;
+} {
+  if (!applyUrl) return { instructions: '', address: '', sourceUrl: '', onlineUrl: '', govType: null };
   
   const str = applyUrl.trim();
   let instructions = '';
   let address = '';
   let sourceUrl = '';
+  let onlineUrl = '';
+  let govType: 'gazette' | 'institutional' | null = null;
 
   if (str.includes('\n---\n')) {
     const blocks = str.split('\n---\n');
@@ -377,43 +385,87 @@ export function parseRegisteredPostData(applyUrl?: string | null): { instruction
         address = trimmed.replace('POSTAL_ADDRESS:\n', '').trim();
       } else if (trimmed.startsWith('SOURCE_URL:\n')) {
         sourceUrl = trimmed.replace('SOURCE_URL:\n', '').trim();
+      } else if (trimmed.startsWith('ONLINE_URL:\n')) {
+        onlineUrl = trimmed.replace('ONLINE_URL:\n', '').trim();
+      } else if (trimmed.startsWith('GOV_TYPE:\n')) {
+        const val = trimmed.replace('GOV_TYPE:\n', '').trim().toLowerCase();
+        if (val === 'institutional' || val === 'gazette') {
+          govType = val;
+        }
       } else {
         instructions = trimmed;
       }
     }
-    return { instructions, address, sourceUrl };
+    return { instructions, address, sourceUrl, onlineUrl, govType };
   }
 
   if (str.includes('POSTAL_ADDRESS:\n')) {
     const parts = str.split('POSTAL_ADDRESS:\n');
-    return { instructions: parts[0].trim(), address: parts[1].trim(), sourceUrl: '' };
+    return { instructions: parts[0].trim(), address: parts[1].trim(), sourceUrl: '', onlineUrl: '', govType: null };
   }
 
   // Legacy web URL check
   if (str.startsWith('http://') || str.startsWith('https://')) {
-    return { instructions: '', address: '', sourceUrl: str };
+    return { instructions: '', address: '', sourceUrl: str, onlineUrl: '', govType: null };
   }
 
   // If text contains application steps/notes
   if (str.includes('පියවර') || str.includes('සඳහා') || str.includes('අයදුම්පත') || str.includes('විශේෂ')) {
-    return { instructions: str, address: '', sourceUrl: '' };
+    return { instructions: str, address: '', sourceUrl: '', onlineUrl: '', govType: null };
   }
 
-  return { instructions: '', address: str, sourceUrl: '' };
+  return { instructions: '', address: str, sourceUrl: '', onlineUrl: '', govType: null };
 }
 
 /**
- * Formats Registered Post instructions, postal address, and sourceUrl into apply_url string.
+ * Formats Registered Post instructions, postal address, sourceUrl, onlineUrl, and govType into apply_url string.
  */
-export function formatRegisteredPostApplyUrl(instructions: string, address: string, sourceUrl?: string): string | null {
+export function formatRegisteredPostApplyUrl(
+  instructions: string, 
+  address: string, 
+  sourceUrl?: string, 
+  onlineUrl?: string, 
+  govType?: 'gazette' | 'institutional'
+): string | null {
   const cleanInst = instructions.trim();
   const cleanAddr = address.trim();
   const cleanSrc = sourceUrl?.trim() || '';
+  const cleanOnline = onlineUrl?.trim() || '';
 
   const parts: string[] = [];
   if (cleanInst) parts.push(cleanInst);
   if (cleanAddr) parts.push(`POSTAL_ADDRESS:\n${cleanAddr}`);
   if (cleanSrc) parts.push(`SOURCE_URL:\n${cleanSrc}`);
+  if (cleanOnline) parts.push(`ONLINE_URL:\n${cleanOnline}`);
+  if (govType) parts.push(`GOV_TYPE:\n${govType}`);
 
   return parts.length > 0 ? parts.join('\n---\n') : null;
+}
+
+/**
+ * Checks whether a government job originated from the Official Government Gazette (documents.gov.lk)
+ * or if it is an Institutional / Semi-Government / Newspaper Notice.
+ */
+export function isGazetteJob(job: Job): boolean {
+  if (!job.is_government) return false;
+
+  const postData = parseRegisteredPostData(job.apply_url);
+  if (postData.govType === 'institutional') return false;
+  if (postData.govType === 'gazette') return true;
+
+  // URL inspection
+  const hasGovGazetteUrl = (url?: string | null) => 
+    !!url && (url.includes('documents.gov.lk') || url.includes('/gz/') || url.toLowerCase().includes('gazette'));
+
+  if (hasGovGazetteUrl(job.official_pdf_url) || hasGovGazetteUrl(postData.sourceUrl)) {
+    return true;
+  }
+
+  // If sourceUrl is explicitly set and postData.govType is not institutional
+  if (postData.sourceUrl && !postData.sourceUrl.includes('supabase.co')) {
+    return true;
+  }
+
+  // Default: if no gazette URL and official_pdf_url is just an uploaded PDF notice, treat as institutional notice
+  return false;
 }
