@@ -14,7 +14,7 @@ export default function ShareButtons({ title, company, url, jobId }: ShareButton
   
   // Extract jobId if not provided directly
   const extractedId = jobId || rawUrl.split('/jobs/')[1]?.split('?')[0] || rawUrl.split('/og/')[1]?.split('?')[0];
-  const shareUrl = extractedId ? `https://jobnews.lk/jobs/${extractedId}` : rawUrl;
+  const shareUrl = extractedId ? `https://www.jobnews.lk/jobs/${extractedId}` : rawUrl;
 
   // Clean title & limit excessive length so WhatsApp link crawler parses preview image reliably
   const displayTitle = title.length > 110 ? `${title.substring(0, 107)}...` : title;

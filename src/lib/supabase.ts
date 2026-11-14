@@ -404,9 +404,9 @@ export function parseRegisteredPostData(applyUrl?: string | null): {
     return { instructions: parts[0].trim(), address: parts[1].trim(), sourceUrl: '', onlineUrl: '', govType: null };
   }
 
-  // Legacy web URL check
+  // Raw web URL check: it is an online apply URL, NEVER a gazette/source URL!
   if (str.startsWith('http://') || str.startsWith('https://')) {
-    return { instructions: '', address: '', sourceUrl: str, onlineUrl: '', govType: null };
+    return { instructions: '', address: '', sourceUrl: '', onlineUrl: str, govType: null };
   }
 
   // If text contains application steps/notes
@@ -443,6 +443,18 @@ export function formatRegisteredPostApplyUrl(
 }
 
 /**
+ * Extracts a clean, direct apply link for online buttons (strips internal delimiter tags).
+ */
+export function getDirectApplyUrl(applyUrl?: string | null): string {
+  if (!applyUrl) return '';
+  const parsed = parseRegisteredPostData(applyUrl);
+  if (parsed.onlineUrl) return parsed.onlineUrl;
+  const first = applyUrl.split('\n---\n')[0].trim();
+  if (first.startsWith('http://') || first.startsWith('https://')) return first;
+  return '';
+}
+
+/**
  * Checks whether a government job originated from the Official Government Gazette (documents.gov.lk)
  * or if it is an Institutional / Semi-Government / Newspaper Notice.
  */
@@ -458,11 +470,6 @@ export function isGazetteJob(job: Job): boolean {
     !!url && (url.includes('documents.gov.lk') || url.includes('/gz/') || url.toLowerCase().includes('gazette'));
 
   if (hasGovGazetteUrl(job.official_pdf_url) || hasGovGazetteUrl(postData.sourceUrl)) {
-    return true;
-  }
-
-  // If sourceUrl is explicitly set and postData.govType is not institutional
-  if (postData.sourceUrl && !postData.sourceUrl.includes('supabase.co')) {
     return true;
   }
 

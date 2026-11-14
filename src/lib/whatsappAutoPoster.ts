@@ -23,7 +23,7 @@ export async function postJobToWhatsApp(job: Job): Promise<WhatsAppPostResult> {
     };
   }
 
-  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://jobnews.lk';
+  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://www.jobnews.lk';
   const jobUrl = `${siteOrigin}${getJobPath(job)}`;
 
   // Formatted WhatsApp Markdown Message

@@ -26,11 +26,11 @@ export default async function handler(req, res) {
 
   let title = "JobNews.lk - Sri Lanka's Latest Job Vacancies";
   let description = "Find the latest Government, Private, and Overseas job vacancies in Sri Lanka. JobNews.lk is your trusted portal for official job announcements.";
-  let imageUrl = "https://jobnews.lk/og-banner.png";
-  let targetUrl = "https://jobnews.lk";
+  let imageUrl = "https://www.jobnews.lk/og-banner.png";
+  let targetUrl = "https://www.jobnews.lk";
 
   if (id) {
-    targetUrl = `https://jobnews.lk/jobs/${id}`;
+    targetUrl = `https://www.jobnews.lk/jobs/${id}`;
     try {
       const response = await fetch(
         `${supabaseUrl}/rest/v1/jobs?id=eq.${id}&select=*,job_images(url),job_pdfs(url)`,
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
 
   // Ensure absolute HTTPS URL for OpenGraph images
   if (imageUrl && !imageUrl.startsWith('http')) {
-    imageUrl = `https://jobnews.lk${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+    imageUrl = `https://www.jobnews.lk${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
   }
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');

@@ -122,6 +122,37 @@ export default function Jobs() {
     setSearchParams(sp, { replace: true });
   }, [search, selectedCountry, selectedCategory]);
 
+  // SEO & Soft-404 Prevention: Set clean canonical & noindex on empty search/filter queries
+  useEffect(() => {
+    const canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (canonicalLink) {
+      canonicalLink.setAttribute('href', 'https://www.jobnews.lk/jobs');
+    }
+
+    const robotsMeta = document.querySelector('meta[name="robots"]');
+    const hasFilter = Boolean(search || selectedCountry || selectedCategory);
+    const isEmptyFiltered = !loading && jobs.length === 0 && hasFilter;
+
+    if (robotsMeta) {
+      if (isEmptyFiltered) {
+        robotsMeta.setAttribute('content', 'noindex, follow');
+      } else {
+        robotsMeta.setAttribute('content', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+      }
+    }
+
+    return () => {
+      const meta = document.querySelector('meta[name="robots"]');
+      if (meta) {
+        meta.setAttribute('content', 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+      }
+      const cLink = document.querySelector('link[rel="canonical"]');
+      if (cLink) {
+        cLink.setAttribute('href', 'https://www.jobnews.lk');
+      }
+    };
+  }, [loading, jobs.length, search, selectedCountry, selectedCategory]);
+
   const clearFilter = (type: string) => {
     if (type === 'search') {
       setSearch('');

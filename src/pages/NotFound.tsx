@@ -1,7 +1,29 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Home } from 'lucide-react';
 
 export default function NotFound() {
+  useEffect(() => {
+    document.title = 'Page Not Found - JobNews.lk';
+    let robotsMeta = document.querySelector('meta[name="robots"]');
+    const originalContent = robotsMeta ? robotsMeta.getAttribute('content') : 'index, follow';
+    if (robotsMeta) {
+      robotsMeta.setAttribute('content', 'noindex, nofollow');
+    } else {
+      robotsMeta = document.createElement('meta');
+      robotsMeta.setAttribute('name', 'robots');
+      robotsMeta.setAttribute('content', 'noindex, nofollow');
+      document.head.appendChild(robotsMeta);
+    }
+
+    return () => {
+      const meta = document.querySelector('meta[name="robots"]');
+      if (meta && originalContent) {
+        meta.setAttribute('content', originalContent);
+      }
+    };
+  }, []);
+
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 bg-slate-50 dark:bg-slate-950 transition-colors">
       <div className="text-center">

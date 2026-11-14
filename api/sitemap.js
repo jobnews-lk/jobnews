@@ -19,14 +19,14 @@ export default async function handler(req, res) {
     }
 
     const staticRoutes = [
-      { url: 'https://jobnews.lk', priority: '1.0', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/government-jobs', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/private-jobs', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/overseas-jobs', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/create-cv', priority: '0.9', changefreq: 'daily' },
-      { url: 'https://jobnews.lk/jobs', priority: '0.9', changefreq: 'hourly' },
-      { url: 'https://jobnews.lk/about', priority: '0.5', changefreq: 'monthly' },
-      { url: 'https://jobnews.lk/contact', priority: '0.5', changefreq: 'monthly' }
+      { url: 'https://www.jobnews.lk', priority: '1.0', changefreq: 'hourly' },
+      { url: 'https://www.jobnews.lk/government-jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://www.jobnews.lk/private-jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://www.jobnews.lk/overseas-jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://www.jobnews.lk/create-cv', priority: '0.9', changefreq: 'daily' },
+      { url: 'https://www.jobnews.lk/jobs', priority: '0.9', changefreq: 'hourly' },
+      { url: 'https://www.jobnews.lk/about', priority: '0.5', changefreq: 'monthly' },
+      { url: 'https://www.jobnews.lk/contact', priority: '0.5', changefreq: 'monthly' }
     ];
 
     const todayIso = new Date().toISOString().split('T')[0];
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
           ? new Date(job.updated_at).toISOString().split('T')[0]
           : (job.created_at ? new Date(job.created_at).toISOString().split('T')[0] : todayIso);
         return `  <url>
-    <loc>https://jobnews.lk/jobs/${job.slug || job.id}</loc>
+    <loc>https://www.jobnews.lk/jobs/${job.slug || job.id}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
@@ -71,7 +71,7 @@ ${jobUrlsXml}
     return res.status(500).send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://jobnews.lk/</loc>
+    <loc>https://www.jobnews.lk/</loc>
     <priority>1.0</priority>
   </url>
 </urlset>`);

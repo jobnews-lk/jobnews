@@ -1031,7 +1031,7 @@ CREATE INDEX IF NOT EXISTS idx_push_subscriptions_endpoint ON push_subscriptions
                     type="text"
                     value={deleteByIdInput}
                     onChange={(e) => setDeleteByIdInput(e.target.value)}
-                    placeholder="https://jobnews.lk/jobs/31f79757-91a4-49f3-a088-26cdf90dfc66"
+                    placeholder="https://www.jobnews.lk/jobs/31f79757-91a4-49f3-a088-26cdf90dfc66"
                     className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
                   />
                 </div>

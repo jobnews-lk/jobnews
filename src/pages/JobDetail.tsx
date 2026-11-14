@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check, ShieldAlert } from 'lucide-react';
-import { supabase, parseRegisteredPostData, isGazetteJob, type Job } from '../lib/supabase';
+import { supabase, parseRegisteredPostData, isGazetteJob, getDirectApplyUrl, type Job } from '../lib/supabase';
 import { extractJobIdentifier, getJobPath, isUuid } from '../lib/slugUtils';
 import SaveJobButton from '../components/SaveJobButton';
 import ShareButtons from '../components/ShareButtons';
@@ -280,7 +280,7 @@ export default function JobDetail() {
 
             let canonicalLink = document.querySelector('link[rel="canonical"]');
             if (canonicalLink) {
-              canonicalLink.setAttribute('href', `https://jobnews.lk${getJobPath(data)}`);
+              canonicalLink.setAttribute('href', `https://www.jobnews.lk${getJobPath(data)}`);
             }
           } catch (e) {
             console.warn('Meta update error:', e);
@@ -296,7 +296,7 @@ export default function JobDetail() {
               document.head.appendChild(schemaScript);
             }
 
-            const imgUrl = (data.job_images && data.job_images[0]?.url) || data.thumbnail_url || 'https://jobnews.lk/og-banner.png';
+            const imgUrl = (data.job_images && data.job_images[0]?.url) || data.thumbnail_url || 'https://www.jobnews.lk/og-banner.png';
 
             const jobSchema: Record<string, unknown> = {
               "@context": "https://schema.org/",
@@ -307,7 +307,7 @@ export default function JobDetail() {
               "validThrough": data.closing_date ? new Date(data.closing_date).toISOString() : undefined,
               "employmentType": "FULL_TIME",
               "directApply": true,
-              "url": `https://jobnews.lk${getJobPath(data)}`,
+              "url": `https://www.jobnews.lk${getJobPath(data)}`,
               "image": imgUrl,
               "identifier": {
                 "@type": "PropertyValue",
@@ -317,7 +317,7 @@ export default function JobDetail() {
               "hiringOrganization": {
                 "@type": "Organization",
                 "name": data.company || "Government / Private Organization",
-                "sameAs": "https://jobnews.lk",
+                "sameAs": "https://www.jobnews.lk",
                 "logo": imgUrl
               },
               "jobLocation": {
@@ -430,8 +430,8 @@ export default function JobDetail() {
     "hiringOrganization": {
       "@type": "Organization",
       "name": job.company || "Government / Private Organization",
-      "sameAs": "https://jobnews.lk",
-      "logo": allImages.length > 0 ? allImages[0].url : "https://jobnews.lk/favicon.svg"
+      "sameAs": "https://www.jobnews.lk",
+      "logo": allImages.length > 0 ? allImages[0].url : "https://www.jobnews.lk/favicon.svg"
     },
     "jobLocation": {
       "@type": "Place",
@@ -442,7 +442,7 @@ export default function JobDetail() {
       }
     },
     "directApply": true,
-    "url": `https://jobnews.lk${getJobPath(job)}`
+    "url": `https://www.jobnews.lk${getJobPath(job)}`
   };
 
   return (
@@ -911,7 +911,7 @@ export default function JobDetail() {
             {job.apply_method === 'online' && job.apply_url && (
               <div>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">Apply online through the official application portal.</p>
-                <a href={job.apply_url} target="_blank" rel="noopener noreferrer"
+                <a href={getDirectApplyUrl(job.apply_url)} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors">
                   <ExternalLink className="w-4 h-4" /> Apply Online
                 </a>

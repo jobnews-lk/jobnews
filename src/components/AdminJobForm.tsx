@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Type, ImageIcon, FileText, CheckCircle2, Clock, AlertCircle, Plus, X, Trash2, Bold, Italic, List, ListOrdered, Heading, Link as LinkIcon } from 'lucide-react';
 import FileUpload from './FileUpload';
-import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
+import { supabase, getLocalDateString, parseRegisteredPostData, formatRegisteredPostApplyUrl, getDirectApplyUrl, type Country, type Category, type Job } from '../lib/supabase';
 import { generateJobSlug, slugify, sanitizeCustomSlug } from '../lib/slugUtils';
 import { STATE_SECTORS, STATE_INSTITUTIONS, CORPORATE_COMPANIES, type StateInstitution } from '../data/institutionsData';
 
@@ -217,14 +217,15 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   };
   const [closingDate, setClosingDate] = useState(job?.closing_date || '');
   const [postedDate, setPostedDate] = useState(job?.posted_date || getLocalDateString());
+  const initialPostData = parseRegisteredPostData(job?.apply_url);
+
   const [applyMethod, setApplyMethod] = useState<'online' | 'email' | 'in_person' | 'phone' | 'post'>(job?.apply_method || 'online');
-  const [applyUrl, setApplyUrl] = useState(job?.apply_url || '');
+  const [applyUrl, setApplyUrl] = useState(() => {
+    if (!job?.apply_url) return '';
+    return initialPostData.onlineUrl || getDirectApplyUrl(job.apply_url);
+  });
   const [applyEmail, setApplyEmail] = useState(job?.apply_email || '');
   const [applyPhone, setApplyPhone] = useState(job?.apply_phone || '');
-
-  const initialPostData = job?.apply_method === 'post'
-    ? parseRegisteredPostData(job?.apply_url)
-    : { instructions: '', address: '', sourceUrl: '', onlineUrl: '', govType: null };
 
   const [applyAddress, setApplyAddress] = useState(job?.apply_address || initialPostData.address);
   const [applyInstructions, setApplyInstructions] = useState(initialPostData.instructions);
@@ -379,12 +380,10 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setClosingDate(job.closing_date);
       setPostedDate(job.posted_date);
       setApplyMethod(job.apply_method);
-      setApplyUrl(job.apply_url || '');
+      const postData = parseRegisteredPostData(job.apply_url);
+      setApplyUrl(postData.onlineUrl || (job.apply_url ? getDirectApplyUrl(job.apply_url) : ''));
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
-      const postData = job.apply_method === 'post'
-        ? parseRegisteredPostData(job.apply_url)
-        : { instructions: '', address: '', sourceUrl: '', onlineUrl: '', govType: null };
       setApplyAddress(job.apply_address || postData.address);
       setApplyInstructions(postData.instructions);
       setPostOnlineUrl(postData.onlineUrl || '');
@@ -477,8 +476,20 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             isGovernment ? govNoticeType : undefined
           )
         : (applyMethod === 'online'
-            ? (applyUrl.trim() ? (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()) : null)
-            : null),
+            ? (applyUrl.trim()
+                ? formatRegisteredPostApplyUrl(
+                    '', 
+                    '', 
+                    gazetteUrl, 
+                    applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim(), 
+                    isGovernment ? govNoticeType : undefined
+                  )
+                : (isGovernment && (gazetteUrl || govNoticeType)
+                    ? formatRegisteredPostApplyUrl('', '', gazetteUrl, '', govNoticeType)
+                    : null))
+            : (isGovernment && (gazetteUrl || govNoticeType)
+                ? formatRegisteredPostApplyUrl('', '', gazetteUrl, '', govNoticeType)
+                : null)),
       apply_email: applyMethod === 'email' ? applyEmail || null : null,
       apply_phone: applyMethod === 'phone' ? applyPhone || null : null,
       is_government: isGovernment,
@@ -490,11 +501,9 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       thumbnail_url: thumbnailUrl || null,
       official_pdf_url: officialPdfUrl.trim()
         ? officialPdfUrl.trim()
-        : (isGovernment && govNoticeType === 'institutional'
-            ? null
-            : (gazetteUrl.trim()
-                ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
-                : null)),
+        : (gazetteUrl.trim()
+            ? (gazetteUrl.trim().startsWith('http://') || gazetteUrl.trim().startsWith('https://') ? gazetteUrl.trim() : 'https://' + gazetteUrl.trim())
+            : null),
       gallery_images: galleryImages,
       gallery_pdfs: finalGalleryPdfs,
       replaceImages: true,
@@ -931,7 +940,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
 
           <div className="flex items-stretch rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 shadow-xs">
             <span className="inline-flex items-center px-3 text-xs md:text-sm font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 select-none shrink-0">
-              https://jobnews.lk/jobs/
+              https://www.jobnews.lk/jobs/
             </span>
             <input
               type="text"
@@ -959,7 +968,7 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
             <div className="truncate">
               <span className="text-slate-400">Live URL: </span>
               <span className="font-mono text-blue-600 dark:text-blue-400 font-medium">
-                https://jobnews.lk/jobs/{customSlug || (title ? generateJobSlug(title, company) : 'your-job-link')}
+                https://www.jobnews.lk/jobs/{customSlug || (title ? generateJobSlug(title, company) : 'your-job-link')}
               </span>
             </div>
             <span className="text-[11px] text-slate-400 shrink-0">English letters, numbers & hyphens</span>

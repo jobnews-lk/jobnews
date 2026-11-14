@@ -23,7 +23,7 @@ export async function postJobToFacebook(job: Job): Promise<FacebookPostResult> {
     };
   }
 
-  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://jobnews.lk';
+  const siteOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://www.jobnews.lk';
   const jobUrl = `${siteOrigin}${getJobPath(job)}`;
 
   // Build structured, engaging Facebook caption

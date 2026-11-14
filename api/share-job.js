@@ -85,7 +85,7 @@ export default async function handler(req, res) {
       <div style="font-size: 40px; margin-bottom: 16px;">📌</div>
       <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #ffffff; line-height: 1.4;">මෙම රැකියාවේ අයදුම්පත් භාරගැනීම අවසන් වී ඇත</h1>
       <p style="color: #cbd5e1; font-size: 15px; line-height: 1.6; margin-bottom: 28px;">මෙම රැකියා නිවේදනයේ අයදුම්පත් භාරගන්නා අවසන් දිනය පසුවී ඇති බැවින් හෝ ආයතනය විසින් ඉවත් කර ඇති බැවින් මෙම නිවේදනය දැනට සක්‍රීය නැත.</p>
-      <a href="https://jobnews.lk/jobs" style="display: inline-block; padding: 14px 28px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 15px;">🚀 නවතම සක්‍රීය රැකියා බලන්න / View Active Jobs</a>
+      <a href="https://www.jobnews.lk/jobs" style="display: inline-block; padding: 14px 28px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 16px; font-weight: 700; font-size: 15px;">🚀 නවතම සක්‍රීය රැකියා බලන්න / View Active Jobs</a>
     </div>
   </body>
 </html>`);
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
     const rawDesc = job.description || `Official vacancy announcement for ${job.title} at ${job.company || 'JobNews.lk'}. Apply now via JobNews.lk.`;
     const cleanDesc = rawDesc.substring(0, 250).replace(/[\r\n]+/g, ' ').trim();
 
-    let imageUrl = 'https://jobnews.lk/og-banner.png';
+    let imageUrl = 'https://www.jobnews.lk/og-banner.png';
 
     // Pick best image for social card preview
     if (job.job_images && job.job_images.length > 0 && job.job_images[0].url && job.job_images[0].url.startsWith('http')) {
@@ -106,11 +106,11 @@ export default async function handler(req, res) {
       imageUrl = job.official_pdf_url;
     }
 
-    const siteUrl = `https://jobnews.lk/jobs/${job.slug || job.id}`;
+    const siteUrl = `https://www.jobnews.lk/jobs/${job.slug || job.id}`;
     
     // Proxy image URL to bypass Supabase x-robots-tag header blocking WhatsApp preview cards
     const proxyImageUrl = imageUrl.startsWith('http')
-      ? `https://jobnews.lk/api/share-job?img=${encodeURIComponent(imageUrl)}`
+      ? `https://www.jobnews.lk/api/share-job?img=${encodeURIComponent(imageUrl)}`
       : imageUrl;
 
     const jobSchema = {
@@ -132,7 +132,7 @@ export default async function handler(req, res) {
       "hiringOrganization": {
         "@type": "Organization",
         "name": job.company || "Government / Private Organization",
-        "sameAs": "https://jobnews.lk",
+        "sameAs": "https://www.jobnews.lk",
         "logo": proxyImageUrl
       },
       "jobLocation": {

@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /admin/*
+Disallow: /jobs?search=*
 
-Sitemap: https://jobnews.lk/sitemap.xml
+Sitemap: https://www.jobnews.lk/sitemap.xml
