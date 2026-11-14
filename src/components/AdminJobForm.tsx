@@ -219,7 +219,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
   const [postedDate, setPostedDate] = useState(job?.posted_date || getLocalDateString());
   const initialPostData = parseRegisteredPostData(job?.apply_url);
 
-  const [applyMethod, setApplyMethod] = useState<'online' | 'email' | 'in_person' | 'phone' | 'post'>(job?.apply_method || 'online');
+  const [applyMethod, setApplyMethod] = useState<'online' | 'email' | 'in_person' | 'phone' | 'post' | 'dual'>(() => {
+    if ((job?.apply_method as string) === 'dual') return 'dual';
+    if ((job?.apply_method === 'post' || job?.apply_method === 'online') && initialPostData.onlineUrl && (initialPostData.address || job?.apply_address)) {
+      return 'dual';
+    }
+    return (job?.apply_method as any) || 'online';
+  });
   const [applyUrl, setApplyUrl] = useState(() => {
     if (!job?.apply_url) return '';
     return initialPostData.onlineUrl || getDirectApplyUrl(job.apply_url);
@@ -379,8 +385,12 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       setRequirements(job.requirements || '');
       setClosingDate(job.closing_date);
       setPostedDate(job.posted_date);
-      setApplyMethod(job.apply_method);
       const postData = parseRegisteredPostData(job.apply_url);
+      if ((job.apply_method as string) === 'dual' || ((job.apply_method === 'post' || job.apply_method === 'online') && postData.onlineUrl && (postData.address || job.apply_address))) {
+        setApplyMethod('dual');
+      } else {
+        setApplyMethod(job.apply_method as any);
+      }
       setApplyUrl(postData.onlineUrl || (job.apply_url ? getDirectApplyUrl(job.apply_url) : ''));
       setApplyEmail(job.apply_email || '');
       setApplyPhone(job.apply_phone || '');
@@ -466,13 +476,13 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
       requirements: requirements || null,
       closing_date: closingDate,
       posted_date: postedDate,
-      apply_method: applyMethod,
-      apply_url: applyMethod === 'post'
+      apply_method: applyMethod === 'dual' ? 'post' : applyMethod,
+      apply_url: (applyMethod === 'post' || applyMethod === 'dual')
         ? formatRegisteredPostApplyUrl(
             applyInstructions, 
             applyAddress, 
             gazetteUrl, 
-            postOnlineUrl, 
+            applyMethod === 'dual' ? (postOnlineUrl || applyUrl).trim() : (postOnlineUrl.trim() || undefined), 
             isGovernment ? govNoticeType : undefined
           )
         : (applyMethod === 'online'
@@ -1113,30 +1123,161 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
 
       {/* Apply Method */}
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Apply Method *</label>
-        <div className="flex flex-wrap gap-3">
-          {(['online', 'email', 'in_person', 'phone', 'post'] as const).map((m) => (
-            <label key={m} className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="applyMethod" value={m} checked={applyMethod === m} onChange={() => setApplyMethod(m)} className="w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500" />
-              <span className="text-sm text-slate-700">{m === 'online' ? 'Apply Online' : m === 'email' ? 'Apply by Email' : m === 'in_person' ? 'Apply In Person' : m === 'phone' ? 'Phone Number' : '📮 Registered Post (ලියාපදිංචි තැපෑලෙන් / Online සහිතව)'}</span>
+        <label className="block text-sm font-medium text-slate-700 mb-2">Apply Method (අයදුම් කිරීමේ ක්‍රමය) *</label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+          {[
+            { id: 'online', label: '🌐 Apply Online (Online පමණි)', desc: 'වෙබ් අඩවිය හෝ portal එකෙන් පමණක් අයදුම් කිරීමට' },
+            { id: 'post', label: '📮 Registered Post (තැපෑලෙන් පමණි)', desc: 'සාමාන්‍ය රජයේ ගැසට් සහ තැපැල් අයදුම්පත් සඳහා' },
+            { id: 'dual', label: '⚡ Online + Registered Post', desc: 'Online Form පුරවා තැපෑලෙන්ද යැවිය යුතු රැකියා සඳහා' },
+            { id: 'email', label: '📧 Apply by Email', desc: 'CV එක Email මගින් යැවීමට' },
+            { id: 'phone', label: '📞 Phone Number', desc: 'දුරකථනය මගින් සම්බන්ධ වීමට' },
+            { id: 'in_person', label: '🏢 Apply In Person', desc: 'ආයතනයට සෘජුවම පැමිණීමට' },
+          ].map((item) => (
+            <label
+              key={item.id}
+              onClick={() => setApplyMethod(item.id as any)}
+              className={`flex items-start gap-2.5 p-3 rounded-xl border cursor-pointer transition-all ${
+                applyMethod === item.id
+                  ? 'bg-blue-50/80 dark:bg-blue-950/40 border-blue-500 ring-2 ring-blue-500/20 text-blue-900 dark:text-blue-100'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              <input
+                type="radio"
+                name="applyMethod"
+                value={item.id}
+                checked={applyMethod === item.id}
+                onChange={() => setApplyMethod(item.id as any)}
+                className="mt-0.5 w-4 h-4 text-blue-600 border-slate-300 focus:ring-blue-500"
+              />
+              <div className="flex-1 min-w-0">
+                <span className="text-xs sm:text-sm font-bold block">{item.label}</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight block mt-0.5">{item.desc}</span>
+              </div>
             </label>
           ))}
         </div>
+
+        {/* 1. Pure Online */}
         {applyMethod === 'online' && (
           <div className="mt-3">
-            <input type="text" value={applyUrl} onChange={(e) => setApplyUrl(e.target.value)} placeholder="Application URL (e.g. www.doenets.lk or https://...)" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+              Direct Application URL (අයදුම් කිරීමේ Link එක) *
+            </label>
+            <input
+              type="text"
+              value={applyUrl}
+              onChange={(e) => setApplyUrl(e.target.value)}
+              placeholder="Application URL (e.g. www.doenets.lk or https://...)"
+              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            />
           </div>
         )}
+
+        {/* 2. Pure Email */}
         {applyMethod === 'email' && (
           <div className="mt-3">
-            <input type="email" value={applyEmail} onChange={(e) => setApplyEmail(e.target.value)} placeholder="Application email address" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+              Application Email Address (විද්‍යුත් තැපෑල) *
+            </label>
+            <input
+              type="email"
+              value={applyEmail}
+              onChange={(e) => setApplyEmail(e.target.value)}
+              placeholder="Application email address (e.g. careers@company.com)"
+              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
           </div>
         )}
+
+        {/* 3. Pure Phone */}
         {applyMethod === 'phone' && (
           <div className="mt-3">
-            <input type="tel" value={applyPhone} onChange={(e) => setApplyPhone(e.target.value)} placeholder="Phone number" className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
+              Contact Phone Number (දුරකථන අංකය) *
+            </label>
+            <input
+              type="tel"
+              value={applyPhone}
+              onChange={(e) => setApplyPhone(e.target.value)}
+              placeholder="Phone number (e.g. 0112345678)"
+              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
           </div>
         )}
+
+        {/* 4. Dual Apply: Online + Registered Post */}
+        {applyMethod === 'dual' && (
+          <div className="mt-3 space-y-4 bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-blue-50/90 dark:from-slate-800/80 dark:to-slate-800/50 p-4 sm:p-5 rounded-xl border-2 border-blue-300 dark:border-blue-800 shadow-xs">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">
+                ⚡
+              </span>
+              <span className="font-bold text-blue-900 dark:text-blue-300 text-sm">
+                ද්විත්ව පියවර අයදුම්පත (Two-Step Application: Online + Registered Post)
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              මෙම රැකියාව සඳහා අයදුම්කරුවන් පළමුව අන්තර්ජාලය (Online Form) හරහා අයදුම් කර, අනතුරුව ලේඛන ලියාපදිංචි තැපෑලෙන්ද යැවිය යුතුය.
+            </p>
+
+            {/* Step 1: Online Application Portal / Form URL */}
+            <div className="space-y-1 bg-white dark:bg-slate-900 p-3.5 rounded-lg border border-blue-200 dark:border-slate-700">
+              <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>🌐</span>
+                <span>Step 1: Online Application Portal / Form URL (මාර්ගගත අයදුම් Link එක) *</span>
+              </label>
+              <input
+                type="url"
+                value={postOnlineUrl || applyUrl}
+                onChange={(e) => {
+                  setPostOnlineUrl(e.target.value);
+                  setApplyUrl(e.target.value);
+                }}
+                placeholder="e.g. https://script.google.com/... හෝ ආයතනික Online Application Form Link එක"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+              />
+              <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
+                ℹ️ අයදුම්කරුට මෙම Link එක හරහා කෙලින්ම Form එක පිරවිය හැක.
+              </p>
+            </div>
+
+            {/* Step 2: Postal Address */}
+            <div className="space-y-1 bg-white dark:bg-slate-900 p-3.5 rounded-lg border border-blue-200 dark:border-slate-700">
+              <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>📮</span>
+                <span>Step 2: Exact Postal Address (ලියාපදිංචි තැපැල් ලිපිනය පමණක්) *</span>
+              </label>
+              <textarea
+                value={applyAddress}
+                onChange={(e) => setApplyAddress(e.target.value)}
+                rows={3}
+                placeholder="e.g. සාමාන්‍යාධිකාරී, සී/ස අධ්‍යාපන සේවා නියුක්තිකයින්ගේ සමුපකාර සමිතිය, අංක 123..."
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm font-medium"
+              />
+              <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
+                ✅ පරිශීලකයා "Copy Address" ක්ලික් කළ විට Copy වන්නේ මෙහි ඇති ලිපිනය පමණි.
+              </p>
+            </div>
+
+            {/* Step 3: Instructions / Notes */}
+            <div className="space-y-1 bg-white dark:bg-slate-900 p-3.5 rounded-lg border border-blue-200 dark:border-slate-700">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>📋</span>
+                <span>Step 3: Special Instructions / Notes (විශේෂ උපදෙස්/සටහන් - optional)</span>
+              </label>
+              <textarea
+                value={applyInstructions}
+                onChange={(e) => setApplyInstructions(e.target.value)}
+                rows={2}
+                placeholder="e.g. අන්තර්ජාලය හරහා අයදුම් කර, එහි මුද්‍රිත පිටපත සහ සහතිකපත්වල සහතික කළ පිටපත් ලියාපදිංචි තැපෑලෙන් එවිය යුතුය."
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* 5. Pure Registered Post */}
         {applyMethod === 'post' && (
           <div className="mt-3 space-y-4 bg-blue-50/60 dark:bg-slate-800/40 p-4 rounded-xl border border-blue-200 dark:border-slate-800">
             <div className="space-y-1">
@@ -1168,24 +1309,6 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
               />
               <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium">
                 ✅ පරිශීලකයා "Copy Address" Button එක ක්ලික් කළ විට Copy වන්නේ මෙහි ඇති ලිපිනය පමණි!
-              </p>
-            </div>
-
-            {/* 🌐 3. Online Application Form / Portal Link (Optional) */}
-            <div className="space-y-1 pt-3 border-t border-blue-200 dark:border-slate-700">
-              <label className="block text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>🌐</span>
-                <span>3. Online Application Form / Portal Link (Optional - මාර්ගගතවද අයදුම් කිරීමට Link එකක් ඇත්නම් මෙහි දමන්න)</span>
-              </label>
-              <input
-                type="url"
-                value={postOnlineUrl}
-                onChange={(e) => setPostOnlineUrl(e.target.value)}
-                placeholder="e.g. https://script.google.com/... හෝ ආයතනික Online Application Form Link එක"
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white bg-white dark:bg-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
-              />
-              <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium italic">
-                ℹ️ මෙහි Link එකක් දැමූ විට, Job Page එකෙහි "පියවර 01: මාර්ගගතව අයදුම් කරන්න (Online Form)" සහ "පියවර 02: ලියාපදිංචි තැපෑලෙන් ලේඛන යොමු කරන්න" ලෙස පියවර දෙකම පැහැදිලිව පෙනෙනු ඇත.
               </p>
             </div>
           </div>

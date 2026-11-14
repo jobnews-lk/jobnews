@@ -455,6 +455,18 @@ export function getDirectApplyUrl(applyUrl?: string | null): string {
 }
 
 /**
+ * Checks whether a job requires a 2-step dual application (both Online and Registered Post).
+ */
+export function isDualApplyJob(job: Job): boolean {
+  if ((job.apply_method as string) === 'dual') return true;
+  const parsed = parseRegisteredPostData(job.apply_url);
+  if (job.apply_method === 'post' || job.apply_method === 'online') {
+    return Boolean(parsed.onlineUrl && (parsed.address || job.apply_address || parsed.instructions));
+  }
+  return false;
+}
+
+/**
  * Checks whether a government job originated from the Official Government Gazette (documents.gov.lk)
  * or if it is an Institutional / Semi-Government / Newspaper Notice.
  */

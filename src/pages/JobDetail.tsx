@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check, ShieldAlert } from 'lucide-react';
-import { supabase, parseRegisteredPostData, isGazetteJob, getDirectApplyUrl, type Job } from '../lib/supabase';
+import { ArrowLeft, MapPin, Building2, Calendar, FileText, ImageIcon, Type, Clock, Globe, Landmark, Download, ExternalLink, Mail, Phone, ChevronLeft, ChevronRight, X, ZoomIn, Eye, MessageCircle, Copy, Check, ShieldAlert, ChevronDown, AlertCircle } from 'lucide-react';
+import { supabase, parseRegisteredPostData, isGazetteJob, getDirectApplyUrl, isDualApplyJob, type Job } from '../lib/supabase';
 import { extractJobIdentifier, getJobPath, isUuid } from '../lib/slugUtils';
 import SaveJobButton from '../components/SaveJobButton';
 import ShareButtons from '../components/ShareButtons';
@@ -607,6 +607,161 @@ export default function JobDetail() {
             <div className="mt-4">
               <ShareButtons title={job.title} company={job.company} />
             </div>
+
+            {/* Quick Apply / Top Action Bar */}
+            <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
+              {isExpired ? (
+                <div className="p-3.5 sm:p-4 rounded-xl bg-red-50/90 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 text-red-700 dark:text-red-400 min-w-0">
+                    <AlertCircle className="w-5 h-5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-bold leading-tight">මෙම රැකියාවේ අයදුම්පත් භාරගැනීම අවසන් වී ඇත</p>
+                      <p className="text-xs text-red-600/80 dark:text-red-400/80 mt-0.5">Application deadline for this position has passed.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('how-to-apply')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white underline underline-offset-4 self-start sm:self-auto shrink-0"
+                  >
+                    View Details
+                  </button>
+                </div>
+              ) : isDualApplyJob(job) ? (
+                <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-blue-50/90 via-indigo-50/60 to-blue-50/90 dark:from-slate-800/90 dark:via-blue-950/40 dark:to-slate-800/90 border-2 border-blue-300 dark:border-blue-800 shadow-xs">
+                  <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black shadow-xs shrink-0">
+                        ⚡
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-blue-950 dark:text-blue-200 leading-tight">
+                        ද්විත්ව පියවර අයදුම්පත (Online + Registered Post)
+                      </span>
+                    </div>
+                    <span className="shrink-0 text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/60 px-2 py-0.5 rounded-md">
+                      පියවර 2ම අනිවාර්යයි
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Step 1: Open Online Form */}
+                    <a
+                      href={getDirectApplyUrl(job.apply_url)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm rounded-xl shadow-sm transition-all hover:shadow-md transform active:scale-[0.99] text-center w-full"
+                    >
+                      <span>🚀 Step 1: Apply Online (Form එක)</span>
+                      <ExternalLink className="w-4 h-4 shrink-0" />
+                    </a>
+
+                    {/* Step 2: Jump to Postal Address & Details */}
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('how-to-apply')?.scrollIntoView({ behavior: 'smooth' })}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 font-bold text-sm rounded-xl border border-blue-300 dark:border-slate-700 shadow-2xs transition-all text-center w-full"
+                    >
+                      <span>📮 Step 2: තැපැල් ලිපිනය & උපදෙස්</span>
+                      <ChevronDown className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                    </button>
+                  </div>
+                </div>
+              ) : job.apply_method === 'online' && job.apply_url ? (
+                <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block">
+                      Direct Online Application
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium mt-0.5">
+                      නිල වෙබ් අඩවිය හෝ Application Portal හරහා මාර්ගගතව අයදුම් කරන්න.
+                    </p>
+                  </div>
+                  <a
+                    href={getDirectApplyUrl(job.apply_url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm rounded-xl shadow-sm transition-all hover:shadow-md w-full sm:w-auto shrink-0 text-center"
+                  >
+                    <span>Apply Online</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              ) : job.apply_method === 'post' ? (
+                <div className="p-3.5 sm:p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wider block">
+                      Registered Post (ලියාපදිංචි තැපෑලෙන්)
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium mt-0.5">
+                      අයදුම්පත් සහ අදාළ ලේඛන ලියාපදිංචි තැපෑලෙන් යොමු කළ යුතුය.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('how-to-apply')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold text-sm rounded-xl shadow-sm transition-all w-full sm:w-auto shrink-0 text-center"
+                  >
+                    <span>තැපැල් ලිපිනය බලන්න</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : job.apply_method === 'email' && job.apply_email ? (
+                <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block">
+                      Apply via Email (විද්‍යුත් තැපෑලෙන්)
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium mt-0.5">
+                      CV සහ අයදුම්පත විද්‍යුත් තැපෑල ({job.apply_email}) මගින් යොමු කරන්න.
+                    </p>
+                  </div>
+                  <a
+                    href={`mailto:${job.apply_email}`}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all w-full sm:w-auto shrink-0 text-center"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span>Send Email</span>
+                  </a>
+                </div>
+              ) : job.apply_method === 'phone' && job.apply_phone ? (
+                <div className="p-3.5 sm:p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider block">
+                      Apply via Phone (දුරකථනය මගින්)
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium mt-0.5">
+                      වැඩිදුර තොරතුරු සහ අයදුම් කිරීමට අමතන්න: {job.apply_phone}
+                    </p>
+                  </div>
+                  <a
+                    href={`tel:${job.apply_phone}`}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-sm transition-all w-full sm:w-auto shrink-0 text-center"
+                  >
+                    <Phone className="w-4 h-4" />
+                    <span>Call Now</span>
+                  </a>
+                </div>
+              ) : job.apply_method === 'in_person' ? (
+                <div className="p-3.5 sm:p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">
+                      Apply In Person (සෘජුවම පැමිණෙන්න)
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium mt-0.5">
+                      අදාළ ආයතනය වෙත සෘජුවම පැමිණ අයදුම්පත භාර දෙන්න.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('how-to-apply')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm rounded-xl shadow-sm transition-all w-full sm:w-auto shrink-0 text-center"
+                  >
+                    <span>විස්තර බලන්න</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -905,10 +1060,10 @@ export default function JobDetail() {
         </div>
 
         {/* How to Apply */}
-        <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-900/30 p-6 md:p-8 transition-colors">
+        <div id="how-to-apply" className="bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-900/30 p-6 md:p-8 transition-colors scroll-mt-24">
           <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">How to Apply</h2>
           <div className="space-y-3">
-            {job.apply_method === 'online' && job.apply_url && (
+            {!isDualApplyJob(job) && job.apply_method === 'online' && job.apply_url && (
               <div>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">Apply online through the official application portal.</p>
                 <a href={getDirectApplyUrl(job.apply_url)} target="_blank" rel="noopener noreferrer"
@@ -917,7 +1072,7 @@ export default function JobDetail() {
                 </a>
               </div>
             )}
-            {job.apply_method === 'email' && job.apply_email && (
+            {!isDualApplyJob(job) && job.apply_method === 'email' && job.apply_email && (
               <div>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">Send your application via email to the address below.</p>
                 <div className="inline-flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/50 rounded-xl text-blue-700 dark:text-blue-400 font-semibold transition-colors">
@@ -929,7 +1084,7 @@ export default function JobDetail() {
                 </a>
               </div>
             )}
-            {job.apply_method === 'phone' && job.apply_phone && (
+            {!isDualApplyJob(job) && job.apply_method === 'phone' && job.apply_phone && (
               <div>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">Contact the organization via phone for application details.</p>
                 <div className="inline-flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/50 rounded-xl text-blue-700 dark:text-blue-400 font-semibold transition-colors">
@@ -937,7 +1092,7 @@ export default function JobDetail() {
                 </div>
               </div>
             )}
-            {job.apply_method === 'in_person' && (
+            {!isDualApplyJob(job) && job.apply_method === 'in_person' && (
               <div>
                 <p className="text-slate-600 dark:text-slate-400 mb-3">Submit your application in person at the specified location.</p>
                 <div className="inline-flex items-center gap-2 px-5 py-3 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/50 rounded-xl text-blue-700 dark:text-blue-400 font-semibold transition-colors">
@@ -945,7 +1100,7 @@ export default function JobDetail() {
                 </div>
               </div>
             )}
-            {job.apply_method === 'post' && (() => {
+            {(isDualApplyJob(job) || job.apply_method === 'post') && (() => {
               const parsedPostData = parseRegisteredPostData(job.apply_url);
               const displayAddress = job.apply_address || parsedPostData.address;
               const displayInstructions = parsedPostData.instructions;
