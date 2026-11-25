@@ -377,44 +377,48 @@ export function parseRegisteredPostData(applyUrl?: string | null): {
   let onlineUrl = '';
   let govType: 'gazette' | 'institutional' | null = null;
 
-  if (str.includes('\n---\n')) {
-    const blocks = str.split('\n---\n');
-    for (const b of blocks) {
-      const trimmed = b.trim();
-      if (trimmed.startsWith('POSTAL_ADDRESS:\n')) {
-        address = trimmed.replace('POSTAL_ADDRESS:\n', '').trim();
-      } else if (trimmed.startsWith('SOURCE_URL:\n')) {
-        sourceUrl = trimmed.replace('SOURCE_URL:\n', '').trim();
-      } else if (trimmed.startsWith('ONLINE_URL:\n')) {
-        onlineUrl = trimmed.replace('ONLINE_URL:\n', '').trim();
-      } else if (trimmed.startsWith('GOV_TYPE:\n')) {
-        const val = trimmed.replace('GOV_TYPE:\n', '').trim().toLowerCase();
-        if (val === 'institutional' || val === 'gazette') {
-          govType = val;
-        }
-      } else {
-        instructions = trimmed;
+  // Split by delimiter blocks if present, or evaluate single block
+  const blocks = str.includes('\n---\n') ? str.split('\n---\n') : [str];
+  const unhandledBlocks: string[] = [];
+
+  for (const b of blocks) {
+    const trimmed = b.trim();
+    if (!trimmed) continue;
+
+    if (trimmed.startsWith('POSTAL_ADDRESS:\n')) {
+      address = trimmed.replace('POSTAL_ADDRESS:\n', '').trim();
+    } else if (trimmed.startsWith('SOURCE_URL:\n')) {
+      sourceUrl = trimmed.replace('SOURCE_URL:\n', '').trim();
+    } else if (trimmed.startsWith('ONLINE_URL:\n')) {
+      onlineUrl = trimmed.replace('ONLINE_URL:\n', '').trim();
+    } else if (trimmed.startsWith('GOV_TYPE:\n')) {
+      const val = trimmed.replace('GOV_TYPE:\n', '').trim().toLowerCase();
+      if (val === 'institutional' || val === 'gazette') {
+        govType = val;
       }
+    } else if (trimmed.includes('POSTAL_ADDRESS:\n')) {
+      const parts = trimmed.split('POSTAL_ADDRESS:\n');
+      if (parts[0].trim()) instructions = parts[0].trim();
+      address = parts[1].trim();
+    } else if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      if (!onlineUrl) onlineUrl = trimmed;
+    } else {
+      unhandledBlocks.push(trimmed);
     }
-    return { instructions, address, sourceUrl, onlineUrl, govType };
   }
 
-  if (str.includes('POSTAL_ADDRESS:\n')) {
-    const parts = str.split('POSTAL_ADDRESS:\n');
-    return { instructions: parts[0].trim(), address: parts[1].trim(), sourceUrl: '', onlineUrl: '', govType: null };
+  if (unhandledBlocks.length > 0) {
+    const remaining = unhandledBlocks.join('\n\n').trim();
+    if (remaining.includes('පියවර') || remaining.includes('සඳහා') || remaining.includes('අයදුම්පත') || remaining.includes('විශේෂ')) {
+      instructions = instructions ? `${instructions}\n\n${remaining}` : remaining;
+    } else if (!address) {
+      address = remaining;
+    } else if (!instructions) {
+      instructions = remaining;
+    }
   }
 
-  // Raw web URL check: it is an online apply URL, NEVER a gazette/source URL!
-  if (str.startsWith('http://') || str.startsWith('https://')) {
-    return { instructions: '', address: '', sourceUrl: '', onlineUrl: str, govType: null };
-  }
-
-  // If text contains application steps/notes
-  if (str.includes('පියවර') || str.includes('සඳහා') || str.includes('අයදුම්පත') || str.includes('විශේෂ')) {
-    return { instructions: str, address: '', sourceUrl: '', onlineUrl: '', govType: null };
-  }
-
-  return { instructions: '', address: str, sourceUrl: '', onlineUrl: '', govType: null };
+  return { instructions, address, sourceUrl, onlineUrl, govType };
 }
 
 /**
@@ -431,6 +435,12 @@ export function formatRegisteredPostApplyUrl(
   const cleanAddr = address.trim();
   const cleanSrc = sourceUrl?.trim() || '';
   const cleanOnline = onlineUrl?.trim() || '';
+
+  // If this is purely an online URL without any postal address, instructions, sourceUrl, or govType:
+  // Store it as a direct clean URL! That guarantees 100% backward & forward compatibility with any external script/bot/table.
+  if (cleanOnline && !cleanInst && !cleanAddr && !cleanSrc && !govType) {
+    return cleanOnline;
+  }
 
   const parts: string[] = [];
   if (cleanInst) parts.push(cleanInst);
@@ -451,6 +461,7 @@ export function getDirectApplyUrl(applyUrl?: string | null): string {
   if (parsed.onlineUrl) return parsed.onlineUrl;
   const first = applyUrl.split('\n---\n')[0].trim();
   if (first.startsWith('http://') || first.startsWith('https://')) return first;
+  if (first.startsWith('ONLINE_URL:\n')) return first.replace('ONLINE_URL:\n', '').trim();
   return '';
 }
 

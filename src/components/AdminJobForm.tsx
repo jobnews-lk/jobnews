@@ -487,13 +487,15 @@ export default function AdminJobForm({ job, countries, categories, onSubmit, onC
           )
         : (applyMethod === 'online'
             ? (applyUrl.trim()
-                ? formatRegisteredPostApplyUrl(
-                    '', 
-                    '', 
-                    gazetteUrl, 
-                    applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim(), 
-                    isGovernment ? govNoticeType : undefined
-                  )
+                ? (isGovernment || gazetteUrl.trim()
+                    ? formatRegisteredPostApplyUrl(
+                        '', 
+                        '', 
+                        gazetteUrl, 
+                        applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim(), 
+                        isGovernment ? govNoticeType : undefined
+                      )
+                    : (applyUrl.trim().startsWith('http://') || applyUrl.trim().startsWith('https://') ? applyUrl.trim() : 'https://' + applyUrl.trim()))
                 : (isGovernment && (gazetteUrl || govNoticeType)
                     ? formatRegisteredPostApplyUrl('', '', gazetteUrl, '', govNoticeType)
                     : null))
