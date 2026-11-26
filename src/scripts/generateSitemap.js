@@ -35,16 +35,16 @@ async function run() {
   const today = new Date().toISOString().split('T')[0];
 
   const staticPages = [
-    { loc: 'https://jobnews.lk/', priority: '1.0', changefreq: 'daily' },
-    { loc: 'https://jobnews.lk/jobs', priority: '0.9', changefreq: 'daily' },
-    { loc: 'https://jobnews.lk/government-jobs', priority: '0.9', changefreq: 'daily' },
-    { loc: 'https://jobnews.lk/private-jobs', priority: '0.8', changefreq: 'daily' },
-    { loc: 'https://jobnews.lk/overseas-jobs', priority: '0.8', changefreq: 'daily' },
-    { loc: 'https://jobnews.lk/create-cv', priority: '0.7', changefreq: 'weekly' },
-    { loc: 'https://jobnews.lk/about', priority: '0.6', changefreq: 'monthly' },
-    { loc: 'https://jobnews.lk/contact', priority: '0.6', changefreq: 'monthly' },
-    { loc: 'https://jobnews.lk/privacy-policy', priority: '0.5', changefreq: 'monthly' },
-    { loc: 'https://jobnews.lk/terms', priority: '0.5', changefreq: 'monthly' }
+    { loc: 'https://www.jobnews.lk/', priority: '1.0', changefreq: 'daily' },
+    { loc: 'https://www.jobnews.lk/jobs', priority: '0.9', changefreq: 'daily' },
+    { loc: 'https://www.jobnews.lk/government-jobs', priority: '0.9', changefreq: 'daily' },
+    { loc: 'https://www.jobnews.lk/private-jobs', priority: '0.8', changefreq: 'daily' },
+    { loc: 'https://www.jobnews.lk/overseas-jobs', priority: '0.8', changefreq: 'daily' },
+    { loc: 'https://www.jobnews.lk/create-cv', priority: '0.7', changefreq: 'weekly' },
+    { loc: 'https://www.jobnews.lk/about', priority: '0.6', changefreq: 'monthly' },
+    { loc: 'https://www.jobnews.lk/contact', priority: '0.6', changefreq: 'monthly' },
+    { loc: 'https://www.jobnews.lk/privacy-policy', priority: '0.5', changefreq: 'monthly' },
+    { loc: 'https://www.jobnews.lk/terms', priority: '0.5', changefreq: 'monthly' }
   ];
 
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -61,7 +61,7 @@ async function run() {
 
   for (const job of jobs) {
     const jobSlug = job.slug || job.id;
-    const jobUrl = `https://jobnews.lk/jobs/${jobSlug}`;
+    const jobUrl = `https://www.jobnews.lk/jobs/${jobSlug}`;
     const dateStr = (job.posted_date || job.created_at || today).split('T')[0];
     xml += '  <url>\n';
     xml += `    <loc>${jobUrl}</loc>\n`;
